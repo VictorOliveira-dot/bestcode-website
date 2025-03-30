@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Upload, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 
 const Enrollment = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -33,7 +34,13 @@ const Enrollment = () => {
     cpf: "",
     phone: "",
     whatsapp: "",
-    address: ""
+    address: "",
+    education: "",
+    professionalArea: "",
+    experienceLevel: "",
+    studyAvailability: "",
+    goals: "",
+    referral: ""
   });
   
   const totalSteps = 3;
@@ -61,14 +68,30 @@ const Enrollment = () => {
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      // Redirect to student dashboard would happen here
-      window.location.href = "/student/dashboard";
-    }, 2000);
+    // For the final step, validate required fields
+    if (currentStep === totalSteps) {
+      // Check if required fields for the last step are filled
+      const requiredStep3Fields = ['education', 'professionalArea', 'experienceLevel', 'studyAvailability'];
+      const missingFields = requiredStep3Fields.filter(field => !formData[field as keyof typeof formData]);
+      
+      if (missingFields.length > 0) {
+        toast.error("Por favor, preencha todos os campos obrigatórios");
+        return;
+      }
+      
+      setIsSubmitting(true);
+      
+      // Simulate form submission
+      setTimeout(() => {
+        setIsSubmitting(false);
+        // Redirect to student dashboard would happen here
+        window.location.href = "/student/dashboard";
+      }, 2000);
+    } else {
+      // If not the final step, just go to the next step
+      goToNextStep();
+    }
   };
 
   return (
@@ -288,7 +311,7 @@ const Enrollment = () => {
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="education">Nível de escolaridade</Label>
-                      <Select>
+                      <Select onValueChange={(value) => handleInputChange('education', value)}>
                         <SelectTrigger id="education">
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
@@ -305,7 +328,7 @@ const Enrollment = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="professional-area">Área profissional atual</Label>
-                      <Select>
+                      <Select onValueChange={(value) => handleInputChange('professionalArea', value)}>
                         <SelectTrigger id="professional-area">
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
@@ -324,7 +347,7 @@ const Enrollment = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="experience-level">Experiência com QA</Label>
-                      <Select>
+                      <Select onValueChange={(value) => handleInputChange('experienceLevel', value)}>
                         <SelectTrigger id="experience-level">
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
@@ -339,7 +362,7 @@ const Enrollment = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="study-availability">Disponibilidade para estudo</Label>
-                      <Select>
+                      <Select onValueChange={(value) => handleInputChange('studyAvailability', value)}>
                         <SelectTrigger id="study-availability">
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
@@ -358,12 +381,14 @@ const Enrollment = () => {
                         id="goals" 
                         placeholder="Conte-nos quais são seus objetivos ao fazer este curso"
                         rows={4}
+                        value={formData.goals}
+                        onChange={(e) => handleInputChange('goals', e.target.value)}
                       />
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="referral">Como conheceu a BestCode?</Label>
-                      <Select>
+                      <Select onValueChange={(value) => handleInputChange('referral', value)}>
                         <SelectTrigger id="referral">
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
