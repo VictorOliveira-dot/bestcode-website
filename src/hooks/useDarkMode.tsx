@@ -2,15 +2,7 @@
 import { useState, useEffect } from 'react';
 
 export function useDarkMode() {
-  const [theme, setTheme] = useState(() => {
-    // Check if theme is stored in localStorage
-    const storedTheme = localStorage.getItem('theme');
-    // Check if the user has a system preference for dark mode
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    // Return stored preference or system preference
-    return storedTheme || (prefersDark ? 'dark' : 'light');
-  });
+  const [theme, setTheme] = useState('light');
 
   const toggleTheme = () => {
     setTheme(prevTheme => {
@@ -21,13 +13,13 @@ export function useDarkMode() {
   };
 
   useEffect(() => {
+    // Remove dark mode class if it exists
     const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, [theme]);
+    root.classList.remove('dark');
+    
+    // Ensure we're using light theme
+    localStorage.setItem('theme', 'light');
+  }, []);
 
   return { theme, toggleTheme };
 }
