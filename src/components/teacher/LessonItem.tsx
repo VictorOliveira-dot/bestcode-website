@@ -2,6 +2,17 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Video, Calendar, Users, BookOpen } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface LessonItemProps {
   lesson: {
@@ -49,14 +60,32 @@ const LessonItem: React.FC<LessonItemProps> = ({ lesson, onDelete }) => {
         >
           Ver
         </Button>
-        <Button 
-          variant="destructive" 
-          size="sm"
-          className="w-full sm:w-auto"
-          onClick={() => onDelete(lesson.id)}
-        >
-          Excluir
-        </Button>
+        
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              className="w-full sm:w-auto"
+            >
+              Excluir
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir a aula "{lesson.title}"? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => onDelete(lesson.id)}>
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
