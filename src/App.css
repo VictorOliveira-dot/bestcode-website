@@ -1,11 +1,8 @@
-
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-  background-color: black;
-  color: white;
 }
 
 .logo {
@@ -14,11 +11,9 @@
   will-change: filter;
   transition: filter 300ms;
 }
-
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
-
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -40,10 +35,8 @@
 
 .card {
   padding: 2em;
-  background-color: #111;
-  color: white;
 }
 
 .read-the-docs {
-  color: #ccc;
+  color: #888;
 }

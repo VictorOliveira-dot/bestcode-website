@@ -64,7 +64,7 @@ const PaymentForm = ({
 
       <Button 
         type="submit" 
-        className="w-full bg-gray-800 hover:bg-gray-700 mt-6" 
+        className="w-full bg-bestcode-600 hover:bg-bestcode-700 mt-6" 
         size="lg"
         disabled={isProcessing}
       >
@@ -73,7 +73,7 @@ const PaymentForm = ({
       
       <p className="text-sm text-gray-500 text-center mt-4">
         Ao finalizar sua compra, você concorda com nossos{" "}
-        <Link to="/terms" className="text-gray-700 hover:text-gray-900">
+        <Link to="/terms" className="text-bestcode-600 hover:text-bestcode-800">
           termos de serviço
         </Link>
       </p>

@@ -37,17 +37,17 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 }) => {
   return (
     <div className="mt-8">
-      <Card className="bg-black border-gray-700">
+      <Card>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <CardTitle className="text-white">Painel de Gestão</CardTitle>
-            <CardDescription className="text-gray-400">Gerenciamento completo do curso</CardDescription>
+            <CardTitle>Painel de Gestão</CardTitle>
+            <CardDescription>Gerenciamento completo do curso</CardDescription>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             {activeTab === "lessons" && (
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2 w-full sm:w-auto bg-transparent text-white border-gray-700 hover:bg-gray-800"
+                className="flex items-center gap-2 w-full sm:w-auto"
                 onClick={() => setIsAddLessonOpen(true)}
               >
                 <Video className="h-4 w-4" />
@@ -57,8 +57,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             {activeTab === "classes" && (
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2 w-full sm:w-auto bg-transparent text-white border-gray-700 hover:bg-gray-800"
-                onClick={() => setActiveTab("classes")}
+                className="flex items-center gap-2 w-full sm:w-auto"
+                onClick={() => {}} // This button wasn't doing anything
               >
                 <Users className="h-4 w-4" />
                 Gerenciar Turmas
@@ -66,12 +66,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             )}
           </div>
         </CardHeader>
-        <CardContent className="bg-black text-white">
+        <CardContent>
           <Tabs defaultValue="lessons" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4 w-full sm:w-auto flex flex-col sm:flex-row gap-2 sm:gap-0 bg-gray-900">
-              <TabsTrigger value="lessons" className="w-full sm:w-auto text-gray-300 data-[state=active]:bg-gray-800 data-[state=active]:text-white">Aulas</TabsTrigger>
-              <TabsTrigger value="classes" className="w-full sm:w-auto text-gray-300 data-[state=active]:bg-gray-800 data-[state=active]:text-white">Turmas</TabsTrigger>
-              <TabsTrigger value="students" className="w-full sm:w-auto text-gray-300 data-[state=active]:bg-gray-800 data-[state=active]:text-white">Alunos</TabsTrigger>
+            <TabsList className="mb-4 w-full sm:w-auto flex flex-col sm:flex-row gap-2 sm:gap-0">
+              <TabsTrigger value="lessons" className="w-full sm:w-auto">Aulas</TabsTrigger>
+              <TabsTrigger value="classes" className="w-full sm:w-auto">Turmas</TabsTrigger>
+              <TabsTrigger value="students" className="w-full sm:w-auto">Alunos</TabsTrigger>
             </TabsList>
             
             <TabsContent value="lessons">
