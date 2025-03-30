@@ -11,6 +11,9 @@ import Register from "./pages/Register";
 import Checkout from "./pages/Checkout";
 import Enrollment from "./pages/Enrollment";
 import StudentDashboard from "./pages/student/Dashboard";
+import StudentCourseList from "./pages/student/CourseList";
+import StudentSchedule from "./pages/student/Schedule";
+import StudentProgressDetails from "./pages/student/ProgressDetails";
 import TeacherDashboard from "./pages/teacher/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +35,9 @@ const App = () => {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/enrollment" element={<Enrollment />} />
               <Route path="/student/dashboard" element={<StudentDashboard />} />
+              <Route path="/student/courses" element={<StudentCourseList />} />
+              <Route path="/student/schedule" element={<StudentSchedule />} />
+              <Route path="/student/progress" element={<StudentProgressDetails />} />
               <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import StudentLessonsPanel from "@/components/student/StudentLessonsPanel";
 import StudentNotifications from "@/components/student/StudentNotifications";
+import { ChevronRight } from "lucide-react";
 
 // Types
 interface Lesson {
@@ -171,9 +172,9 @@ const StudentDashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white shadow py-4">
-        <div className="container-custom flex justify-between items-center">
+        <div className="container-custom flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
           <h1 className="text-2xl font-bold text-bestcode-800">Painel do Aluno</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <span className="text-gray-600">Olá, {user.name}</span>
             <Button variant="outline" onClick={handleLogout}>Sair</Button>
           </div>
@@ -181,7 +182,7 @@ const StudentDashboard = () => {
       </header>
 
       <main className="container-custom py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader>
               <CardTitle>Meus Cursos</CardTitle>
@@ -189,7 +190,12 @@ const StudentDashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">2 cursos</p>
-              <Button className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700">Ver Cursos</Button>
+              <Link to="/student/courses">
+                <Button className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700 flex items-center justify-center gap-1">
+                  Ver Cursos
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -200,7 +206,12 @@ const StudentDashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{inProgressLessons} em andamento</p>
-              <Button className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700">Ver Agenda</Button>
+              <Link to="/student/schedule">
+                <Button className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700 flex items-center justify-center gap-1">
+                  Ver Agenda
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -214,13 +225,18 @@ const StudentDashboard = () => {
               <p className="text-sm text-gray-600 mb-2">
                 {completedLessons} de {availableLessons} aulas concluídas
               </p>
-              <Button className="mt-2 w-full bg-bestcode-600 hover:bg-bestcode-700">Ver Detalhes</Button>
+              <Link to="/student/progress">
+                <Button className="mt-2 w-full bg-bestcode-600 hover:bg-bestcode-700 flex items-center justify-center gap-1">
+                  Ver Detalhes
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
             <StudentLessonsPanel
               lessons={lessons}
               studentClass={studentClass}

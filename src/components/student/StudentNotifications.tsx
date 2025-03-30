@@ -37,16 +37,16 @@ const StudentNotifications: React.FC<StudentNotificationsProps> = ({
       </CardHeader>
       <CardContent>
         {sortedNotifications.length > 0 ? (
-          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+          <div className="space-y-3 max-h-[350px] sm:max-h-[400px] overflow-y-auto pr-2">
             {sortedNotifications.map(notification => (
               <div 
                 key={notification.id}
                 className={`p-3 border rounded-md ${notification.read ? 'bg-gray-50' : 'bg-white border-l-4 border-l-bestcode-600'}`}
                 onClick={() => !notification.read && onMarkAsRead(notification.id)}
               >
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                   <h4 className="font-medium">{notification.title}</h4>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 sm:ml-2 flex-shrink-0">
                     {new Date(notification.date).toLocaleDateString('pt-BR')}
                   </span>
                 </div>

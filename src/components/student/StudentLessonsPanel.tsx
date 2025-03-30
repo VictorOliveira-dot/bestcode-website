@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StudentLessonItem from "./StudentLessonItem";
 import VideoPlayerModal from "./VideoPlayerModal";
 import { toast } from "@/hooks/use-toast";
-import { Bell } from "lucide-react";
 
 interface Lesson {
   id: string;
@@ -105,13 +104,13 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <h2 className="text-xl font-bold">Minhas Aulas</h2>
         <div className="text-sm text-gray-500">Turma: {studentClass}</div>
       </div>
       
       <Tabs defaultValue="recent">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 w-full overflow-x-auto flex flex-nowrap">
           <TabsTrigger value="recent">Continuar Assistindo</TabsTrigger>
           <TabsTrigger value="not_started">Não Iniciadas</TabsTrigger>
           <TabsTrigger value="completed">Concluídas</TabsTrigger>

@@ -37,24 +37,24 @@ const StudentLessonItem: React.FC<StudentLessonItemProps> = ({
   return (
     <div className="p-4 border rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow">
       <div className="flex items-center gap-2 mb-2">
-        <Video className="h-4 w-4 text-bestcode-600" />
-        <h3 className="font-semibold">{lesson.title}</h3>
+        <Video className="h-4 w-4 text-bestcode-600 flex-shrink-0" />
+        <h3 className="font-semibold line-clamp-1">{lesson.title}</h3>
       </div>
       
-      <p className="text-sm text-gray-600 mb-3">{lesson.description}</p>
+      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{lesson.description}</p>
       
       <div className="flex flex-wrap gap-3 mb-3 text-xs text-gray-500">
         <span className="flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
+          <Calendar className="h-3 w-3 flex-shrink-0" />
           {new Date(lesson.date).toLocaleDateString('pt-BR')}
         </span>
         <span className="flex items-center gap-1">
-          <Users className="h-3 w-3" />
+          <Users className="h-3 w-3 flex-shrink-0" />
           Turma: {lesson.class}
         </span>
         {progress.lastWatched && (
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
+          <span className="flex items-center gap-1 w-full sm:w-auto mt-1 sm:mt-0">
+            <Clock className="h-3 w-3 flex-shrink-0" />
             Último acesso: {new Date(progress.lastWatched).toLocaleDateString('pt-BR')}
           </span>
         )}
