@@ -58,7 +58,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2 w-full sm:w-auto"
-                onClick={() => setActiveTab("classes")}
+                onClick={() => {}} // This button wasn't doing anything
               >
                 <Users className="h-4 w-4" />
                 Gerenciar Turmas
