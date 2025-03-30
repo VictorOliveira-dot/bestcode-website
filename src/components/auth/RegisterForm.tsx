@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   Card, 
   CardContent, 
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,8 @@ const RegisterForm = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,7 +34,20 @@ const RegisterForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreeTerms) {
-      alert("Você precisa concordar com os termos para continuar.");
+      toast({
+        title: "Termos e condições",
+        description: "Você precisa concordar com os termos para continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Erro na senha",
+        description: "As senhas não coincidem. Por favor, verifique.",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -41,7 +57,26 @@ const RegisterForm = () => {
     setTimeout(() => {
       console.log("Registration with:", formData);
       setIsLoading(false);
-      // Redirect would happen here after successful registration
+      
+      // Show success toast
+      toast({
+        title: "Conta criada com sucesso!",
+        description: "Redirecionando para o checkout...",
+        variant: "default",
+      });
+      
+      // Store basic user data in localStorage (in a real app, this would use proper auth)
+      localStorage.setItem('bestcode_user', JSON.stringify({
+        id: Date.now().toString(),
+        name: formData.name,
+        email: formData.email,
+        role: 'student'
+      }));
+      
+      // Redirect to checkout page
+      setTimeout(() => {
+        navigate("/checkout");
+      }, 1500);
     }, 1500);
   };
 
