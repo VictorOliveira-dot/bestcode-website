@@ -19,6 +19,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ClassManagement from "@/components/teacher/ClassManagement";
+import StudentProgressTracker from "@/components/teacher/StudentProgress";
 
 // Tipos para os vídeos/aulas
 interface Lesson {
@@ -34,6 +36,7 @@ interface Lesson {
 const TeacherDashboard = () => {
   const { user, logout } = useAuth();
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("lessons"); // ["lessons", "classes", "students"]
   const [lessons, setLessons] = useState<Lesson[]>(() => {
     const savedLessons = localStorage.getItem('teacher_lessons');
     return savedLessons ? JSON.parse(savedLessons) : [
@@ -77,7 +80,7 @@ const TeacherDashboard = () => {
     visibility: 'class_only' as 'all' | 'class_only'
   });
 
-  // Classes disponíveis (poderiam vir de um banco de dados no futuro)
+  // Classes disponíveis (agora viriam do componente de ClassManagement)
   const availableClasses = ['QA-01', 'QA-02', 'DEV-01', 'DEV-02'];
 
   // Função para validar URL do YouTube
@@ -195,7 +198,12 @@ const TeacherDashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{availableClasses.length} turmas</p>
-              <Button className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700">Ver Turmas</Button>
+              <Button 
+                className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700"
+                onClick={() => setActiveTab("classes")}
+              >
+                Ver Turmas
+              </Button>
             </CardContent>
           </Card>
 
@@ -206,7 +214,12 @@ const TeacherDashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">28 alunos</p>
-              <Button className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700">Ver Alunos</Button>
+              <Button 
+                className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700"
+                onClick={() => setActiveTab("students")}
+              >
+                Ver Alunos
+              </Button>
             </CardContent>
           </Card>
 
@@ -231,87 +244,53 @@ const TeacherDashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Painel de Aulas</CardTitle>
-                <CardDescription>Gerenciamento de aulas e conteúdos</CardDescription>
+                <CardTitle>Painel de Gestão</CardTitle>
+                <CardDescription>Gerenciamento completo do curso</CardDescription>
               </div>
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2"
-                onClick={() => setIsAddLessonOpen(true)}
-              >
-                <Video className="h-4 w-4" />
-                Nova Aula
-              </Button>
+              <div className="flex gap-2">
+                {activeTab === "lessons" && (
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2"
+                    onClick={() => setIsAddLessonOpen(true)}
+                  >
+                    <Video className="h-4 w-4" />
+                    Nova Aula
+                  </Button>
+                )}
+                {activeTab === "classes" && (
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2"
+                    onClick={() => setActiveTab("classes")}
+                  >
+                    <Users className="h-4 w-4" />
+                    Gerenciar Turmas
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="all">
+              <Tabs defaultValue="lessons" value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="mb-4">
-                  <TabsTrigger value="all">Todas as Aulas</TabsTrigger>
-                  {availableClasses.map(className => (
-                    <TabsTrigger key={className} value={className}>{className}</TabsTrigger>
-                  ))}
+                  <TabsTrigger value="lessons">Aulas</TabsTrigger>
+                  <TabsTrigger value="classes">Turmas</TabsTrigger>
+                  <TabsTrigger value="students">Alunos</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="all">
-                  <div className="space-y-4">
-                    {sortedLessons.length > 0 ? (
-                      sortedLessons.map(lesson => (
-                        <div key={lesson.id} className="p-4 border rounded-lg flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <Video className="h-4 w-4 text-bestcode-600" />
-                              <h3 className="font-semibold">{lesson.title}</h3>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">{lesson.description}</p>
-                            <div className="flex gap-3 mt-2 text-xs text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {new Date(lesson.date).toLocaleDateString('pt-BR')}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Users className="h-3 w-3" />
-                                Turma: {lesson.class}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <BookOpen className="h-3 w-3" />
-                                {lesson.visibility === 'all' ? 'Visível para todos' : 'Apenas para a turma'}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => window.open(lesson.youtubeUrl, '_blank')}
-                            >
-                              Ver
-                            </Button>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => handleDeleteLesson(lesson.id)}
-                            >
-                              Excluir
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        Nenhuma aula cadastrada. Adicione sua primeira aula!
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-                
-                {availableClasses.map(className => (
-                  <TabsContent key={className} value={className}>
-                    <div className="space-y-4">
-                      {lessonsByClass
-                        .find(c => c.className === className)?.lessons.length ? (
-                        lessonsByClass
-                          .find(c => c.className === className)
-                          ?.lessons.map(lesson => (
+                <TabsContent value="lessons">
+                  <Tabs defaultValue="all">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="all">Todas as Aulas</TabsTrigger>
+                      {availableClasses.map(className => (
+                        <TabsTrigger key={className} value={className}>{className}</TabsTrigger>
+                      ))}
+                    </TabsList>
+                    
+                    <TabsContent value="all">
+                      <div className="space-y-4">
+                        {sortedLessons.length > 0 ? (
+                          sortedLessons.map(lesson => (
                             <div key={lesson.id} className="p-4 border rounded-lg flex justify-between items-start">
                               <div>
                                 <div className="flex items-center gap-2">
@@ -323,6 +302,10 @@ const TeacherDashboard = () => {
                                   <span className="flex items-center gap-1">
                                     <Calendar className="h-3 w-3" />
                                     {new Date(lesson.date).toLocaleDateString('pt-BR')}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-3 w-3" />
+                                    Turma: {lesson.class}
                                   </span>
                                   <span className="flex items-center gap-1">
                                     <BookOpen className="h-3 w-3" />
@@ -348,14 +331,76 @@ const TeacherDashboard = () => {
                               </div>
                             </div>
                           ))
-                      ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          Nenhuma aula cadastrada para esta turma.
+                        ) : (
+                          <div className="text-center py-8 text-gray-500">
+                            Nenhuma aula cadastrada. Adicione sua primeira aula!
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                    
+                    {availableClasses.map(className => (
+                      <TabsContent key={className} value={className}>
+                        <div className="space-y-4">
+                          {lessonsByClass
+                            .find(c => c.className === className)?.lessons.length ? (
+                            lessonsByClass
+                              .find(c => c.className === className)
+                              ?.lessons.map(lesson => (
+                                <div key={lesson.id} className="p-4 border rounded-lg flex justify-between items-start">
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <Video className="h-4 w-4 text-bestcode-600" />
+                                      <h3 className="font-semibold">{lesson.title}</h3>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-1">{lesson.description}</p>
+                                    <div className="flex gap-3 mt-2 text-xs text-gray-500">
+                                      <span className="flex items-center gap-1">
+                                        <Calendar className="h-3 w-3" />
+                                        {new Date(lesson.date).toLocaleDateString('pt-BR')}
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <BookOpen className="h-3 w-3" />
+                                        {lesson.visibility === 'all' ? 'Visível para todos' : 'Apenas para a turma'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => window.open(lesson.youtubeUrl, '_blank')}
+                                    >
+                                      Ver
+                                    </Button>
+                                    <Button 
+                                      variant="destructive" 
+                                      size="sm"
+                                      onClick={() => handleDeleteLesson(lesson.id)}
+                                    >
+                                      Excluir
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))
+                          ) : (
+                            <div className="text-center py-8 text-gray-500">
+                              Nenhuma aula cadastrada para esta turma.
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </TabsContent>
-                ))}
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </TabsContent>
+                
+                <TabsContent value="classes">
+                  <ClassManagement />
+                </TabsContent>
+                
+                <TabsContent value="students">
+                  <StudentProgressTracker />
+                </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
