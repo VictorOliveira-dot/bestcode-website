@@ -6,6 +6,7 @@ import PersonalInfoStep from "./PersonalInfoStep";
 import DocumentationStep from "./DocumentationStep";
 import StudyPreferencesStep from "./StudyPreferencesStep";
 import EnrollmentFormNav from "./EnrollmentFormNav";
+import { validateCPF, validateDateOfBirth, validateBrazilianPhone } from "@/utils/validationUtils";
 
 interface EnrollmentFormProps {
   currentStep: number;
@@ -46,21 +47,75 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     });
   };
   
+  const validatePersonalInfo = () => {
+    // Required fields for step 1
+    const requiredFields = ['firstName', 'lastName', 'birthDate', 'cpf', 'phone', 'address'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+    
+    if (missingFields.length > 0) {
+      toast.error("Por favor, preencha todos os campos obrigatórios");
+      return false;
+    }
+    
+    // Validate CPF
+    if (!validateCPF(formData.cpf)) {
+      toast.error("CPF inválido. Por favor, verifique.");
+      return false;
+    }
+    
+    // Validate birthDate
+    if (!validateDateOfBirth(formData.birthDate)) {
+      toast.error("Data de nascimento inválida. Use o formato DD/MM/AAAA.");
+      return false;
+    }
+    
+    // Validate phone
+    if (!validateBrazilianPhone(formData.phone)) {
+      toast.error("Telefone inválido. Use o formato (XX) XXXXX-XXXX.");
+      return false;
+    }
+    
+    // Validate whatsapp if provided
+    if (formData.whatsapp && !validateBrazilianPhone(formData.whatsapp)) {
+      toast.error("WhatsApp inválido. Use o formato (XX) XXXXX-XXXX.");
+      return false;
+    }
+    
+    return true;
+  };
+  
+  const validateStudyPreferences = () => {
+    // Check if required fields for the last step are filled
+    const requiredStep3Fields = ['education', 'professionalArea', 'experienceLevel', 'studyAvailability'];
+    const missingFields = requiredStep3Fields.filter(field => !formData[field as keyof typeof formData]);
+    
+    if (missingFields.length > 0) {
+      toast.error("Por favor, preencha todos os campos obrigatórios");
+      return false;
+    }
+    
+    return true;
+  };
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // For the final step, validate required fields
+    // Validate current step
+    let isValid = true;
+    
+    if (currentStep === 1) {
+      isValid = validatePersonalInfo();
+    } else if (currentStep === totalSteps) {
+      isValid = validateStudyPreferences();
+    }
+    
+    if (!isValid) return;
+    
+    // For the final step, submit the form
     if (currentStep === totalSteps) {
-      // Check if required fields for the last step are filled
-      const requiredStep3Fields = ['education', 'professionalArea', 'experienceLevel', 'studyAvailability'];
-      const missingFields = requiredStep3Fields.filter(field => !formData[field as keyof typeof formData]);
-      
-      if (missingFields.length > 0) {
-        toast.error("Por favor, preencha todos os campos obrigatórios");
-        return;
-      }
-      
       // Simulate form submission
+      toast.success("Matrícula enviada com sucesso!");
+      
       setTimeout(() => {
         // Redirect to student dashboard would happen here
         window.location.href = "/student/dashboard";
@@ -113,7 +168,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
             totalSteps={totalSteps}
             isSubmitting={isSubmitting}
             goToPreviousStep={goToPreviousStep}
-            goToNextStep={goToNextStep}
+            onNextClick={handleSubmit}
           />
         </form>
       </CardContent>
