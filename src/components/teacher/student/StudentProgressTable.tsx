@@ -14,6 +14,8 @@ import { StudentProgress } from "../types/student";
 import { formatDate } from "../utils/date-utils";
 import { convertToCSV, downloadCSV } from "../utils/csv-utils";
 import { Download } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StudentProgressTableProps {
   students: StudentProgress[];
@@ -21,6 +23,7 @@ interface StudentProgressTableProps {
 }
 
 const StudentProgressTable = ({ students, onViewDetails }: StudentProgressTableProps) => {
+  const isMobile = useIsMobile();
   
   const handleExportCSV = () => {
     if (students.length === 0) return;
@@ -47,6 +50,64 @@ const StudentProgressTable = ({ students, onViewDetails }: StudentProgressTableP
     const csv = convertToCSV(csvData, headers);
     downloadCSV(csv, `alunos-progresso-${new Date().toISOString().split('T')[0]}.csv`);
   };
+
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleExportCSV}
+            disabled={students.length === 0}
+            className="flex items-center gap-2 w-full sm:w-auto"
+          >
+            <Download className="h-4 w-4" />
+            Exportar CSV
+          </Button>
+        </div>
+        <div className="space-y-4">
+          {students.map((student) => (
+            <Card key={student.id} className="overflow-hidden">
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-medium text-lg">{student.name}</h3>
+                    <p className="text-sm text-muted-foreground">{student.email}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="font-medium">Turma:</span>
+                      <p>{student.className}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">Última Atividade:</span>
+                      <p>{formatDate(student.lastActivity)}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-sm font-medium">Progresso:</span>
+                      <span className="text-sm">{student.progress}%</span>
+                    </div>
+                    <Progress value={student.progress} className="h-2 mt-1" />
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => onViewDetails(student)}
+                    className="w-full mt-2"
+                  >
+                    Detalhes
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

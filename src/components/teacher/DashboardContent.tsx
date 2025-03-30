@@ -38,16 +38,16 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   return (
     <div className="mt-8">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <CardTitle>Painel de Gestão</CardTitle>
             <CardDescription>Gerenciamento completo do curso</CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             {activeTab === "lessons" && (
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto"
                 onClick={() => setIsAddLessonOpen(true)}
               >
                 <Video className="h-4 w-4" />
@@ -57,7 +57,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             {activeTab === "classes" && (
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto"
                 onClick={() => setActiveTab("classes")}
               >
                 <Users className="h-4 w-4" />
@@ -67,11 +67,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="lessons" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="lessons">Aulas</TabsTrigger>
-              <TabsTrigger value="classes">Turmas</TabsTrigger>
-              <TabsTrigger value="students">Alunos</TabsTrigger>
+          <Tabs defaultValue="lessons" value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-4 w-full sm:w-auto flex flex-col sm:flex-row gap-2 sm:gap-0">
+              <TabsTrigger value="lessons" className="w-full sm:w-auto">Aulas</TabsTrigger>
+              <TabsTrigger value="classes" className="w-full sm:w-auto">Turmas</TabsTrigger>
+              <TabsTrigger value="students" className="w-full sm:w-auto">Alunos</TabsTrigger>
             </TabsList>
             
             <TabsContent value="lessons">

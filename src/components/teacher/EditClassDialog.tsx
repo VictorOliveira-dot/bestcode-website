@@ -33,7 +33,7 @@ const EditClassDialog: React.FC<EditClassDialogProps> = ({
   const isMobile = useIsMobile();
   
   if (!selectedClass) return null;
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className={isMobile ? "w-full max-w-full h-[90vh] sm:h-auto sm:max-w-lg" : ""}>
@@ -70,11 +70,20 @@ const EditClassDialog: React.FC<EditClassDialogProps> = ({
                 onChange={(e) => setSelectedClass({...selectedClass, startDate: e.target.value})}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-studentsCount">Número de Alunos</Label>
+              <Input 
+                id="edit-studentsCount" 
+                type="number" 
+                value={selectedClass.studentsCount}
+                onChange={(e) => setSelectedClass({...selectedClass, studentsCount: parseInt(e.target.value) || 0})}
+              />
+            </div>
           </div>
         </ScrollArea>
         <DialogFooter className={isMobile ? "flex-col space-y-2" : ""}>
           <Button variant="outline" onClick={() => onOpenChange(false)} className={isMobile ? "w-full" : ""}>Cancelar</Button>
-          <Button onClick={handleEditClass} className={isMobile ? "w-full" : ""}>Salvar Alterações</Button>
+          <Button onClick={handleEditClass} className={isMobile ? "w-full" : ""}>Atualizar Turma</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
