@@ -23,7 +23,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           unmask={unmask}
           inputRef={ref}
           onAccept={onAccept}
-          {...props}
+          // Explicitly exclude 'max' and 'min' if they're strings to avoid type conflicts
+          {...Object.fromEntries(
+            Object.entries(props).filter(([key]) => 
+              !(key === 'max' || key === 'min') || 
+              (typeof props[key as keyof typeof props] !== 'string')
+            )
+          )}
         />
       )
     }
