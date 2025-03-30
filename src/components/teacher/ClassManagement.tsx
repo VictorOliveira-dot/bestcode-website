@@ -1,34 +1,12 @@
 
 import React, { useState, useEffect } from "react";
-import { 
-  Table, 
-  TableHeader, 
-  TableRow, 
-  TableHead, 
-  TableBody, 
-  TableCell 
-} from "@/components/ui/table";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Users, Plus, Pencil, Trash2 } from "lucide-react";
-
-interface ClassInfo {
-  id: string;
-  name: string;
-  description: string;
-  startDate: string;
-  studentsCount: number;
-}
+import { Plus } from "lucide-react";
+import ClassTable from "./ClassTable";
+import AddClassDialog from "./AddClassDialog";
+import EditClassDialog from "./EditClassDialog";
+import { ClassInfo } from "./ClassItem";
 
 const ClassManagement = () => {
   const [classes, setClasses] = useState<ClassInfo[]>(() => {
@@ -153,133 +131,27 @@ const ClassManagement = () => {
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Data de Início</TableHead>
-            <TableHead>Alunos</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {classes.map((classInfo) => (
-            <TableRow key={classInfo.id}>
-              <TableCell className="font-medium">{classInfo.name}</TableCell>
-              <TableCell>{classInfo.description}</TableCell>
-              <TableCell>{new Date(classInfo.startDate).toLocaleDateString('pt-BR')}</TableCell>
-              <TableCell>{classInfo.studentsCount} alunos</TableCell>
-              <TableCell className="text-right space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => openEditDialog(classInfo)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => handleDeleteClass(classInfo.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <ClassTable 
+        classes={classes}
+        openEditDialog={openEditDialog}
+        handleDeleteClass={handleDeleteClass}
+      />
 
-      {/* Add Class Dialog */}
-      <Dialog open={isAddClassOpen} onOpenChange={setIsAddClassOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Nova Turma</DialogTitle>
-            <DialogDescription>
-              Preencha os detalhes para criar uma nova turma.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome da Turma *</Label>
-              <Input 
-                id="name" 
-                value={newClass.name}
-                onChange={(e) => setNewClass({...newClass, name: e.target.value})}
-                placeholder="Ex: QA-03"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição *</Label>
-              <Input 
-                id="description" 
-                value={newClass.description}
-                onChange={(e) => setNewClass({...newClass, description: e.target.value})}
-                placeholder="Ex: Turma de Quality Assurance - Intermediário"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Data de Início *</Label>
-              <Input 
-                id="startDate" 
-                type="date" 
-                value={newClass.startDate}
-                onChange={(e) => setNewClass({...newClass, startDate: e.target.value})}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddClassOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAddClass}>Adicionar Turma</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddClassDialog
+        isOpen={isAddClassOpen}
+        onOpenChange={setIsAddClassOpen}
+        newClass={newClass}
+        setNewClass={setNewClass}
+        handleAddClass={handleAddClass}
+      />
 
-      {/* Edit Class Dialog */}
-      <Dialog open={isEditClassOpen} onOpenChange={setIsEditClassOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Turma</DialogTitle>
-            <DialogDescription>
-              Atualize os detalhes da turma.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedClass && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Nome da Turma *</Label>
-                <Input 
-                  id="edit-name" 
-                  value={selectedClass.name}
-                  onChange={(e) => setSelectedClass({...selectedClass, name: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Descrição *</Label>
-                <Input 
-                  id="edit-description" 
-                  value={selectedClass.description}
-                  onChange={(e) => setSelectedClass({...selectedClass, description: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-startDate">Data de Início *</Label>
-                <Input 
-                  id="edit-startDate" 
-                  type="date" 
-                  value={selectedClass.startDate}
-                  onChange={(e) => setSelectedClass({...selectedClass, startDate: e.target.value})}
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditClassOpen(false)}>Cancelar</Button>
-            <Button onClick={handleEditClass}>Salvar Alterações</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditClassDialog
+        isOpen={isEditClassOpen}
+        onOpenChange={setIsEditClassOpen}
+        selectedClass={selectedClass}
+        setSelectedClass={setSelectedClass}
+        handleEditClass={handleEditClass}
+      />
     </div>
   );
 };
