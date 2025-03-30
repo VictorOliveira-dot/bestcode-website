@@ -60,11 +60,13 @@ export function useLessonState(
     }
   };
 
-  const getLessonProgress = (lessonId: string) => {
+  const getLessonProgress = (lessonId: string): LessonProgress => {
     const progress = lessonProgress.find(p => p.lessonId === lessonId);
     
     if (!progress) {
+      // Return an object that matches the LessonProgress interface
       return {
+        lessonId: lessonId,
         watchTimeMinutes: 0,
         lastWatched: null,
         progress: 0,
