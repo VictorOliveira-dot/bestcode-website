@@ -2,6 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Check, Save } from "lucide-react";
+import { toast } from "sonner";  // Add this import
 
 interface EnrollmentFormNavProps {
   currentStep: number;
