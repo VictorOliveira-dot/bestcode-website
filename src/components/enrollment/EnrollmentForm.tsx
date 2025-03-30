@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PersonalInfoStep from "./PersonalInfoStep";
@@ -7,6 +7,8 @@ import DocumentationStep from "./DocumentationStep";
 import StudyPreferencesStep from "./StudyPreferencesStep";
 import EnrollmentFormNav from "./EnrollmentFormNav";
 import { validateCPF, validateDateOfBirth, validateBrazilianPhone } from "@/utils/validationUtils";
+import { Button } from "../ui/button";
+import { Save } from "lucide-react";
 
 interface EnrollmentFormProps {
   currentStep: number;
@@ -15,6 +17,8 @@ interface EnrollmentFormProps {
   goToNextStep: () => void;
   goToPreviousStep: () => void;
 }
+
+const ENROLLMENT_STORAGE_KEY = 'enrollment_form_data';
 
 const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
   currentStep,
@@ -39,6 +43,29 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     goals: "",
     referral: ""
   });
+  
+  // Load saved data from localStorage on component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem(ENROLLMENT_STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setFormData(parsedData);
+        toast.info("Dados do seu formulário foram carregados", {
+          description: "Continue de onde você parou"
+        });
+      } catch (error) {
+        console.error("Error parsing saved enrollment data:", error);
+      }
+    }
+  }, []);
+  
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    if (Object.values(formData).some(value => value !== "")) {
+      localStorage.setItem(ENROLLMENT_STORAGE_KEY, JSON.stringify(formData));
+    }
+  }, [formData]);
   
   const handleInputChange = (field: string, value: any) => {
     setFormData({
@@ -116,6 +143,9 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
       // Simulate form submission
       toast.success("Matrícula enviada com sucesso!");
       
+      // Clear saved data after successful submission
+      localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
+      
       setTimeout(() => {
         // Redirect to student dashboard would happen here
         window.location.href = "/student/dashboard";
@@ -123,6 +153,38 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     } else {
       // If not the final step, just go to the next step
       goToNextStep();
+    }
+  };
+  
+  const handleSaveProgress = () => {
+    localStorage.setItem(ENROLLMENT_STORAGE_KEY, JSON.stringify(formData));
+    toast.success("Progresso salvo com sucesso!", {
+      description: "Você pode continuar mais tarde usando este dispositivo"
+    });
+  };
+  
+  const handleClearProgress = () => {
+    if (window.confirm("Tem certeza que deseja limpar todo o progresso? Esta ação não pode ser desfeita.")) {
+      localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
+      setFormData({
+        firstName: "",
+        lastName: "",
+        birthDate: "",
+        gender: "",
+        cpf: "",
+        phone: "",
+        whatsapp: "",
+        address: "",
+        education: "",
+        professionalArea: "",
+        experienceLevel: "",
+        studyAvailability: "",
+        goals: "",
+        referral: ""
+      });
+      toast.info("Progresso removido", {
+        description: "Todos os dados do formulário foram apagados"
+      });
     }
   };
 
@@ -162,6 +224,27 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
               handleInputChange={handleInputChange} 
             />
           )}
+
+          <div className="flex justify-between items-center mt-6 pt-4 border-t">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleClearProgress}
+              className="text-destructive hover:text-destructive"
+            >
+              Limpar Dados
+            </Button>
+            
+            <Button 
+              type="button" 
+              variant="secondary" 
+              onClick={handleSaveProgress}
+              className="flex items-center"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Salvar Progresso
+            </Button>
+          </div>
 
           <EnrollmentFormNav 
             currentStep={currentStep}
