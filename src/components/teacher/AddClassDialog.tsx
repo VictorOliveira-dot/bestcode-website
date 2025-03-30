@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AddClassDialogProps {
   isOpen: boolean;
@@ -35,47 +37,51 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
   setNewClass,
   handleAddClass
 }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className={isMobile ? "w-full max-w-full h-[90vh] sm:h-auto sm:max-w-lg" : ""}>
         <DialogHeader>
           <DialogTitle>Adicionar Nova Turma</DialogTitle>
           <DialogDescription>
             Preencha os detalhes para criar uma nova turma.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome da Turma *</Label>
-            <Input 
-              id="name" 
-              value={newClass.name}
-              onChange={(e) => setNewClass({...newClass, name: e.target.value})}
-              placeholder="Ex: QA-03"
-            />
+        <ScrollArea className="max-h-[50vh] sm:max-h-[unset]">
+          <div className="space-y-4 p-1">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome da Turma *</Label>
+              <Input 
+                id="name" 
+                value={newClass.name}
+                onChange={(e) => setNewClass({...newClass, name: e.target.value})}
+                placeholder="Ex: QA-03"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição *</Label>
+              <Input 
+                id="description" 
+                value={newClass.description}
+                onChange={(e) => setNewClass({...newClass, description: e.target.value})}
+                placeholder="Ex: Turma de Quality Assurance - Intermediário"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="startDate">Data de Início *</Label>
+              <Input 
+                id="startDate" 
+                type="date" 
+                value={newClass.startDate}
+                onChange={(e) => setNewClass({...newClass, startDate: e.target.value})}
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição *</Label>
-            <Input 
-              id="description" 
-              value={newClass.description}
-              onChange={(e) => setNewClass({...newClass, description: e.target.value})}
-              placeholder="Ex: Turma de Quality Assurance - Intermediário"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="startDate">Data de Início *</Label>
-            <Input 
-              id="startDate" 
-              type="date" 
-              value={newClass.startDate}
-              onChange={(e) => setNewClass({...newClass, startDate: e.target.value})}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleAddClass}>Adicionar Turma</Button>
+        </ScrollArea>
+        <DialogFooter className={isMobile ? "flex-col space-y-2" : ""}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className={isMobile ? "w-full" : ""}>Cancelar</Button>
+          <Button onClick={handleAddClass} className={isMobile ? "w-full" : ""}>Adicionar Turma</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
