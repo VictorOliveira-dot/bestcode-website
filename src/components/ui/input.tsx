@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { IMaskInput } from "react-imask"
 
 export interface InputProps extends React.ComponentPropsWithoutRef<"input"> {
-  mask?: string | RegExp;
+  mask?: any;
   unmask?: boolean;
   onAccept?: (value: any, mask: any) => void;
 }
