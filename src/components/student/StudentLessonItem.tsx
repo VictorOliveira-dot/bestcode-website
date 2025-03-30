@@ -1,24 +1,12 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Video, Calendar, Users, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Lesson, LessonProgress } from "./types/lesson";
 
 interface StudentLessonItemProps {
-  lesson: {
-    id: string;
-    title: string;
-    description: string;
-    youtubeUrl: string;
-    date: string;
-    class: string;
-  };
-  progress: {
-    watchTimeMinutes: number;
-    lastWatched: string | null;
-    progress: number; // 0-100
-    status: 'completed' | 'in_progress' | 'not_started';
-  };
+  lesson: Lesson;
+  progress: LessonProgress;
   onClick: () => void;
 }
 
