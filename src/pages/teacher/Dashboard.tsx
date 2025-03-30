@@ -105,7 +105,7 @@ const TeacherDashboard = () => {
     <div className="min-h-screen bg-slate-50">
       <DashboardHeader userName={user.name} />
 
-      <main className="container-custom py-8">
+      <main className="container-custom py-4 md:py-8 px-2 md:px-0">
         <DashboardCards 
           classesCount={availableClasses.length}
           lessonsCount={lessons.length}

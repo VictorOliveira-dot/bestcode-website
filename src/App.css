@@ -46,3 +46,15 @@
 .min-h-screen {
   background-color: #f8f9fa;
 }
+
+/* Mobile responsive fixes */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem;
+  }
+  
+  .container-custom {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
