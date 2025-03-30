@@ -29,7 +29,7 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
         <CardContent>
           <p className="text-2xl font-bold">{classesCount} turmas</p>
           <Button 
-            className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700"
+            className="mt-4 w-full bg-gray-800 hover:bg-gray-700"
             onClick={() => onChangeTab("classes")}
           >
             Ver Turmas
@@ -45,7 +45,7 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
         <CardContent>
           <p className="text-2xl font-bold">{studentsCount} alunos</p>
           <Button 
-            className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700"
+            className="mt-4 w-full bg-gray-800 hover:bg-gray-700"
             onClick={() => onChangeTab("students")}
           >
             Ver Alunos
@@ -61,7 +61,7 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
         <CardContent>
           <p className="text-2xl font-bold">{lessonsCount} aulas</p>
           <Button 
-            className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700"
+            className="mt-4 w-full bg-gray-800 hover:bg-gray-700"
             onClick={onAddLessonClick}
           >
             Adicionar Aula

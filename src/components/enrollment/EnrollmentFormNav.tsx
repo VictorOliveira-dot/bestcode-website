@@ -54,6 +54,7 @@ const EnrollmentFormNav: React.FC<EnrollmentFormNavProps> = ({
           type="submit" 
           disabled={isSubmitting}
           onClick={onNextClick}
+          className="bg-gray-800 hover:bg-gray-700"
         >
           {currentStep === totalSteps ? (
             <>

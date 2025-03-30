@@ -60,7 +60,7 @@ const OrderSummary = ({ course }: OrderSummaryProps) => {
       </CardContent>
       <CardFooter className="flex-col space-y-4">
         <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-md w-full">
-          <ShieldCheck size={18} className="text-bestcode-600" />
+          <ShieldCheck size={18} className="text-gray-800" />
           <span>Pagamento 100% seguro e criptografado</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">

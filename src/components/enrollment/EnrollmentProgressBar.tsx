@@ -24,7 +24,7 @@ const EnrollmentProgressBar: React.FC<EnrollmentProgressBarProps> = ({
       </div>
       <div className="w-full bg-gray-200 rounded-full h-2.5">
         <div 
-          className="bg-bestcode-600 h-2.5 rounded-full transition-all" 
+          className="bg-gray-800 h-2.5 rounded-full transition-all" 
           style={{ width: `${(currentStep / totalSteps) * 100}%` }}
         ></div>
       </div>
