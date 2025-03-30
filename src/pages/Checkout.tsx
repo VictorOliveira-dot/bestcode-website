@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -28,6 +27,12 @@ import {
 const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [cardData, setCardData] = useState({
+    cardName: "",
+    cardNumber: "",
+    cardExpiry: "",
+    cardCvc: "",
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -38,6 +43,13 @@ const Checkout = () => {
     finalPrice: 1797.00,
     installments: 12,
     installmentPrice: 149.75
+  };
+
+  const handleCardInputChange = (field: string, value: string) => {
+    setCardData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -163,22 +175,50 @@ const Checkout = () => {
                       <div className="space-y-4 border border-gray-200 rounded-md p-4 mt-4">
                         <div className="space-y-2">
                           <Label htmlFor="card-name">Nome no cartão</Label>
-                          <Input id="card-name" placeholder="Como está impresso no cartão" required />
+                          <Input 
+                            id="card-name" 
+                            placeholder="Como está impresso no cartão" 
+                            required 
+                            mask={/^[A-Za-z\s]+$/}
+                            value={cardData.cardName}
+                            onAccept={(value) => handleCardInputChange('cardName', value)}
+                          />
                         </div>
                         
                         <div className="space-y-2">
                           <Label htmlFor="card-number">Número do cartão</Label>
-                          <Input id="card-number" placeholder="0000 0000 0000 0000" required />
+                          <Input 
+                            id="card-number" 
+                            placeholder="0000 0000 0000 0000" 
+                            required 
+                            mask="0000 0000 0000 0000"
+                            value={cardData.cardNumber}
+                            onAccept={(value) => handleCardInputChange('cardNumber', value)}
+                          />
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="card-expiry">Data de validade</Label>
-                            <Input id="card-expiry" placeholder="MM/AA" required />
+                            <Input 
+                              id="card-expiry" 
+                              placeholder="MM/AA" 
+                              required 
+                              mask="00/00"
+                              value={cardData.cardExpiry}
+                              onAccept={(value) => handleCardInputChange('cardExpiry', value)}
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="card-cvc">Código de segurança</Label>
-                            <Input id="card-cvc" placeholder="CVC" required />
+                            <Input 
+                              id="card-cvc" 
+                              placeholder="CVC" 
+                              required 
+                              mask="000"
+                              value={cardData.cardCvc}
+                              onAccept={(value) => handleCardInputChange('cardCvc', value)}
+                            />
                           </div>
                         </div>
                         
