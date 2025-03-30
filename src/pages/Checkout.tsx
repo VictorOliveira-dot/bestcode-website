@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import { 
   CreditCard, 
   Landmark, 
@@ -27,6 +28,8 @@ import {
 const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [isProcessing, setIsProcessing] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const course = {
     title: "Formação Completa em QA",
@@ -44,8 +47,18 @@ const Checkout = () => {
     // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
-      // Redirect to enrollment would happen here
-      window.location.href = "/enrollment";
+      
+      // Show success toast
+      toast({
+        title: "Pagamento processado com sucesso!",
+        description: "Você será redirecionado para completar sua matrícula.",
+        variant: "default",
+      });
+      
+      // Redirect to enrollment page
+      setTimeout(() => {
+        navigate("/enrollment");
+      }, 1500);
     }, 2000);
   };
 
