@@ -13,6 +13,13 @@ const Navbar = () => {
     setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
   };
 
+  const scrollToFAQ = () => {
+    const faqSection = document.getElementById('faq-section');
+    if (faqSection) {
+      faqSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const navItems = [
     { 
       name: "Cursos", 
@@ -36,8 +43,9 @@ const Navbar = () => {
     },
     { 
       name: "FAQ", 
-      path: "/faq",
-      hasDropdown: false
+      path: "#",
+      hasDropdown: false,
+      onClick: scrollToFAQ
     }
   ];
 
@@ -62,12 +70,12 @@ const Navbar = () => {
                     <ChevronDown size={16} />
                   </button>
                 ) : (
-                  <Link 
-                    to={item.path} 
+                  <button 
+                    onClick={item.onClick || (() => {})}
                     className="font-medium text-gray-700 hover:text-bestcode-600 transition-colors"
                   >
-                    {item.name}
-                  </Link>
+                    {item.path === "#" ? item.name : <Link to={item.path}>{item.name}</Link>}
+                  </button>
                 )}
 
                 {item.hasDropdown && activeDropdown === item.name && (
@@ -134,13 +142,15 @@ const Navbar = () => {
                       )}
                     </>
                   ) : (
-                    <Link 
-                      to={item.path} 
-                      className="block p-4 font-medium text-gray-700 hover:text-bestcode-600"
-                      onClick={toggleMenu}
+                    <button 
+                      onClick={() => {
+                        toggleMenu();
+                        item.onClick && item.onClick();
+                      }}
+                      className="block w-full p-4 font-medium text-gray-700 hover:text-bestcode-600 text-left"
                     >
-                      {item.name}
-                    </Link>
+                      {item.path === "#" ? item.name : <Link to={item.path}>{item.name}</Link>}
+                    </button>
                   )}
                 </li>
               ))}

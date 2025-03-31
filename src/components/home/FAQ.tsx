@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Accordion,
@@ -44,7 +43,7 @@ const FAQ = () => {
   ];
 
   return (
-    <section className="section-padding">
+    <section id="faq-section" className="section-padding">
       <div className="container-custom">
         <div className="text-center max-w-3xl mx-auto mb-12">
           <h2 className="heading-2 mb-4">Perguntas Frequentes</h2>
