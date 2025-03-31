@@ -18,7 +18,7 @@ import TeacherDashboard from "./pages/teacher/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
-  // Move the QueryClient instantiation inside the component
+  // Instancia o QueryClient dentro do componente
   const queryClient = new QueryClient();
   
   return (
@@ -39,7 +39,7 @@ const App = () => {
               <Route path="/student/schedule" element={<StudentSchedule />} />
               <Route path="/student/progress" element={<StudentProgressDetails />} />
               <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              {/* ADICIONE TODAS AS ROTAS PERSONALIZADAS ACIMA DA ROTA CATCH-ALL "*" */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

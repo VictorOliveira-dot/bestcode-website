@@ -1,9 +1,9 @@
 
 /**
- * Converts an array of objects to CSV format
- * @param data Array of objects to convert
- * @param headers Optional custom headers
- * @returns CSV formatted string
+ * Converte um array de objetos para o formato CSV
+ * @param data Array de objetos para converter
+ * @param headers Cabeçalhos personalizados opcionais
+ * @returns String formatada em CSV
  */
 export const convertToCSV = <T extends Record<string, any>>(
   data: T[],
@@ -11,42 +11,42 @@ export const convertToCSV = <T extends Record<string, any>>(
 ): string => {
   if (data.length === 0) return '';
 
-  // Get all keys from the first object
+  // Obtém todas as chaves do primeiro objeto
   const keys = Object.keys(data[0]) as Array<keyof T>;
   
-  // Create header row using provided headers or keys
+  // Cria linha de cabeçalho usando cabeçalhos fornecidos ou chaves
   const headerRow = keys.map(key => headers?.[key] || String(key)).join(',');
   
-  // Create data rows
+  // Cria linhas de dados
   const rows = data.map(item => 
     keys.map(key => {
-      // Wrap strings containing commas in quotes
+      // Envolve strings que contêm vírgulas em aspas
       const value = item[key];
       const stringValue = typeof value === 'string' ? value : String(value);
       return stringValue.includes(',') ? `"${stringValue}"` : stringValue;
     }).join(',')
   );
   
-  // Combine header and data rows
+  // Combina cabeçalho e linhas de dados
   return [headerRow, ...rows].join('\n');
 };
 
 /**
- * Downloads data as a CSV file
- * @param data The CSV content
- * @param filename The name of the file
+ * Baixa dados como um arquivo CSV
+ * @param data O conteúdo CSV
+ * @param filename O nome do arquivo
  */
 export const downloadCSV = (data: string, filename: string): void => {
-  // Create a blob
+  // Cria um blob
   const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
   
-  // Create a download link
+  // Cria um link para download
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
   link.setAttribute('download', filename);
   
-  // Append to body, click, and remove
+  // Anexa ao corpo, clica e remove
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

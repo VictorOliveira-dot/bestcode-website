@@ -14,7 +14,7 @@ const Hero = () => {
 
   return (
     <section className="bg-gradient-to-br from-bestcode-800 to-bestcode-950 text-white py-20 md:py-28 relative overflow-hidden">
-      {/* Background Pattern */}
+      {/* Padrão de Fundo */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       
       <div className="container-custom relative z-10">

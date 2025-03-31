@@ -15,14 +15,14 @@ export const generateStudentLessons = (studentId: string, students: StudentProgr
     
     if (i <= student.completedLessons) {
       status = 'completed';
-      watchTimeMinutes = Math.floor(Math.random() * 30) + 15; // 15-45 minutes
+      watchTimeMinutes = Math.floor(Math.random() * 30) + 15; // 15-45 minutos
       
       const randomDate = new Date();
       randomDate.setDate(randomDate.getDate() - Math.floor(Math.random() * 30));
       lastWatch = randomDate.toISOString();
     } else if (i === student.completedLessons + 1) {
       status = 'in_progress';
-      watchTimeMinutes = Math.floor(Math.random() * 15); // 0-15 minutes
+      watchTimeMinutes = Math.floor(Math.random() * 15); // 0-15 minutos
       
       lastWatch = student.lastActivity;
     } else {
