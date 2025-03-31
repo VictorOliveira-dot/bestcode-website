@@ -25,7 +25,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
         <h1 className="text-2xl font-bold text-bestcode-800">Painel do Professor</h1>
         <div className="flex items-center gap-4">
           <span className="text-gray-600">Olá, {userName}</span>
-          <Button variant="outline" onClick={handleLogout}>Sair</Button>
+          <Button variant="outline" className="hover:bg-bestcode-700 hover:text-white" onClick={handleLogout}>Sair</Button>
         </div>
       </div>
     </header>

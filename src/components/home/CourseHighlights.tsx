@@ -51,7 +51,7 @@ const CourseHighlights = () => {
             </p>
           </div>
           <Link to="/courses" className="mt-4 md:mt-0 group">
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center bg-bestcode-500 text-white hover:bg-bestcode-700 hover:text-white gap-2">
               Ver Todos os Cursos
               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </Button>

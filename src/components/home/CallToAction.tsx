@@ -27,7 +27,7 @@ const CallToAction = () => {
                   </Button>
                 </Link>
                 <Link to="/contact">
-                  <Button size="lg" variant="outline" className="text-bestcode-600 border-bestcode-600">
+                  <Button size="lg" variant="outline" className="text-bestcode-600 border-bestcode-600 hover:bg-bestcode-400 hover:text-white">
                     Fale com um Consultor
                   </Button>
                 </Link>

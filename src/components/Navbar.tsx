@@ -89,7 +89,7 @@ const Navbar = () => {
           </ul>
           <div className="flex gap-3">
             <Link to="/login">
-              <Button variant="outline" className="font-medium">Login</Button>
+              <Button variant="outline" className="font-medium hover:bg-bestcode-600 hover:text-white">Login</Button>
             </Link>
             <Link to="/register">
               <Button className="bg-bestcode-600 hover:bg-bestcode-700 font-medium">Matricule-se</Button>
