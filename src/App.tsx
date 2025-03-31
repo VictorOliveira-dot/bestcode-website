@@ -17,6 +17,15 @@ import StudentProgressDetails from "./pages/student/ProgressDetails";
 import TeacherDashboard from "./pages/teacher/Dashboard";
 import NotFound from "./pages/NotFound";
 
+// Novas páginas importadas
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import QATraining from "./pages/courses/QATraining";
+import Complementary from "./pages/courses/Complementary"; 
+import AllCourses from "./pages/courses/AllCourses";
+import About from "./pages/About";
+import HowItWorks from "./pages/HowItWorks";
+
 const App = () => {
   // Instancia o QueryClient dentro do componente
   const queryClient = new QueryClient();
@@ -39,6 +48,17 @@ const App = () => {
               <Route path="/student/schedule" element={<StudentSchedule />} />
               <Route path="/student/progress" element={<StudentProgressDetails />} />
               <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+              
+              {/* Novas rotas */}
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/courses/qa-training" element={<QATraining />} />
+              <Route path="/courses/complementary" element={<Complementary />} />
+              <Route path="/courses" element={<AllCourses />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/faq" element={<Index />} /> {/* Usando a página Index que já contém o componente FAQ */}
+              
               {/* ADICIONE TODAS AS ROTAS PERSONALIZADAS ACIMA DA ROTA CATCH-ALL "*" */}
               <Route path="*" element={<NotFound />} />
             </Routes>
