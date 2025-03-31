@@ -47,7 +47,7 @@ const Hero = () => {
                 </Button>
               </Link>
               <Link to="/how-it-works">
-                <Button size="lg" variant="outline" className="text-white border-white">
+                <Button size="lg" className="text-white border-white bg-bestcode-500 hover:!bg-bestcode-600 text-white">
                   Como Funciona
                 </Button>
               </Link>
@@ -59,7 +59,7 @@ const Hero = () => {
               <div className="aspect-video rounded-md overflow-hidden">
                 <iframe 
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                  src="" 
                   title="Como nosso curso funciona"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowFullScreen
