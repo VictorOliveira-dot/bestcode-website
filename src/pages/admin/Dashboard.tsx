@@ -20,6 +20,14 @@ const AdminDashboard = () => {
     return <Navigate to="/" />;
   }
 
+  // Show welcome toast on load
+  React.useEffect(() => {
+    toast({
+      title: "Bem-vindo ao painel de administração",
+      description: `Olá, ${user.name}!`,
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminDashboardHeader userName={user.name} />
