@@ -30,7 +30,8 @@ const AdminDashboard = () => {
     if (path === "dashboard" || path === "admin") {
       setActiveTab("students");
     } else if (path === "students" || path === "teachers" || 
-               path === "courses" || path === "payments" || path === "reports") {
+               path === "courses" || path === "payments" || 
+               path === "reports" || path === "enrollments") {
       setActiveTab(path);
     }
   }, [location.pathname]);

@@ -76,6 +76,13 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
                     Pagamentos
                   </Link>
                   <Link
+                    to="/admin/enrollments"
+                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                    onClick={() => setIsSheetOpen(false)}
+                  >
+                    Matrículas
+                  </Link>
+                  <Link
                     to="/admin/reports"
                     className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
                     onClick={() => setIsSheetOpen(false)}
@@ -124,6 +131,12 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
             className="text-gray-700 hover:text-bestcode-600"
           >
             Pagamentos
+          </Link>
+          <Link
+            to="/admin/enrollments"
+            className="text-gray-700 hover:text-bestcode-600"
+          >
+            Matrículas
           </Link>
           <Link
             to="/admin/reports"
