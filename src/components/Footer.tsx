@@ -9,7 +9,13 @@ const Footer = () => {
       <div className="container-custom">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           <div>
-            <h3 className="text-xl font-bold mb-4">BestCode</h3>
+            <Link to="/" className="inline-block mb-4">
+              <img 
+                src="/lovable-uploads/b4ecc0b2-68c4-4080-9155-188e2851371f.png" 
+                alt="Code Academy" 
+                className="h-10"
+              />
+            </Link>
             <p className="text-gray-300 mb-4">
               Transformando profissionais em especialistas de QA através de uma educação 
               prática e de qualidade. Junte-se a nós e impulsione sua carreira.
@@ -97,8 +103,8 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-bestcode-400" />
-                <a href="mailto:contato@bestcode.com" className="text-gray-300 hover:text-white transition-colors">
-                  contato@bestcode.com
+                <a href="mailto:contato@codeacademy.com" className="text-gray-300 hover:text-white transition-colors">
+                  contato@codeacademy.com
                 </a>
               </li>
               <li className="flex items-center gap-3">
@@ -125,7 +131,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 pt-6">
           <div className="flex flex-col md:flex-row justify-between gap-4">
             <p className="text-gray-400 text-sm">
-              &copy; {new Date().getFullYear()} BestCode. Todos os direitos reservados.
+              &copy; {new Date().getFullYear()} Code Academy. Todos os direitos reservados.
             </p>
             <div className="flex gap-4 text-sm">
               <Link to="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">

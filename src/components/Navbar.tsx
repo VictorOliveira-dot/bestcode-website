@@ -53,7 +53,11 @@ const Navbar = () => {
     <nav className="bg-white shadow-sm py-4 sticky top-0 z-50">
       <div className="container-custom flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-bestcode-600 font-bold text-2xl">Best<span className="text-bestcode-800">Code</span></span>
+          <img 
+            src="/lovable-uploads/b4ecc0b2-68c4-4080-9155-188e2851371f.png" 
+            alt="Code Academy" 
+            className="h-10"
+          />
         </Link>
 
         {/* Desktop Menu */}

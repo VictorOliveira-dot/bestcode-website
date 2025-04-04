@@ -38,7 +38,16 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
             </SheetTrigger>
             <SheetContent side="left" className="w-64">
               <div className="py-4">
-                <h2 className="text-lg font-semibold mb-4 px-4">Menu do Admin</h2>
+                <div className="px-4 mb-4">
+                  <img 
+                    src="/lovable-uploads/b4ecc0b2-68c4-4080-9155-188e2851371f.png" 
+                    alt="Code Academy" 
+                    className="h-8 mb-2"
+                  />
+                  <span className="text-xs bg-bestcode-100 text-bestcode-600 py-0.5 px-2 rounded-md">
+                    Admin
+                  </span>
+                </div>
                 <nav className="space-y-1">
                   <Link
                     to="/admin/dashboard"
@@ -94,7 +103,11 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
             </SheetContent>
           </Sheet>
           <Link to="/admin/dashboard" className="flex items-center space-x-2">
-            <span className="font-bold text-xl text-bestcode-600">BestCode</span>
+            <img 
+              src="/lovable-uploads/b4ecc0b2-68c4-4080-9155-188e2851371f.png" 
+              alt="Code Academy" 
+              className="h-8" 
+            />
             <span className="text-xs bg-bestcode-100 text-bestcode-600 py-0.5 px-2 rounded-md">
               Admin
             </span>
