@@ -20,7 +20,7 @@ import ForgotPasswordModal from "./ForgotPasswordModal";
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"student" | "teacher">("student");
+  const [role, setRole] = useState<"student" | "teacher" | "admin">("student");
   const [isLoading, setIsLoading] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const { login } = useAuth();
@@ -42,6 +42,8 @@ const LoginForm = () => {
       // Redirect based on role
       if (role === "teacher") {
         navigate("/teacher/dashboard");
+      } else if (role === "admin") {
+        navigate("/admin/dashboard");
       } else {
         navigate("/student/dashboard");
       }
@@ -105,8 +107,8 @@ const LoginForm = () => {
               <RadioGroup 
                 defaultValue="student" 
                 value={role}
-                onValueChange={(value) => setRole(value as "student" | "teacher")}
-                className="flex gap-4"
+                onValueChange={(value) => setRole(value as "student" | "teacher" | "admin")}
+                className="flex flex-wrap gap-4"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="student" id="student" />
@@ -115,6 +117,10 @@ const LoginForm = () => {
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="teacher" id="teacher" />
                   <Label htmlFor="teacher">Professor</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="admin" id="admin" />
+                  <Label htmlFor="admin">Administrador</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -142,6 +148,7 @@ const LoginForm = () => {
               </p>
               <p className="text-gray-600">Professor: professor@bestcode.com / teacher123</p>
               <p className="text-gray-600">Aluno: aluno@bestcode.com / student123</p>
+              <p className="text-gray-600">Admin: admin@bestcode.com / admin123</p>
             </div>
             
             <div className="text-center text-sm">

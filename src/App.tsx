@@ -15,6 +15,7 @@ import StudentCourseList from "./pages/student/CourseList";
 import StudentSchedule from "./pages/student/Schedule";
 import StudentProgressDetails from "./pages/student/ProgressDetails";
 import TeacherDashboard from "./pages/teacher/Dashboard";
+import AdminDashboard from "./pages/admin/Dashboard";
 import NotFound from "./pages/NotFound";
 
 // Novas páginas importadas
@@ -48,6 +49,14 @@ const App = () => {
               <Route path="/student/schedule" element={<StudentSchedule />} />
               <Route path="/student/progress" element={<StudentProgressDetails />} />
               <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/students" element={<AdminDashboard />} />
+              <Route path="/admin/teachers" element={<AdminDashboard />} />
+              <Route path="/admin/courses" element={<AdminDashboard />} />
+              <Route path="/admin/payments" element={<AdminDashboard />} />
+              <Route path="/admin/reports" element={<AdminDashboard />} />
               
               {/* Novas rotas */}
               <Route path="/terms" element={<TermsOfService />} />

@@ -6,7 +6,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'student' | 'teacher';
+  role: 'student' | 'teacher' | 'admin';
 }
 
 // Define context type
@@ -14,7 +14,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, role: 'student' | 'teacher') => Promise<void>;
+  login: (email: string, password: string, role: 'student' | 'teacher' | 'admin') => Promise<void>;
   logout: () => void;
 }
 
@@ -36,6 +36,13 @@ const TEST_USERS = {
     email: 'aluno@bestcode.com',
     password: 'student123',
     role: 'student' as const
+  },
+  admin: {
+    id: '3',
+    name: 'Admin Sistema',
+    email: 'admin@bestcode.com',
+    password: 'admin123',
+    role: 'admin' as const
   }
 };
 
@@ -53,16 +60,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Login function
-  const login = async (email: string, password: string, role: 'student' | 'teacher') => {
+  const login = async (email: string, password: string, role: 'student' | 'teacher' | 'admin') => {
     setIsLoading(true);
     
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Check if user exists based on role
-    const testUser = role === 'teacher' ? TEST_USERS.teacher : TEST_USERS.student;
+    let testUser;
+    if (role === 'teacher') {
+      testUser = TEST_USERS.teacher;
+    } else if (role === 'student') {
+      testUser = TEST_USERS.student;
+    } else if (role === 'admin') {
+      testUser = TEST_USERS.admin;
+    }
     
-    if (email === testUser.email && password === testUser.password) {
+    if (testUser && email === testUser.email && password === testUser.password) {
       // Create user object without password
       const { password: _, ...userWithoutPassword } = testUser;
       
