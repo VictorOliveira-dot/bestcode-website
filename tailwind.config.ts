@@ -26,12 +26,49 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
+					DEFAULT: '#301860',
+					50: '#ede7f8',
+					100: '#d3c4ec',
+					200: '#b69fdf',
+					300: '#997ad2',
+					400: '#7d56c5',
+					500: '#301860',
+					600: '#301860',
+					700: '#381b6e',
+					800: '#251249',
+					900: '#140824',
+					950: '#0a0412',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
+					DEFAULT: '#430177',
+					50: '#f4e6fc',
+					100: '#e5c4f9',
+					200: '#d39df5',
+					300: '#c076f1',
+					400: '#ae50ec',
+					500: '#430177',
+					600: '#430177',
+					700: '#381b6e',
+					800: '#251249',
+					900: '#140824',
+					950: '#0a0412',
 					foreground: 'hsl(var(--secondary-foreground))'
+				},
+				accent: {
+					DEFAULT: '#430177',
+					50: '#f4e6fc',
+					100: '#e5c4f9',
+					200: '#d39df5',
+					300: '#c076f1',
+					400: '#ae50ec',
+					500: '#430177',
+					600: '#430177',
+					700: '#381b6e',
+					800: '#251249',
+					900: '#140824',
+					950: '#0a0412',
+					foreground: 'hsl(var(--accent-foreground))'
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
@@ -40,10 +77,6 @@ export default {
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'
-				},
-				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -54,17 +87,17 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				bestcode: {
-					50: "#ede7f8",
-					100: "#d3c4ec",
-					200: "#b69fdf",
-					300: "#997ad2",
-					400: "#7d56c5",
-					500: "#301860",
-					600: "#4c2593",
-					700: "#381b6e",
-					800: "#251249",
-					900: "#140824",
-					950: "#0a0412",
+					50: '#ede7f8',
+					100: '#d3c4ec',
+					200: '#b69fdf',
+					300: '#997ad2',
+					400: '#7d56c5',
+					500: '#301860',
+					600: '#4c2593',
+					700: '#381b6e',
+					800: '#251249',
+					900: '#140824',
+					950: '#0a0412',
 				},
 			},
 			borderRadius: {
