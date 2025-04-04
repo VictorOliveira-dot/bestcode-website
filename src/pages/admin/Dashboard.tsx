@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { Navigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import AdminDashboardHeader from "@/components/admin/DashboardHeader";
@@ -9,6 +9,7 @@ import AdminDashboardContent from "@/components/admin/DashboardContent";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("students");
 
   // Redirect if not authenticated or not an admin
@@ -19,6 +20,20 @@ const AdminDashboard = () => {
   if (user.role !== 'admin') {
     return <Navigate to="/" />;
   }
+
+  // Determine active tab based on route
+  useEffect(() => {
+    // Extract the last part of the pathname
+    const path = location.pathname.split('/').pop();
+    
+    // Map path to tab
+    if (path === "dashboard" || path === "admin") {
+      setActiveTab("students");
+    } else if (path === "students" || path === "teachers" || 
+               path === "courses" || path === "payments" || path === "reports") {
+      setActiveTab(path);
+    }
+  }, [location.pathname]);
 
   // Show welcome toast on load
   React.useEffect(() => {
