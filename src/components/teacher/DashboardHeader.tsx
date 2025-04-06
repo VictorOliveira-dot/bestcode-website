@@ -24,7 +24,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
       <div className="container-custom flex justify-between items-center">
         <div className="flex items-center gap-3">
           <img 
-            src="/lovable-uploads/b4ecc0b2-68c4-4080-9155-188e2851371f.png" 
+            src="/img/logotipo/logotipoBestCode.png" 
             alt="Code Academy" 
             className="h-8" 
           />
