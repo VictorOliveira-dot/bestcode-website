@@ -54,7 +54,7 @@ const Navbar = () => {
       <div className="container-custom flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2">
           <img 
-            src="/lovable-uploads/b4ecc0b2-68c4-4080-9155-188e2851371f.png" 
+            src="/img/logotipo/logotipoBestCode.png" 
             alt="Code Academy" 
             className="h-10"
           />

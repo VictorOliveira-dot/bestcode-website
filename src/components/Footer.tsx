@@ -11,7 +11,7 @@ const Footer = () => {
           <div>
             <Link to="/" className="inline-block mb-4">
               <img 
-                src="/lovable-uploads/b4ecc0b2-68c4-4080-9155-188e2851371f.png" 
+                src="/img/logotipo/logotipoBestCode.png" 
                 alt="Code Academy" 
                 className="h-10"
               />
@@ -104,7 +104,7 @@ const Footer = () => {
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-bestcode-400" />
                 <a href="mailto:contato@codeacademy.com" className="text-gray-300 hover:text-white transition-colors">
-                  contato@codeacademy.com
+                  contato@bestcode.com.br
                 </a>
               </li>
               <li className="flex items-center gap-3">
