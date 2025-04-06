@@ -12,16 +12,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import ForgotPasswordModal from "./ForgotPasswordModal";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"student" | "teacher" | "admin">("student");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -31,21 +31,23 @@ const LoginForm = () => {
     setIsLoading(true);
     
     try {
-      await login(email, password, role);
+      const userData = await login(email, password);
       
-      // Show success toast
-      toast({
-        title: "Login realizado com sucesso",
-        description: `Bem-vindo de volta!`,
-      });
-      
-      // Redirect based on role
-      if (role === "teacher") {
-        navigate("/teacher/dashboard");
-      } else if (role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/student/dashboard");
+      if (userData) {
+        // Show success toast
+        toast({
+          title: "Login realizado com sucesso",
+          description: `Bem-vindo de volta!`,
+        });
+        
+        // Redirect based on role
+        if (userData.role === "teacher") {
+          navigate("/teacher/dashboard");
+        } else if (userData.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/student/dashboard");
+        }
       }
     } catch (error) {
       toast({
@@ -53,10 +55,13 @@ const LoginForm = () => {
         title: "Erro ao fazer login",
         description: "Email ou senha inválidos. Tente novamente.",
       });
+      console.error("Erro de login:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   return (
     <>
@@ -71,14 +76,18 @@ const LoginForm = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="seu@email.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="seu@email.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -92,37 +101,34 @@ const LoginForm = () => {
                   Esqueceu a senha?
                 </Button>
               </div>
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="••••••••" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Tipo de conta</Label>
-              <RadioGroup 
-                defaultValue="student" 
-                value={role}
-                onValueChange={(value) => setRole(value as "student" | "teacher" | "admin")}
-                className="flex flex-wrap gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="student" id="student" />
-                  <Label htmlFor="student">Aluno</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="teacher" id="teacher" />
-                  <Label htmlFor="teacher">Professor</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="admin" id="admin" />
-                  <Label htmlFor="admin">Administrador</Label>
-                </div>
-              </RadioGroup>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
+                <Input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-500" />
+                  )}
+                  <span className="sr-only">
+                    {showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  </span>
+                </Button>
+              </div>
             </div>
             
             <div className="flex items-center space-x-2">

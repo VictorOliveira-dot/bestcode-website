@@ -1,10 +1,11 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useSupabase } from '@/hooks/useSupabase';
 
 // Define user types
 export interface User {
   id: string;
-  name: string;
+  name?: string;
   email: string;
   role: 'student' | 'teacher' | 'admin';
 }
@@ -14,14 +15,14 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, role: 'student' | 'teacher' | 'admin') => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<User | null>;
+  logout: () => Promise<void>;
 }
 
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Test users
+// Test users para compatibilidade com implementação anterior
 const TEST_USERS = {
   teacher: {
     id: '1',
@@ -49,54 +50,96 @@ const TEST_USERS = {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { login: supabaseLogin, logout: supabaseLogout, getCurrentUser } = useSupabase();
 
-  // Check if user is already logged in
+  // Verificar se usuário já está autenticado
   useEffect(() => {
-    const storedUser = localStorage.getItem('bestcode_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
-  }, []);
+    const checkAuth = async () => {
+      try {
+        const userData = await getCurrentUser();
+        
+        if (userData) {
+          setUser({
+            id: userData.id,
+            name: userData.name || userData.email,
+            email: userData.email,
+            role: userData.role as 'student' | 'teacher' | 'admin'
+          });
+        } else {
+          // Fallback para localStorage (compatibilidade com versões anteriores)
+          const storedUser = localStorage.getItem('bestcode_user');
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar autenticação:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [getCurrentUser]);
 
   // Login function
-  const login = async (email: string, password: string, role: 'student' | 'teacher' | 'admin') => {
+  const login = async (email: string, password: string): Promise<User | null> => {
     setIsLoading(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Check if user exists based on role
-    let testUser;
-    if (role === 'teacher') {
-      testUser = TEST_USERS.teacher;
-    } else if (role === 'student') {
-      testUser = TEST_USERS.student;
-    } else if (role === 'admin') {
-      testUser = TEST_USERS.admin;
-    }
-    
-    if (testUser && email === testUser.email && password === testUser.password) {
-      // Create user object without password
-      const { password: _, ...userWithoutPassword } = testUser;
+    try {
+      // Primeiro, tenta login com Supabase
+      const authData = await supabaseLogin(email, password);
       
-      // Set user state
-      setUser(userWithoutPassword);
+      if (authData && authData.user) {
+        // Busca dados completos do usuário
+        const userData = await getCurrentUser();
+        
+        if (userData) {
+          const userInfo: User = {
+            id: userData.id,
+            name: userData.name || userData.email, 
+            email: userData.email,
+            role: userData.role as 'student' | 'teacher' | 'admin'
+          };
+          
+          setUser(userInfo);
+          return userInfo;
+        }
+      } else {
+        // Fallback para usuários de teste (para compatibilidade)
+        const testUser = 
+          email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password ? TEST_USERS.teacher :
+          email === TEST_USERS.student.email && password === TEST_USERS.student.password ? TEST_USERS.student :
+          email === TEST_USERS.admin.email && password === TEST_USERS.admin.password ? TEST_USERS.admin :
+          null;
+        
+        if (testUser) {
+          const { password: _, ...userWithoutPassword } = testUser;
+          setUser(userWithoutPassword);
+          localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
+          return userWithoutPassword;
+        }
+      }
       
-      // Store in localStorage
-      localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
-      
+      return null;
+    } catch (err) {
+      console.error("Erro durante login:", err);
+      throw err;
+    } finally {
       setIsLoading(false);
-    } else {
-      setIsLoading(false);
-      throw new Error('Credenciais inválidas');
     }
   };
 
   // Logout function
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('bestcode_user');
+  const logout = async (): Promise<void> => {
+    try {
+      await supabaseLogout();
+      setUser(null);
+      localStorage.removeItem('bestcode_user');
+    } catch (error) {
+      console.error("Erro durante logout:", error);
+      throw error;
+    }
   };
 
   return (
