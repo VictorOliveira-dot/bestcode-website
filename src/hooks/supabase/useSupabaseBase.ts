@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface UseSupabaseBaseReturn {
   loading: boolean;
@@ -47,4 +47,3 @@ export const fetchSupabaseData = async <T>(
     if (setLoading) setLoading(false);
   }
 };
-

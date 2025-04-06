@@ -4,6 +4,7 @@ import { useSupabaseBase, fetchSupabaseData } from './supabase/useSupabaseBase';
 import { useSupabaseAuth } from './supabase/useSupabaseAuth';
 import { useSupabaseLessons } from './supabase/useSupabaseLessons';
 import { useSupabaseNotifications } from './supabase/useSupabaseNotifications';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useSupabase = () => {
   // Use all the separate hooks

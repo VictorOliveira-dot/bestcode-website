@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -24,60 +25,67 @@ const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isLoading) return;
+    
     if (!agreeTerms) {
       toast({
+        variant: "destructive",
         title: "Termos e condições",
         description: "Você precisa concordar com os termos para continuar.",
-        variant: "destructive",
       });
       return;
     }
     
     if (formData.password !== formData.confirmPassword) {
       toast({
+        variant: "destructive",
         title: "Erro na senha",
         description: "As senhas não coincidem. Por favor, verifique.",
-        variant: "destructive",
       });
       return;
     }
     
     setIsLoading(true);
     
-    // Simulate registration
-    setTimeout(() => {
-      console.log("Registration with:", formData);
-      setIsLoading(false);
-      
-      // Show success toast
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Redirecionando para o checkout...",
-        variant: "default",
-      });
-      
-      // Store basic user data in localStorage (in a real app, this would use proper auth)
-      localStorage.setItem('bestcode_user', JSON.stringify({
-        id: Date.now().toString(),
+    try {
+      const userData = {
         name: formData.name,
-        email: formData.email,
-        role: 'student'
-      }));
+        role: 'student' // Papel padrão para novos registros
+      };
       
-      // Redirect to checkout page
-      setTimeout(() => {
-        navigate("/checkout");
-      }, 1500);
-    }, 1500);
+      const result = await register(formData.email, formData.password, userData);
+      
+      if (result) {
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Redirecionando para o checkout...",
+        });
+        
+        // Pequeno delay para melhorar UX
+        setTimeout(() => {
+          navigate("/checkout");
+        }, 1500);
+      }
+    } catch (error: any) {
+      console.error("Erro de registro:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao criar conta",
+        description: error.message || "Ocorreu um problema ao tentar criar sua conta. Tente novamente.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

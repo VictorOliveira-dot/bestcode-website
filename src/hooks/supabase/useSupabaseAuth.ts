@@ -1,6 +1,6 @@
 
 import { useSupabaseBase } from './useSupabaseBase';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useSupabaseAuth = () => {
   const { loading, error, setLoading, setError } = useSupabaseBase();
@@ -36,6 +36,12 @@ export const useSupabaseAuth = () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name: userData.name,
+            role: userData.role || 'student'
+          }
+        }
       });
       
       if (authError) throw authError;
@@ -48,7 +54,9 @@ export const useSupabaseAuth = () => {
             { 
               id: authData.user.id,
               email,
-              ...userData
+              name: userData.name,
+              role: userData.role || 'student',
+              avatar_url: userData.avatar_url
             }
           ]);
           
