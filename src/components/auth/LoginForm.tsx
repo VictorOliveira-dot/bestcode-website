@@ -28,9 +28,24 @@ const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isLoading) return; // Previne múltiplos cliques
+    
     setIsLoading(true);
     
     try {
+      // Verifica campos obrigatórios
+      if (!email || !password) {
+        toast({
+          variant: "destructive",
+          title: "Campos obrigatórios",
+          description: "Por favor, preencha todos os campos.",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Tenta fazer login
       const userData = await login(email, password);
       
       if (userData) {
@@ -40,14 +55,17 @@ const LoginForm = () => {
           description: `Bem-vindo de volta!`,
         });
         
-        // Redirect based on role
-        if (userData.role === "teacher") {
-          navigate("/teacher/dashboard");
-        } else if (userData.role === "admin") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/student/dashboard");
-        }
+        // Pequeno delay antes do redirecionamento para garantir que as atualizações de estado concluam
+        setTimeout(() => {
+          // Redirect based on role
+          if (userData.role === "teacher") {
+            navigate("/teacher/dashboard");
+          } else if (userData.role === "admin") {
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/student/dashboard");
+          }
+        }, 100);
       } else {
         // If login fails, show error toast
         toast({
@@ -57,12 +75,12 @@ const LoginForm = () => {
         });
       }
     } catch (error) {
+      console.error("Erro de login:", error);
       toast({
         variant: "destructive",
         title: "Erro ao fazer login",
-        description: "Email ou senha inválidos. Tente novamente.",
+        description: "Ocorreu um problema ao tentar fazer login. Tente novamente.",
       });
-      console.error("Erro de login:", error);
     } finally {
       setIsLoading(false);
     }
@@ -93,6 +111,7 @@ const LoginForm = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -104,6 +123,7 @@ const LoginForm = () => {
                   variant="link" 
                   className="p-0 h-auto text-sm text-bestcode-600 hover:text-bestcode-800"
                   onClick={() => setIsForgotPasswordOpen(true)}
+                  disabled={isLoading}
                 >
                   Esqueceu a senha?
                 </Button>
@@ -118,6 +138,7 @@ const LoginForm = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   required
+                  disabled={isLoading}
                 />
                 <Button
                   type="button"
@@ -125,6 +146,7 @@ const LoginForm = () => {
                   size="icon"
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                   onClick={togglePasswordVisibility}
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4 text-gray-500" />
@@ -139,7 +161,7 @@ const LoginForm = () => {
             </div>
             
             <div className="flex items-center space-x-2">
-              <Checkbox id="remember" />
+              <Checkbox id="remember" disabled={isLoading} />
               <Label htmlFor="remember" className="text-sm font-normal">
                 Lembrar de mim
               </Label>

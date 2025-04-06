@@ -96,16 +96,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Primeiro, verifica se é um usuário de teste (para compatibilidade)
-      const testUser = 
-        email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password ? TEST_USERS.teacher :
-        email === TEST_USERS.student.email && password === TEST_USERS.student.password ? TEST_USERS.student :
-        email === TEST_USERS.admin.email && password === TEST_USERS.admin.password ? TEST_USERS.admin :
-        null;
+      // Verifica rapidamente se é um dos usuários de teste
+      const testUser = Object.values(TEST_USERS).find(
+        u => u.email === email && u.password === password
+      );
       
       if (testUser) {
         // Se for usuário de teste, use-o diretamente
         const { password: _, ...userWithoutPassword } = testUser;
+        // Pequeno delay para evitar problemas de renderização
+        await new Promise(resolve => setTimeout(resolve, 0)); 
         setUser(userWithoutPassword);
         localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
         return userWithoutPassword;
