@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { PostgrestQueryBuilder } from '@supabase/supabase-js';
 
 export interface UseSupabaseBaseReturn {
   loading: boolean;
