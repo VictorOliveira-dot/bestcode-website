@@ -1,8 +1,9 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Components
 import DashboardHeader from "@/components/teacher/DashboardHeader";
@@ -18,48 +19,103 @@ interface Lesson {
   youtubeUrl: string;
   date: string;
   class: string;
+  class_id: string;
   visibility: 'all' | 'class_only';
+}
+
+interface Class {
+  id: string;
+  name: string;
 }
 
 const TeacherDashboard = () => {
   const { user } = useAuth();
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("lessons");
-  const [lessons, setLessons] = useState<Lesson[]>(() => {
-    const savedLessons = localStorage.getItem('teacher_lessons');
-    return savedLessons ? JSON.parse(savedLessons) : [
-      {
-        id: '1',
-        title: 'Introdução ao Teste de API',
-        description: 'Aula básica sobre testes de API e suas ferramentas',
-        youtubeUrl: 'https://youtube.com/watch?v=example1',
-        date: '2023-07-15',
-        class: 'QA-01',
-        visibility: 'class_only'
-      },
-      {
-        id: '2',
-        title: 'Testes de Regressão',
-        description: 'Métodos avançados de testes de regressão',
-        youtubeUrl: 'https://youtube.com/watch?v=example2',
-        date: '2023-07-14',
-        class: 'QA-02',
-        visibility: 'all'
-      },
-      {
-        id: '3',
-        title: 'Automação com Cypress',
-        description: 'Como utilizar o Cypress para automação de testes',
-        youtubeUrl: 'https://youtube.com/watch?v=example3',
-        date: '2023-07-13',
-        class: 'QA-01',
-        visibility: 'class_only'
-      }
-    ];
-  });
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [availableClasses, setAvailableClasses] = useState<Class[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [studentCount, setStudentCount] = useState(0);
 
-  // Classes disponíveis (agora viriam do componente de ClassManagement)
-  const availableClasses = ['QA-01', 'QA-02', 'DEV-01', 'DEV-02'];
+  // Fetch data from Supabase when component mounts
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch classes
+        const { data: classesData, error: classesError } = await supabase
+          .from('classes')
+          .select('id, name')
+          .eq('teacher_id', user.id);
+          
+        if (classesError) throw classesError;
+        
+        if (classesData) {
+          setAvailableClasses(classesData);
+          
+          // Fetch lessons
+          const { data: lessonsData, error: lessonsError } = await supabase
+            .from('lessons')
+            .select(`
+              id,
+              title,
+              description,
+              youtube_url,
+              date,
+              class_id,
+              visibility,
+              classes(name)
+            `)
+            .in('class_id', classesData.map(c => c.id));
+          
+          if (lessonsError) throw lessonsError;
+          
+          if (lessonsData) {
+            const formattedLessons: Lesson[] = lessonsData.map(lesson => ({
+              id: lesson.id,
+              title: lesson.title,
+              description: lesson.description,
+              youtubeUrl: lesson.youtube_url,
+              date: lesson.date,
+              class: lesson.classes?.name || 'Sem turma',
+              class_id: lesson.class_id || '',
+              visibility: lesson.visibility
+            }));
+            
+            setLessons(formattedLessons);
+          }
+          
+          // Count students enrolled in teacher's classes
+          let totalStudents = 0;
+          for (const cls of classesData) {
+            const { data: enrollmentCount, error: countError } = await supabase
+              .from('enrollments')
+              .select('id', { count: 'exact', head: true })
+              .eq('class_id', cls.id);
+              
+            if (!countError && enrollmentCount !== null) {
+              totalStudents += enrollmentCount;
+            }
+          }
+          
+          setStudentCount(totalStudents);
+        }
+      } catch (error: any) {
+        console.error("Error fetching teacher data:", error);
+        toast({
+          title: "Erro ao carregar dados",
+          description: error.message || "Ocorreu um erro ao carregar os dados.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [user]);
 
   // Redirect if not authenticated or not a teacher
   if (!user) {
@@ -70,35 +126,92 @@ const TeacherDashboard = () => {
     return <Navigate to="/student/dashboard" />;
   }
 
-  const handleAddLesson = (newLesson: Omit<Lesson, 'id'>) => {
-    const newLessonWithId = {
-      ...newLesson,
-      id: Date.now().toString()
-    };
-
-    const updatedLessons = [...lessons, newLessonWithId];
-    setLessons(updatedLessons);
+  const handleAddLesson = async (newLesson: Omit<Lesson, 'id' | 'class'>) => {
+    if (!user) return;
     
-    // Salvar no localStorage
-    localStorage.setItem('teacher_lessons', JSON.stringify(updatedLessons));
-    
-    setIsAddLessonOpen(false);
-    
-    toast({
-      title: "Aula adicionada",
-      description: "Aula foi adicionada com sucesso."
-    });
+    setIsLoading(true);
+    try {
+      // Find class name for display
+      const classObj = availableClasses.find(c => c.id === newLesson.class_id);
+      
+      // Insert lesson into the database
+      const { data, error } = await supabase
+        .from('lessons')
+        .insert([{
+          title: newLesson.title,
+          description: newLesson.description,
+          youtube_url: newLesson.youtubeUrl,
+          date: newLesson.date,
+          class_id: newLesson.class_id,
+          visibility: newLesson.visibility
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) {
+        // Add the new lesson to our local state
+        const newLessonWithId: Lesson = {
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          youtubeUrl: data.youtube_url,
+          date: data.date,
+          class: classObj?.name || 'Sem turma',
+          class_id: data.class_id,
+          visibility: data.visibility
+        };
+        
+        setLessons([...lessons, newLessonWithId]);
+        setIsAddLessonOpen(false);
+        
+        toast({
+          title: "Aula adicionada",
+          description: "Aula foi adicionada com sucesso."
+        });
+      }
+    } catch (error: any) {
+      console.error("Error adding lesson:", error);
+      toast({
+        title: "Erro ao adicionar aula",
+        description: error.message || "Ocorreu um erro ao adicionar a aula.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDeleteLesson = (id: string) => {
-    const updatedLessons = lessons.filter(lesson => lesson.id !== id);
-    setLessons(updatedLessons);
-    localStorage.setItem('teacher_lessons', JSON.stringify(updatedLessons));
-    
-    toast({
-      title: "Aula removida",
-      description: "Aula foi removida com sucesso."
-    });
+  const handleDeleteLesson = async (id: string) => {
+    setIsLoading(true);
+    try {
+      // Delete lesson from the database
+      const { error } = await supabase
+        .from('lessons')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Remove lesson from local state
+      const updatedLessons = lessons.filter(lesson => lesson.id !== id);
+      setLessons(updatedLessons);
+      
+      toast({
+        title: "Aula removida",
+        description: "Aula foi removida com sucesso."
+      });
+    } catch (error: any) {
+      console.error("Error deleting lesson:", error);
+      toast({
+        title: "Erro ao remover aula",
+        description: error.message || "Ocorreu um erro ao remover a aula.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -109,7 +222,7 @@ const TeacherDashboard = () => {
         <DashboardCards 
           classesCount={availableClasses.length}
           lessonsCount={lessons.length}
-          studentsCount={28} // This is hardcoded in the original component
+          studentsCount={studentCount}
           onAddLessonClick={() => setIsAddLessonOpen(true)}
           onChangeTab={setActiveTab}
         />
@@ -118,9 +231,10 @@ const TeacherDashboard = () => {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           lessons={lessons}
-          availableClasses={availableClasses}
+          availableClasses={availableClasses.map(c => c.name)}
           setIsAddLessonOpen={setIsAddLessonOpen}
           handleDeleteLesson={handleDeleteLesson}
+          isLoading={isLoading}
         />
       </main>
 
@@ -128,7 +242,7 @@ const TeacherDashboard = () => {
         isOpen={isAddLessonOpen}
         onOpenChange={setIsAddLessonOpen}
         onAddLesson={handleAddLesson}
-        availableClasses={availableClasses}
+        availableClasses={availableClasses.map(c => c.name)}
       />
     </div>
   );

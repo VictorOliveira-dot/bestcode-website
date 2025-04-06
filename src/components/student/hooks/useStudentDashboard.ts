@@ -3,74 +3,234 @@ import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Lesson, LessonProgress } from "../types/lesson";
 import { Notification } from "../types/notification";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useStudentDashboard() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [lessonProgress, setLessonProgress] = useState<LessonProgress[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [studentClass, setStudentClass] = useState("QA-01"); // Default student class
+  const [studentClass, setStudentClass] = useState("");
+  const { user } = useAuth();
   
-  // Fetch lessons from localStorage (in a real app, this would be an API call)
+  // Fetch data from Supabase
   useEffect(() => {
-    const teacherLessons = localStorage.getItem('teacher_lessons');
-    if (teacherLessons) {
-      setLessons(JSON.parse(teacherLessons));
-    }
-
-    // Get stored progress from localStorage
-    const storedProgress = localStorage.getItem('student_progress');
-    if (storedProgress) {
-      setLessonProgress(JSON.parse(storedProgress));
-    } else {
-      // Initialize with default progress
-      const defaultProgress: LessonProgress[] = [];
-      setLessonProgress(defaultProgress);
-      localStorage.setItem('student_progress', JSON.stringify(defaultProgress));
-    }
-
-    // Sample notifications (in a real app, these would come from an API)
-    const sampleNotifications: Notification[] = [
-      {
-        id: '1',
-        title: 'Nova aula disponível',
-        message: 'Foi adicionada uma nova aula de Testes de Regressão para sua turma.',
-        date: '2023-08-01',
-        read: false
-      },
-      {
-        id: '2',
-        title: 'Lembrete de atividade',
-        message: 'Não se esqueça de completar a atividade prática de Cypress até o final da semana.',
-        date: '2023-07-28',
-        read: true
-      },
-      {
-        id: '3',
-        title: 'Feedback do professor',
-        message: 'Seu último teste recebeu feedback positivo. Continue o bom trabalho!',
-        date: '2023-07-25',
-        read: true
+    if (!user) return;
+    
+    const fetchStudentData = async () => {
+      try {
+        // First, get the student's class by checking enrollments
+        const { data: enrollmentData, error: enrollmentError } = await supabase
+          .from('enrollments')
+          .select('class_id, classes(name)')
+          .eq('student_id', user.id)
+          .single();
+          
+        if (enrollmentError && enrollmentError.code !== 'PGRST116') {
+          console.error('Error fetching enrollment:', enrollmentError);
+          toast({
+            title: "Erro ao carregar dados da turma",
+            description: "Não foi possível obter dados da sua turma.",
+            variant: "destructive",
+          });
+        }
+        
+        let classId = null;
+        if (enrollmentData) {
+          classId = enrollmentData.class_id;
+          setStudentClass(enrollmentData.classes?.name || "Não definida");
+        } else {
+          setStudentClass("Não definida");
+        }
+        
+        // Fetch lessons
+        const { data: lessonsData, error: lessonsError } = await supabase
+          .from('lessons')
+          .select('*')
+          .or(`visibility.eq.all${classId ? ',class_id.eq.' + classId : ''}`);
+          
+        if (lessonsError) {
+          console.error('Error fetching lessons:', lessonsError);
+          toast({
+            title: "Erro ao carregar aulas",
+            description: "Não foi possível carregar as aulas disponíveis.",
+            variant: "destructive",
+          });
+        } else if (lessonsData) {
+          // Transform lessons data to match our Lesson type
+          const formattedLessons: Lesson[] = lessonsData.map(lesson => ({
+            id: lesson.id,
+            title: lesson.title,
+            description: lesson.description,
+            date: lesson.date,
+            class: studentClass, // Use the class name we fetched earlier
+            youtubeUrl: lesson.youtube_url,
+            visibility: lesson.visibility
+          }));
+          
+          setLessons(formattedLessons);
+        }
+        
+        // Fetch lesson progress
+        const { data: progressData, error: progressError } = await supabase
+          .from('lesson_progress')
+          .select('*')
+          .eq('student_id', user.id);
+          
+        if (progressError) {
+          console.error('Error fetching lesson progress:', progressError);
+        } else if (progressData) {
+          // Transform progress data to match our LessonProgress type
+          const formattedProgress: LessonProgress[] = progressData.map(progress => ({
+            lessonId: progress.lesson_id,
+            progress: progress.progress,
+            status: progress.status as 'completed' | 'in_progress' | 'not_started',
+            lastWatched: progress.last_watched,
+            watchTimeMinutes: progress.watch_time_minutes
+          }));
+          
+          setLessonProgress(formattedProgress);
+        }
+        
+        // Fetch notifications
+        const { data: notificationsData, error: notificationsError } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false });
+          
+        if (notificationsError) {
+          console.error('Error fetching notifications:', notificationsError);
+        } else if (notificationsData) {
+          // Transform notifications data to match our Notification type
+          const formattedNotifications: Notification[] = notificationsData.map(notification => ({
+            id: notification.id,
+            title: notification.title,
+            message: notification.message,
+            date: notification.date,
+            read: notification.read
+          }));
+          
+          setNotifications(formattedNotifications);
+        }
+      } catch (error: any) {
+        console.error("Error fetching student data:", error);
+        toast({
+          title: "Erro ao carregar dados",
+          description: error.message || "Ocorreu um erro ao carregar seus dados.",
+          variant: "destructive",
+        });
       }
-    ];
+    };
+    
+    fetchStudentData();
+  }, [user]);
 
-    // Get stored notifications from localStorage
-    const storedNotifications = localStorage.getItem('student_notifications');
-    if (storedNotifications) {
-      setNotifications(JSON.parse(storedNotifications));
-    } else {
-      // Initialize with sample notifications
-      setNotifications(sampleNotifications);
-      localStorage.setItem('student_notifications', JSON.stringify(sampleNotifications));
+  // Update lesson progress
+  const updateLessonProgress = async (lessonId: string, watchTimeMinutes: number, progress: number) => {
+    if (!user) return;
+    
+    try {
+      const status = progress >= 100 ? 'completed' : 'in_progress';
+      const now = new Date().toISOString();
+      
+      // Find existing progress or create a new entry
+      const existingIndex = lessonProgress.findIndex(p => p.lessonId === lessonId);
+      
+      if (existingIndex >= 0) {
+        // Update in Supabase
+        const { error } = await supabase
+          .from('lesson_progress')
+          .update({
+            watch_time_minutes: watchTimeMinutes,
+            progress: progress,
+            status: status,
+            last_watched: now
+          })
+          .eq('student_id', user.id)
+          .eq('lesson_id', lessonId);
+          
+        if (error) throw error;
+        
+        // Update local state
+        const updatedProgress = [...lessonProgress];
+        updatedProgress[existingIndex] = {
+          ...updatedProgress[existingIndex],
+          watchTimeMinutes,
+          progress,
+          status,
+          lastWatched: now
+        };
+        
+        setLessonProgress(updatedProgress);
+      } else {
+        // Create new record in Supabase
+        const { data, error } = await supabase
+          .from('lesson_progress')
+          .insert([{
+            student_id: user.id,
+            lesson_id: lessonId,
+            watch_time_minutes: watchTimeMinutes,
+            progress: progress,
+            status: status,
+            last_watched: now
+          }])
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        // Add to local state
+        if (data) {
+          setLessonProgress([...lessonProgress, {
+            lessonId: data.lesson_id,
+            watchTimeMinutes: data.watch_time_minutes,
+            progress: data.progress,
+            status: data.status as 'completed' | 'in_progress' | 'not_started',
+            lastWatched: data.last_watched
+          }]);
+        }
+      }
+    } catch (error: any) {
+      console.error("Error updating lesson progress:", error);
+      toast({
+        title: "Erro ao atualizar progresso",
+        description: error.message || "Não foi possível salvar seu progresso.",
+        variant: "destructive",
+      });
     }
-  }, []);
+  };
+
+  // Mark notification as read
+  const handleMarkNotificationAsRead = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', id)
+        .eq('user_id', user?.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setNotifications(notifications.map(notification =>
+        notification.id === id ? { ...notification, read: true } : notification
+      ));
+    } catch (error: any) {
+      console.error("Error marking notification as read:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível marcar a notificação como lida.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Calculate student stats
   const getStudentStats = () => {
     const completedLessons = lessonProgress.filter(progress => progress.status === 'completed').length;
     const inProgressLessons = lessonProgress.filter(progress => progress.status === 'in_progress').length;
-    const availableLessons = lessons.filter(lesson => 
-      lesson.visibility === 'all' || lesson.class === studentClass
-    ).length;
+    const availableLessons = lessons.length;
     
     // Calculate overall progress percentage
     const overallProgress = availableLessons > 0 
@@ -83,49 +243,6 @@ export function useStudentDashboard() {
       availableLessons,
       overallProgress
     };
-  };
-
-  const updateLessonProgress = (lessonId: string, watchTimeMinutes: number, progress: number) => {
-    // Find existing progress or create new
-    const existingProgressIndex = lessonProgress.findIndex(p => p.lessonId === lessonId);
-    const now = new Date().toISOString();
-    
-    if (existingProgressIndex >= 0) {
-      // Update existing progress
-      const updatedProgress = [...lessonProgress];
-      updatedProgress[existingProgressIndex] = {
-        ...updatedProgress[existingProgressIndex],
-        watchTimeMinutes,
-        progress,
-        lastWatched: now,
-        status: progress >= 100 ? 'completed' : 'in_progress'
-      };
-      
-      setLessonProgress(updatedProgress);
-      localStorage.setItem('student_progress', JSON.stringify(updatedProgress));
-    } else {
-      // Create new progress entry
-      const newProgressEntry: LessonProgress = {
-        lessonId,
-        watchTimeMinutes,
-        progress,
-        lastWatched: now,
-        status: progress >= 100 ? 'completed' : 'in_progress'
-      };
-      
-      const updatedProgress = [...lessonProgress, newProgressEntry];
-      setLessonProgress(updatedProgress);
-      localStorage.setItem('student_progress', JSON.stringify(updatedProgress));
-    }
-  };
-
-  const handleMarkNotificationAsRead = (id: string) => {
-    const updatedNotifications = notifications.map(notification => 
-      notification.id === id ? { ...notification, read: true } : notification
-    );
-    
-    setNotifications(updatedNotifications);
-    localStorage.setItem('student_notifications', JSON.stringify(updatedNotifications));
   };
 
   return {
