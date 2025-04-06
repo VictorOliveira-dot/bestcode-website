@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
+import { toast } from '@/hooks/use-toast';
 
 // Define user types
 export interface User {
@@ -74,6 +75,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Erro ao verificar autenticação:', error);
+        // If Supabase is not configured, show a toast
+        if ((error as any)?.message?.includes('Supabase configuration is missing')) {
+          toast({
+            title: "Erro de configuração",
+            description: "A conexão com Supabase não está configurada. Usando modo offline.",
+            variant: "destructive",
+          });
+        }
       } finally {
         setIsLoading(false);
       }
@@ -122,9 +131,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       return null;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erro durante login:", err);
-      throw err;
+      // If Supabase is not configured, show a message and allow fallback to test users
+      if (err?.message?.includes('Supabase configuration is missing')) {
+        toast({
+          title: "Modo offline ativado",
+          description: "Usando credenciais de teste local.",
+          variant: "default",
+        });
+      } else {
+        throw err;
+      }
+      return null;
     } finally {
       setIsLoading(false);
     }
