@@ -41,9 +41,10 @@ const LoginForm = () => {
       if (userData) {
         toast({
           title: "Login realizado com sucesso",
-          description: `Bem-vindo de volta!`,
+          description: `Bem-vindo de volta, ${userData.name || userData.email}!`,
         });
         
+        // Pequeno delay para melhorar UX
         setTimeout(() => {
           if (userData.role === "teacher") {
             navigate("/teacher/dashboard");
@@ -57,15 +58,15 @@ const LoginForm = () => {
         toast({
           variant: "destructive",
           title: "Erro ao fazer login",
-          description: "Email ou senha inválidos. Tente novamente.",
+          description: "Email ou senha inválidos. Verifique suas credenciais e tente novamente.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro de login:", error);
       toast({
         variant: "destructive",
         title: "Erro ao fazer login",
-        description: "Ocorreu um problema ao tentar fazer login. Tente novamente.",
+        description: error.message || "Ocorreu um problema ao tentar fazer login. Tente novamente.",
       });
     } finally {
       setIsLoading(false);

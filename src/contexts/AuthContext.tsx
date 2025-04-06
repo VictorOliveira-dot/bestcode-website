@@ -52,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { login: supabaseLogin, logout: supabaseLogout, getCurrentUser } = useSupabase();
+  const [isSupabaseAvailable, setIsSupabaseAvailable] = useState(true);
 
   // Verificar se usuário já está autenticado
   useEffect(() => {
@@ -77,9 +78,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Erro ao verificar autenticação:', error);
         // If Supabase is not configured, show a toast
         if ((error as any)?.message?.includes('Supabase configuration is missing')) {
+          setIsSupabaseAvailable(false);
           toast({
-            title: "Erro de configuração",
-            description: "A conexão com Supabase não está configurada. Usando modo offline.",
+            title: "Modo offline ativado",
+            description: "Usando credenciais de teste local. Configure o Supabase para funcionalidade completa.",
             variant: "destructive",
           });
         }
@@ -96,66 +98,87 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Verificação simplificada para usuários de teste
-      // Isso ajudará a evitar o travamento
-      let testUserFound = null;
-      
-      if (email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password) {
-        testUserFound = TEST_USERS.teacher;
-      } else if (email === TEST_USERS.student.email && password === TEST_USERS.student.password) {
-        testUserFound = TEST_USERS.student;
-      } else if (email === TEST_USERS.admin.email && password === TEST_USERS.admin.password) {
-        testUserFound = TEST_USERS.admin;
-      }
-      
-      if (testUserFound) {
-        // Se for usuário de teste, use-o diretamente
-        const { password: _, ...userWithoutPassword } = testUserFound;
-        
-        // Armazena o usuário no localStorage
-        localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
-        
-        // Atualiza o estado após o armazenamento
-        setUser(userWithoutPassword);
-        
-        // Retorna o usuário para feedback imediato
-        return userWithoutPassword;
-      }
-      
-      // Se não for usuário de teste, tenta login com Supabase
-      const authData = await supabaseLogin(email, password);
-      
-      if (authData && authData.user) {
-        // Busca dados completos do usuário
-        const userData = await getCurrentUser();
-        
-        if (userData) {
-          const userInfo: User = {
-            id: userData.id,
-            name: userData.name || userData.email, 
-            email: userData.email,
-            role: userData.role as 'student' | 'teacher' | 'admin'
-          };
+      // Primeiro tenta login com Supabase se estiver disponível
+      if (isSupabaseAvailable) {
+        try {
+          const authData = await supabaseLogin(email, password);
           
-          setUser(userInfo);
-          return userInfo;
+          if (authData && authData.user) {
+            // Busca dados completos do usuário
+            const userData = await getCurrentUser();
+            
+            if (userData) {
+              const userInfo: User = {
+                id: userData.id,
+                name: userData.name || userData.email,
+                email: userData.email,
+                role: userData.role as 'student' | 'teacher' | 'admin'
+              };
+              
+              setUser(userInfo);
+              
+              // Armazena no localStorage como backup
+              localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+              
+              return userInfo;
+            }
+          }
+        } catch (err: any) {
+          console.error("Erro ao fazer login no Supabase:", err);
+          
+          // Se erro de configuração, alterna para modo offline
+          if (err?.message?.includes('Supabase configuration is missing')) {
+            setIsSupabaseAvailable(false);
+            toast({
+              title: "Supabase não configurado",
+              description: "Modo offline ativado. Usando credenciais de teste local.",
+              variant: "destructive",
+            });
+          } 
+          // Se credenciais inválidas, não prossiga para verificação de usuários de teste
+          else if (err?.message?.includes('Invalid login credentials')) {
+            setIsLoading(false);
+            throw new Error("Credenciais inválidas");
+          }
+        }
+      }
+      
+      // Fallback para usuários de teste se Supabase não estiver disponível
+      if (!isSupabaseAvailable) {
+        let testUserFound = null;
+        
+        if (email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password) {
+          testUserFound = TEST_USERS.teacher;
+        } else if (email === TEST_USERS.student.email && password === TEST_USERS.student.password) {
+          testUserFound = TEST_USERS.student;
+        } else if (email === TEST_USERS.admin.email && password === TEST_USERS.admin.password) {
+          testUserFound = TEST_USERS.admin;
+        }
+        
+        if (testUserFound) {
+          const { password: _, ...userWithoutPassword } = testUserFound;
+          
+          // Armazena o usuário no localStorage
+          localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
+          
+          // Atualiza o estado após o armazenamento
+          setUser(userWithoutPassword);
+          
+          toast({
+            title: "Login com usuário de teste",
+            description: `Bem-vindo ${userWithoutPassword.name || email}! (Modo offline)`,
+            variant: "default",
+          });
+          
+          // Retorna o usuário para feedback imediato
+          return userWithoutPassword;
         }
       }
       
       return null;
-    } catch (err: any) {
+    } catch (err) {
       console.error("Erro durante login:", err);
-      // If Supabase is not configured, show a message and allow fallback to test users
-      if (err?.message?.includes('Supabase configuration is missing')) {
-        toast({
-          title: "Modo offline ativado",
-          description: "Usando credenciais de teste local.",
-          variant: "default",
-        });
-      } else {
-        throw err;
-      }
-      return null;
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +187,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout function
   const logout = async (): Promise<void> => {
     try {
-      await supabaseLogout();
+      if (isSupabaseAvailable) {
+        await supabaseLogout();
+      }
       setUser(null);
       localStorage.removeItem('bestcode_user');
     } catch (error) {

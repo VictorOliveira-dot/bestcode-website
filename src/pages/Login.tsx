@@ -21,10 +21,6 @@ const Login = () => {
             </p>
           </div>
           <LoginForm />
-          <div className="mt-8 text-center text-sm text-gray-500">
-            <p>Acesso administrativo disponível para gerentes de operações.</p>
-            <p>Email: admin@bestcode.com / Senha: admin123</p>
-          </div>
         </div>
       </main>
       <Footer />
