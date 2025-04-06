@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
@@ -29,35 +28,29 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isLoading) return; // Previne múltiplos cliques
-    
-    setIsLoading(true);
+    if (isLoading) return;
     
     try {
-      // Verifica campos obrigatórios
+      setIsLoading(true);
+      
       if (!email || !password) {
         toast({
           variant: "destructive",
           title: "Campos obrigatórios",
           description: "Por favor, preencha todos os campos.",
         });
-        setIsLoading(false);
         return;
       }
       
-      // Tenta fazer login
       const userData = await login(email, password);
       
       if (userData) {
-        // Show success toast
         toast({
           title: "Login realizado com sucesso",
           description: `Bem-vindo de volta!`,
         });
         
-        // Pequeno delay antes do redirecionamento para garantir que as atualizações de estado concluam
         setTimeout(() => {
-          // Redirect based on role
           if (userData.role === "teacher") {
             navigate("/teacher/dashboard");
           } else if (userData.role === "admin") {
@@ -65,9 +58,8 @@ const LoginForm = () => {
           } else {
             navigate("/student/dashboard");
           }
-        }, 100);
+        }, 300);
       } else {
-        // If login fails, show error toast
         toast({
           variant: "destructive",
           title: "Erro ao fazer login",

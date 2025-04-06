@@ -96,18 +96,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Verifica rapidamente se é um dos usuários de teste
-      const testUser = Object.values(TEST_USERS).find(
-        u => u.email === email && u.password === password
-      );
+      // Verificação simplificada para usuários de teste
+      // Isso ajudará a evitar o travamento
+      let testUserFound = null;
       
-      if (testUser) {
+      if (email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password) {
+        testUserFound = TEST_USERS.teacher;
+      } else if (email === TEST_USERS.student.email && password === TEST_USERS.student.password) {
+        testUserFound = TEST_USERS.student;
+      } else if (email === TEST_USERS.admin.email && password === TEST_USERS.admin.password) {
+        testUserFound = TEST_USERS.admin;
+      }
+      
+      if (testUserFound) {
         // Se for usuário de teste, use-o diretamente
-        const { password: _, ...userWithoutPassword } = testUser;
-        // Pequeno delay para evitar problemas de renderização
-        await new Promise(resolve => setTimeout(resolve, 0)); 
-        setUser(userWithoutPassword);
+        const { password: _, ...userWithoutPassword } = testUserFound;
+        
+        // Armazena o usuário no localStorage
         localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
+        
+        // Atualiza o estado após o armazenamento
+        setUser(userWithoutPassword);
+        
+        // Retorna o usuário para feedback imediato
         return userWithoutPassword;
       }
       
