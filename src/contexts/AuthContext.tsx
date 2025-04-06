@@ -96,7 +96,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Primeiro, tenta login com Supabase
+      // Primeiro, verifica se é um usuário de teste (para compatibilidade)
+      const testUser = 
+        email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password ? TEST_USERS.teacher :
+        email === TEST_USERS.student.email && password === TEST_USERS.student.password ? TEST_USERS.student :
+        email === TEST_USERS.admin.email && password === TEST_USERS.admin.password ? TEST_USERS.admin :
+        null;
+      
+      if (testUser) {
+        // Se for usuário de teste, use-o diretamente
+        const { password: _, ...userWithoutPassword } = testUser;
+        setUser(userWithoutPassword);
+        localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
+        return userWithoutPassword;
+      }
+      
+      // Se não for usuário de teste, tenta login com Supabase
       const authData = await supabaseLogin(email, password);
       
       if (authData && authData.user) {
@@ -113,20 +128,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           setUser(userInfo);
           return userInfo;
-        }
-      } else {
-        // Fallback para usuários de teste (para compatibilidade)
-        const testUser = 
-          email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password ? TEST_USERS.teacher :
-          email === TEST_USERS.student.email && password === TEST_USERS.student.password ? TEST_USERS.student :
-          email === TEST_USERS.admin.email && password === TEST_USERS.admin.password ? TEST_USERS.admin :
-          null;
-        
-        if (testUser) {
-          const { password: _, ...userWithoutPassword } = testUser;
-          setUser(userWithoutPassword);
-          localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
-          return userWithoutPassword;
         }
       }
       

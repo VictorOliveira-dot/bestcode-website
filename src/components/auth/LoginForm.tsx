@@ -48,6 +48,13 @@ const LoginForm = () => {
         } else {
           navigate("/student/dashboard");
         }
+      } else {
+        // If login fails, show error toast
+        toast({
+          variant: "destructive",
+          title: "Erro ao fazer login",
+          description: "Email ou senha inválidos. Tente novamente.",
+        });
       }
     } catch (error) {
       toast({
