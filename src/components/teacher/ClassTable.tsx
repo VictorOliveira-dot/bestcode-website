@@ -12,19 +12,32 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ClassTableProps {
   classes: ClassInfo[];
   openEditDialog: (classInfo: ClassInfo) => void;
   handleDeleteClass: (id: string) => void;
+  isLoading?: boolean;
 }
 
 const ClassTable: React.FC<ClassTableProps> = ({ 
   classes, 
   openEditDialog, 
-  handleDeleteClass 
+  handleDeleteClass,
+  isLoading = false
 }) => {
   const isMobile = useIsMobile();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((_, index) => (
+          <Skeleton key={index} className="h-24 w-full" />
+        ))}
+      </div>
+    );
+  }
 
   if (isMobile) {
     return (

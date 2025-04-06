@@ -12,16 +12,7 @@ import DashboardContent from "@/components/teacher/DashboardContent";
 import AddLessonForm from "@/components/teacher/AddLessonForm";
 
 // Types
-interface Lesson {
-  id: string;
-  title: string;
-  description: string;
-  youtubeUrl: string;
-  date: string;
-  class: string;
-  class_id: string;
-  visibility: 'all' | 'class_only';
-}
+import { Lesson, NewLesson } from "@/components/student/types/lesson";
 
 interface Class {
   id: string;
@@ -81,7 +72,7 @@ const TeacherDashboard = () => {
               date: lesson.date,
               class: lesson.classes?.name || 'Sem turma',
               class_id: lesson.class_id || '',
-              visibility: lesson.visibility
+              visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
             }));
             
             setLessons(formattedLessons);
@@ -90,13 +81,13 @@ const TeacherDashboard = () => {
           // Count students enrolled in teacher's classes
           let totalStudents = 0;
           for (const cls of classesData) {
-            const { data: enrollmentCount, error: countError } = await supabase
+            const { count, error: countError } = await supabase
               .from('enrollments')
               .select('id', { count: 'exact', head: true })
               .eq('class_id', cls.id);
               
-            if (!countError && enrollmentCount !== null) {
-              totalStudents += enrollmentCount;
+            if (!countError && count !== null) {
+              totalStudents += count;
             }
           }
           
@@ -126,7 +117,7 @@ const TeacherDashboard = () => {
     return <Navigate to="/student/dashboard" />;
   }
 
-  const handleAddLesson = async (newLesson: Omit<Lesson, 'id' | 'class'>) => {
+  const handleAddLesson = async (newLesson: NewLesson) => {
     if (!user) return;
     
     setIsLoading(true);
@@ -160,7 +151,7 @@ const TeacherDashboard = () => {
           date: data.date,
           class: classObj?.name || 'Sem turma',
           class_id: data.class_id,
-          visibility: data.visibility
+          visibility: data.visibility === 'all' ? 'all' : 'class_only'
         };
         
         setLessons([...lessons, newLessonWithId]);
@@ -242,7 +233,7 @@ const TeacherDashboard = () => {
         isOpen={isAddLessonOpen}
         onOpenChange={setIsAddLessonOpen}
         onAddLesson={handleAddLesson}
-        availableClasses={availableClasses.map(c => c.name)}
+        availableClasses={availableClasses.map(c => c.id)}
       />
     </div>
   );

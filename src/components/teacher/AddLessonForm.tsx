@@ -1,21 +1,24 @@
 
 import React, { useState } from "react";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetDescription, 
-  SheetFooter,
-  SheetClose 
-} from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { NewLesson } from "@/components/student/types/lesson";
 
 interface AddLessonFormProps {
   isOpen: boolean;
@@ -24,162 +27,135 @@ interface AddLessonFormProps {
   availableClasses: string[];
 }
 
-interface NewLesson {
-  title: string;
-  description: string;
-  youtubeUrl: string;
-  date: string;
-  class: string;
-  visibility: 'all' | 'class_only';
-}
-
-const AddLessonForm: React.FC<AddLessonFormProps> = ({ 
-  isOpen, 
-  onOpenChange, 
-  onAddLesson, 
-  availableClasses 
+const AddLessonForm: React.FC<AddLessonFormProps> = ({
+  isOpen,
+  onOpenChange,
+  onAddLesson,
+  availableClasses,
 }) => {
-  const isMobile = useIsMobile();
   const [newLesson, setNewLesson] = useState<NewLesson>({
-    title: '',
-    description: '',
-    youtubeUrl: '',
-    date: '',
-    class: availableClasses[0] || '',
-    visibility: 'class_only'
+    title: "",
+    description: "",
+    youtubeUrl: "",
+    date: new Date().toISOString().split("T")[0],
+    class_id: "",
+    visibility: "class_only",
   });
 
-  // Função para validar URL do YouTube
-  const isValidYoutubeUrl = (url: string) => {
-    const regex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-    return regex.test(url);
-  };
-
-  const handleAddLesson = () => {
-    if (!newLesson.title || !newLesson.youtubeUrl || !newLesson.date) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!isValidYoutubeUrl(newLesson.youtubeUrl)) {
-      toast({
-        title: "URL inválida",
-        description: "Por favor, insira uma URL válida do YouTube.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const handleSubmit = () => {
     onAddLesson(newLesson);
-    
     // Reset form
     setNewLesson({
-      title: '',
-      description: '',
-      youtubeUrl: '',
-      date: '',
-      class: availableClasses[0] || '',
-      visibility: 'class_only'
+      title: "",
+      description: "",
+      youtubeUrl: "",
+      date: new Date().toISOString().split("T")[0],
+      class_id: "",
+      visibility: "class_only",
     });
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className={`${isMobile ? "w-full" : "sm:max-w-md"}`}>
-        <SheetHeader>
-          <SheetTitle>Adicionar Nova Aula</SheetTitle>
-          <SheetDescription>
-            Adicione uma nova aula em vídeo para seus alunos.
-          </SheetDescription>
-        </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-11rem)] mt-4">
-          <div className="py-2 space-y-4 pr-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título da Aula *</Label>
-              <Input 
-                id="title" 
-                placeholder="Digite o título da aula" 
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Adicionar Nova Aula</DialogTitle>
+        </DialogHeader>
+        
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Título</Label>
+              <Input
+                id="title"
                 value={newLesson.title}
-                onChange={(e) => setNewLesson({...newLesson, title: e.target.value})}
+                onChange={(e) => setNewLesson({ ...newLesson, title: e.target.value })}
+                placeholder="Título da aula"
               />
             </div>
-            <div className="space-y-2">
+            
+            <div className="grid gap-2">
               <Label htmlFor="description">Descrição</Label>
-              <Input 
-                id="description" 
-                placeholder="Descrição breve do conteúdo" 
+              <Textarea
+                id="description"
                 value={newLesson.description}
-                onChange={(e) => setNewLesson({...newLesson, description: e.target.value})}
+                onChange={(e) => setNewLesson({ ...newLesson, description: e.target.value })}
+                placeholder="Descrição da aula"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="youtube-url">Link do YouTube *</Label>
-              <Input 
-                id="youtube-url" 
-                placeholder="https://youtube.com/watch?v=..." 
+            
+            <div className="grid gap-2">
+              <Label htmlFor="youtubeUrl">URL do vídeo (YouTube)</Label>
+              <Input
+                id="youtubeUrl"
                 value={newLesson.youtubeUrl}
-                onChange={(e) => setNewLesson({...newLesson, youtubeUrl: e.target.value})}
+                onChange={(e) => setNewLesson({ ...newLesson, youtubeUrl: e.target.value })}
+                placeholder="https://www.youtube.com/watch?v=..."
               />
-              <p className="text-xs text-gray-500">Cole o link do vídeo não listado do YouTube</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="date">Data da Aula *</Label>
-              <Input 
-                id="date" 
-                type="date" 
+            
+            <div className="grid gap-2">
+              <Label htmlFor="date">Data</Label>
+              <Input
+                id="date"
+                type="date"
                 value={newLesson.date}
-                onChange={(e) => setNewLesson({...newLesson, date: e.target.value})}
+                onChange={(e) => setNewLesson({ ...newLesson, date: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="class">Turma *</Label>
-              <Select 
-                value={newLesson.class} 
-                onValueChange={(value) => setNewLesson({...newLesson, class: value})}
+            
+            <div className="grid gap-2">
+              <Label htmlFor="class">Turma</Label>
+              <Select
+                value={newLesson.class_id}
+                onValueChange={(value) => setNewLesson({ ...newLesson, class_id: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione a turma" />
+                  <SelectValue placeholder="Selecione uma turma" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableClasses.map(className => (
-                    <SelectItem key={className} value={className}>
+                  {availableClasses.map((className, index) => (
+                    <SelectItem key={index} value={className}>
                       {className}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="visibility">Visibilidade *</Label>
-              <Select 
-                value={newLesson.visibility} 
-                onValueChange={(value: 'all' | 'class_only') => 
-                  setNewLesson({...newLesson, visibility: value})
+            
+            <div className="grid gap-2">
+              <Label htmlFor="visibility">Visibilidade</Label>
+              <Select
+                value={newLesson.visibility}
+                onValueChange={(value) => 
+                  setNewLesson({ 
+                    ...newLesson, 
+                    visibility: value as 'all' | 'class_only'
+                  })
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a visibilidade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="class_only">Apenas para a turma selecionada</SelectItem>
-                  <SelectItem value="all">Para todas as turmas</SelectItem>
+                  <SelectItem value="all">Todos os alunos</SelectItem>
+                  <SelectItem value="class_only">Apenas para a turma</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-        </ScrollArea>
-        <SheetFooter className={`${isMobile ? "flex-col mt-4 space-y-2" : "mt-4"}`}>
-          <SheetClose asChild>
-            <Button variant="outline" className={isMobile ? "w-full" : ""}>Cancelar</Button>
-          </SheetClose>
-          <Button onClick={handleAddLesson} className={isMobile ? "w-full" : ""}>Adicionar Aula</Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </div>
+        
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button type="button" onClick={handleSubmit}>
+            Adicionar Aula
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

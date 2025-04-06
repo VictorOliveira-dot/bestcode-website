@@ -1,18 +1,16 @@
 
 import React from "react";
 import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
   DialogTitle,
-  DialogFooter,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Textarea } from "@/components/ui/textarea";
 
 interface AddClassDialogProps {
   isOpen: boolean;
@@ -28,6 +26,7 @@ interface AddClassDialogProps {
     startDate: string;
   }>>;
   handleAddClass: () => void;
+  isLoading?: boolean;
 }
 
 const AddClassDialog: React.FC<AddClassDialogProps> = ({
@@ -35,53 +34,62 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
   onOpenChange,
   newClass,
   setNewClass,
-  handleAddClass
+  handleAddClass,
+  isLoading = false
 }) => {
-  const isMobile = useIsMobile();
-  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className={isMobile ? "w-full max-w-full h-[90vh] sm:h-auto sm:max-w-lg" : ""}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Adicionar Nova Turma</DialogTitle>
-          <DialogDescription>
-            Preencha os detalhes para criar uma nova turma.
-          </DialogDescription>
+          <DialogTitle>Nova Turma</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[50vh] sm:max-h-[unset]">
-          <div className="space-y-4 p-1">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome da Turma *</Label>
-              <Input 
-                id="name" 
-                value={newClass.name}
-                onChange={(e) => setNewClass({...newClass, name: e.target.value})}
-                placeholder="Ex: QA-03"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição *</Label>
-              <Input 
-                id="description" 
-                value={newClass.description}
-                onChange={(e) => setNewClass({...newClass, description: e.target.value})}
-                placeholder="Ex: Turma de Quality Assurance - Intermediário"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Data de Início *</Label>
-              <Input 
-                id="startDate" 
-                type="date" 
-                value={newClass.startDate}
-                onChange={(e) => setNewClass({...newClass, startDate: e.target.value})}
-              />
-            </div>
+        
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Nome da Turma</Label>
+            <Input
+              id="name"
+              placeholder="Ex: Turma de JavaScript"
+              value={newClass.name}
+              onChange={(e) => setNewClass({...newClass, name: e.target.value})}
+            />
           </div>
-        </ScrollArea>
-        <DialogFooter className={isMobile ? "flex-col space-y-2" : ""}>
-          <Button variant="outline" onClick={() => onOpenChange(false)} className={isMobile ? "w-full" : ""}>Cancelar</Button>
-          <Button onClick={handleAddClass} className={isMobile ? "w-full" : ""}>Adicionar Turma</Button>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="description">Descrição</Label>
+            <Textarea
+              id="description"
+              placeholder="Descreva a turma"
+              value={newClass.description}
+              onChange={(e) => setNewClass({...newClass, description: e.target.value})}
+            />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="date">Data de Início</Label>
+            <Input
+              id="date"
+              type="date"
+              value={newClass.startDate}
+              onChange={(e) => setNewClass({...newClass, startDate: e.target.value})}
+            />
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleAddClass}
+            disabled={isLoading}
+          >
+            {isLoading ? "Salvando..." : "Salvar"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

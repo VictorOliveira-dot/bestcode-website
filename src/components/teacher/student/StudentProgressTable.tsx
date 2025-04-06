@@ -1,105 +1,98 @@
 
 import React from "react";
-import { 
-  Table, 
-  TableHeader, 
-  TableRow, 
-  TableHead, 
-  TableBody, 
-  TableCell 
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Eye, FileDown } from "lucide-react";
 import { StudentProgress } from "../types/student";
-import { formatDate } from "../utils/date-utils";
-import { convertToCSV, downloadCSV } from "../utils/csv-utils";
-import { Download } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent } from "@/components/ui/card";
+import { exportToCsv } from "../utils/csv-utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface StudentProgressTableProps {
   students: StudentProgress[];
   onViewDetails: (student: StudentProgress) => void;
+  isLoading?: boolean;
 }
 
-const StudentProgressTable = ({ students, onViewDetails }: StudentProgressTableProps) => {
+const StudentProgressTable: React.FC<StudentProgressTableProps> = ({ 
+  students, 
+  onViewDetails,
+  isLoading = false
+}) => {
   const isMobile = useIsMobile();
   
   const handleExportCSV = () => {
-    if (students.length === 0) return;
-    
-    // Define custom headers for the CSV
-    const headers = {
-      id: 'ID',
-      name: 'Nome',
-      email: 'Email',
-      className: 'Turma',
-      lastActivity: 'Última Atividade',
-      completedLessons: 'Aulas Concluídas',
-      totalLessons: 'Total de Aulas',
-      progress: 'Progresso (%)'
-    };
-    
-    // Process data for CSV - format dates
-    const csvData = students.map(student => ({
-      ...student,
-      lastActivity: formatDate(student.lastActivity)
-    }));
-    
-    // Generate and download the CSV
-    const csv = convertToCSV(csvData, headers);
-    downloadCSV(csv, `alunos-progresso-${new Date().toISOString().split('T')[0]}.csv`);
+    // Function from utils/csv-utils.ts
+    exportToCsv(students, 'student-progress.csv');
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((_, index) => (
+          <Skeleton key={index} className="h-16 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (students.length === 0) {
+    return (
+      <div className="text-center py-12 border rounded-md">
+        <p className="text-muted-foreground">Nenhum aluno encontrado.</p>
+      </div>
+    );
+  }
 
   if (isMobile) {
     return (
-      <div className="space-y-4">
-        <div className="flex justify-end">
+      <div>
+        <div className="flex justify-end mb-4">
           <Button 
             variant="outline" 
-            size="sm" 
+            size="sm"
             onClick={handleExportCSV}
-            disabled={students.length === 0}
-            className="flex items-center gap-2 w-full sm:w-auto"
+            className="flex items-center gap-1"
           >
-            <Download className="h-4 w-4" />
+            <FileDown className="h-4 w-4" />
             Exportar CSV
           </Button>
         </div>
+        
         <div className="space-y-4">
           {students.map((student) => (
-            <Card key={student.id} className="overflow-hidden">
+            <Card key={student.id}>
               <CardContent className="p-4">
-                <div className="space-y-3">
+                <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h3 className="font-medium text-lg">{student.name}</h3>
+                    <h3 className="font-semibold">{student.name}</h3>
                     <p className="text-sm text-muted-foreground">{student.email}</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="font-medium">Turma:</span>
-                      <p>{student.className}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Última Atividade:</span>
-                      <p>{formatDate(student.lastActivity)}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-sm font-medium">Progresso:</span>
-                      <span className="text-sm">{student.progress}%</span>
-                    </div>
-                    <Progress value={student.progress} className="h-2 mt-1" />
-                  </div>
                   <Button 
-                    variant="outline" 
+                    variant="ghost" 
                     size="sm" 
                     onClick={() => onViewDetails(student)}
-                    className="w-full mt-2"
                   >
-                    Detalhes
+                    <Eye className="h-4 w-4" />
                   </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="text-xs">
+                    <span className="font-medium">Turma:</span> {student.className}
+                  </div>
+                  <div className="text-xs">
+                    <span className="font-medium">Atividade:</span> {new Date(student.lastActivity).toLocaleDateString('pt-BR')}
+                  </div>
+                  <div className="text-xs">
+                    <span className="font-medium">Aulas:</span> {student.completedLessons}/{student.totalLessons}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Progress value={student.progress} className="flex-1 h-2" />
+                    <span className="text-xs font-medium">{student.progress}%</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -110,20 +103,19 @@ const StudentProgressTable = ({ students, onViewDetails }: StudentProgressTableP
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
+    <div>
+      <div className="flex justify-end mb-4">
         <Button 
-          variant="outline" 
-          size="sm" 
+          variant="outline"
           onClick={handleExportCSV}
-          disabled={students.length === 0}
-          className="flex items-center gap-2"
+          className="flex items-center gap-1"
         >
-          <Download className="h-4 w-4" />
+          <FileDown className="h-4 w-4" />
           Exportar CSV
         </Button>
       </div>
-      <div className="overflow-x-auto">
+      
+      <div className="border rounded-md overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -141,20 +133,22 @@ const StudentProgressTable = ({ students, onViewDetails }: StudentProgressTableP
                 <TableCell className="font-medium">{student.name}</TableCell>
                 <TableCell>{student.email}</TableCell>
                 <TableCell>{student.className}</TableCell>
-                <TableCell>{formatDate(student.lastActivity)}</TableCell>
+                <TableCell>{new Date(student.lastActivity).toLocaleDateString('pt-BR')}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Progress value={student.progress} className="h-2 w-32" />
-                    <span className="text-sm">{student.progress}%</span>
+                    <Progress value={student.progress} className="w-[100px] h-2" />
+                    <span className="text-xs">
+                      {student.completedLessons}/{student.totalLessons} ({student.progress}%)
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
                     onClick={() => onViewDetails(student)}
                   >
-                    Detalhes
+                    <Eye className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>

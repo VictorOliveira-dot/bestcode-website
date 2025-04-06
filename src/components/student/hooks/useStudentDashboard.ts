@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Lesson, LessonProgress } from "../types/lesson";
@@ -65,7 +64,7 @@ export function useStudentDashboard() {
             date: lesson.date,
             class: studentClass, // Use the class name we fetched earlier
             youtubeUrl: lesson.youtube_url,
-            visibility: lesson.visibility
+            visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
           }));
           
           setLessons(formattedLessons);

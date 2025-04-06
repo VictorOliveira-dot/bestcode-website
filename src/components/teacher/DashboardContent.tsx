@@ -7,6 +7,7 @@ import { Video, Users } from "lucide-react";
 import ClassManagement from "./ClassManagement";
 import StudentProgressTracker from "./StudentProgress";
 import LessonsPanel from "./LessonsPanel";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Lesson {
   id: string;
@@ -25,6 +26,7 @@ interface DashboardContentProps {
   availableClasses: string[];
   setIsAddLessonOpen: (isOpen: boolean) => void;
   handleDeleteLesson: (id: string) => void;
+  isLoading?: boolean;
 }
 
 const DashboardContent: React.FC<DashboardContentProps> = ({
@@ -33,7 +35,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   lessons,
   availableClasses,
   setIsAddLessonOpen,
-  handleDeleteLesson
+  handleDeleteLesson,
+  isLoading = false
 }) => {
   return (
     <div className="mt-8">
@@ -90,21 +93,31 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             </TabsList>
             
             <div className="p-4 md:p-0">
-              <TabsContent value="lessons" className="mt-0">
-                <LessonsPanel 
-                  lessons={lessons} 
-                  availableClasses={availableClasses} 
-                  onDeleteLesson={handleDeleteLesson} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="classes" className="mt-0">
-                <ClassManagement />
-              </TabsContent>
-              
-              <TabsContent value="students" className="mt-0">
-                <StudentProgressTracker />
-              </TabsContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((_, index) => (
+                    <Skeleton key={index} className="h-24 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <TabsContent value="lessons" className="mt-0">
+                    <LessonsPanel 
+                      lessons={lessons} 
+                      availableClasses={availableClasses} 
+                      onDeleteLesson={handleDeleteLesson} 
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="classes" className="mt-0">
+                    <ClassManagement />
+                  </TabsContent>
+                  
+                  <TabsContent value="students" className="mt-0">
+                    <StudentProgressTracker />
+                  </TabsContent>
+                </>
+              )}
             </div>
           </Tabs>
         </CardContent>
