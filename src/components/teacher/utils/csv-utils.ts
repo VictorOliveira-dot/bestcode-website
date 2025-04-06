@@ -51,3 +51,18 @@ export const downloadCSV = (data: string, filename: string): void => {
   link.click();
   document.body.removeChild(link);
 };
+
+/**
+ * Exporta dados para um arquivo CSV
+ * @param data Array de objetos para exportar
+ * @param filename Nome do arquivo a ser baixado
+ * @param headers Cabeçalhos personalizados opcionais
+ */
+export const exportToCsv = <T extends Record<string, any>>(
+  data: T[],
+  filename: string,
+  headers?: { [key in keyof T]?: string }
+): void => {
+  const csvContent = convertToCSV(data, headers);
+  downloadCSV(csvContent, filename);
+};

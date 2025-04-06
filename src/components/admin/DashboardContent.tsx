@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import StudentsTable from "./tables/StudentsTable";
@@ -20,6 +20,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   setActiveTab,
   isLoading = false
 }) => {
+  // Default to current month and year for the enrollment chart
+  const currentDate = new Date();
+  const currentMonth = String(currentDate.getMonth() + 1); // JavaScript months are 0-indexed
+  const currentYear = currentDate.getFullYear();
+  
   return (
     <Card className="mt-8">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -74,7 +79,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Skeleton className="h-80 w-full" />
             </div>
           ) : (
-            <EnrollmentsChart />
+            <EnrollmentsChart month="all" year={currentYear} />
           )}
         </TabsContent>
 
