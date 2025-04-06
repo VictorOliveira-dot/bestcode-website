@@ -18,7 +18,7 @@ export const useSupabase = () => {
   const [error, setError] = useState<string | null>(null);
   
   // Generic data fetching function
-  const fetchData = async <T>(table: string, query?: any): Promise<T[]> => {
+  const fetchData = async <T>(table: 'classes' | 'users' | 'enrollments' | 'lesson_progress' | 'lessons' | 'notifications', query?: any): Promise<T[]> => {
     return fetchSupabaseData<T>(table, query, setLoading, setError);
   };
 

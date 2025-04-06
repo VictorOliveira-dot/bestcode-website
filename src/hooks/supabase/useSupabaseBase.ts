@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { PostgrestQueryBuilder } from '@supabase/supabase-js';
 
 export interface UseSupabaseBaseReturn {
   loading: boolean;
@@ -22,9 +23,9 @@ export const useSupabaseBase = (): UseSupabaseBaseReturn => {
   };
 };
 
-// Generic fetch data function
+// Generic fetch data function with type safety for table names
 export const fetchSupabaseData = async <T>(
-  table: string, 
+  table: 'classes' | 'users' | 'enrollments' | 'lesson_progress' | 'lessons' | 'notifications', 
   query?: any,
   setLoading?: (loading: boolean) => void,
   setError?: (error: string | null) => void
