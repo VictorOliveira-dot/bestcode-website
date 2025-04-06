@@ -2350,10 +2350,10 @@ loose-envify@^1.1.0, loose-envify@^1.4.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-lovable-tagger@^1.1.7:
-  version "1.1.7"
-  resolved "https://registry.yarnpkg.com/lovable-tagger/-/lovable-tagger-1.1.7.tgz#087fa255dcd5514eb89cfae5a0c28751e8b95e5e"
-  integrity sha512-b1wwYbuxWGx+DuqviQGQXrgLAraK1RVbqTg6G8LYRID8FJTg4TuAeO0TJ7i6UXOF8gEzbgjhRbGZ+XAkWH2T8A==
+lovable-tagger@^1.1.8:
+  version "1.1.8"
+  resolved "https://registry.yarnpkg.com/lovable-tagger/-/lovable-tagger-1.1.8.tgz#52dfe4130896e4e49306a97dad32ccd47edb7c01"
+  integrity sha512-0a8lEpsgk+Z6crd+HE+GTmVzB0f++lMyTgW3QUF+hYZBjsA384RqUfCZAYccHlMLxYPI+dk7zjVuIvJcq8PiBg==
   dependencies:
     "@babel/parser" "^7.25.9"
     "@babel/types" "^7.25.8"
