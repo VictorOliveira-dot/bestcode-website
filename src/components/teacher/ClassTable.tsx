@@ -12,10 +12,11 @@ import { ClassInfo } from "./ClassItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import MobileClassCard from "./MobileClassCard";
 import { useClassTable, ClassTableProps } from "@/hooks/teacher/useClassTable";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const ClassTable: React.FC<ClassTableProps> = (props) => {
-  const { classes, isLoading, isMobile, isEmpty, error } = useClassTable(props);
+  const { classes, isLoading, isMobile, isEmpty, error, refetch } = useClassTable(props);
   const { openEditDialog, handleDeleteClass } = props;
 
   if (isLoading) {
@@ -34,8 +35,18 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
         <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
         <p className="text-destructive-foreground font-medium">Erro ao carregar dados</p>
         <p className="text-sm text-muted-foreground mt-1">
-          Tente recarregar a página ou entre em contato com o suporte.
+          {error}
         </p>
+        {refetch && (
+          <Button 
+            onClick={refetch} 
+            variant="outline" 
+            className="mt-4 flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Tentar novamente
+          </Button>
+        )}
       </div>
     );
   }

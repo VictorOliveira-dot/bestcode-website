@@ -269,6 +269,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_role: {
+        Args: {
+          user_id: string
+        }
+        Returns: string
+      }
       user_can_access_class: {
         Args: {
           class_id: string

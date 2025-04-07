@@ -9,12 +9,21 @@ export interface ClassTableProps {
   openEditDialog: (classInfo: ClassInfo) => void;
   handleDeleteClass: (id: string) => void;
   isLoading?: boolean;
+  error?: string | null;
+  refetch?: () => void;
 }
 
 export function useClassTable(props: ClassTableProps) {
-  const { classes, isLoading = false } = props;
+  const { classes, isLoading = false, error: externalError = null, refetch } = props;
   const isMobile = useIsMobile();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(externalError);
+  
+  // Update error state when external error changes
+  useEffect(() => {
+    if (externalError !== null) {
+      setError(externalError);
+    }
+  }, [externalError]);
   
   // Reset error state when classes load successfully
   useEffect(() => {
@@ -40,6 +49,7 @@ export function useClassTable(props: ClassTableProps) {
     isMobile,
     isEmpty: classes.length === 0 && !isLoading,
     error,
-    setError
+    setError,
+    refetch
   };
 }

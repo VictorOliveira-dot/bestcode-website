@@ -20,6 +20,8 @@ const ClassManagement = () => {
   const {
     classes,
     isLoading,
+    error,
+    fetchClasses,
     handleAddClass,
     handleEditClass,
     handleDeleteClass
@@ -59,6 +61,8 @@ const ClassManagement = () => {
         openEditDialog={openEditDialog}
         handleDeleteClass={handleDeleteClass}
         isLoading={isLoading}
+        error={error}
+        refetch={fetchClasses}
       />
 
       <AddClassDialog
