@@ -12,6 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -20,7 +27,8 @@ const RegisterForm = () => {
     name: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    role: "student"
   });
   const [isLoading, setIsLoading] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -30,6 +38,10 @@ const RegisterForm = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleRoleChange = (value: string) => {
+    setFormData(prev => ({ ...prev, role: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,20 +72,31 @@ const RegisterForm = () => {
     try {
       const userData = {
         name: formData.name,
-        role: 'student' // Papel padrão para novos registros
+        role: formData.role // Usando a role selecionada
       };
+      
+      console.log("Registrando com dados:", {
+        email: formData.email,
+        role: formData.role
+      });
       
       const result = await register(formData.email, formData.password, userData);
       
       if (result) {
         toast({
           title: "Conta criada com sucesso!",
-          description: "Redirecionando para o checkout...",
+          description: `Conta ${formData.role} criada. Redirecionando...`,
         });
         
         // Pequeno delay para melhorar UX
         setTimeout(() => {
-          navigate("/checkout");
+          if (formData.role === "teacher") {
+            navigate("/teacher/dashboard");
+          } else if (formData.role === "admin") {
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/student/dashboard");
+          }
         }, 1500);
       }
     } catch (error: any) {
@@ -144,6 +167,22 @@ const RegisterForm = () => {
               onChange={handleChange}
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="role">Função na plataforma</Label>
+            <Select 
+              value={formData.role} 
+              onValueChange={handleRoleChange}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione sua função" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">Aluno</SelectItem>
+                <SelectItem value="teacher">Professor</SelectItem>
+                <SelectItem value="admin">Administrador</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-start space-x-2">
             <Checkbox 
