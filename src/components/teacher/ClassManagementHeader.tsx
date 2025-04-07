@@ -13,12 +13,12 @@ const ClassManagementHeader: React.FC<ClassManagementHeaderProps> = ({
   isLoading 
 }) => {
   return (
-    <div className="flex justify-between items-center flex-col sm:flex-row gap-4">
-      <h2 className="text-2xl font-bold">Gerenciamento de Turmas</h2>
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-3xl font-bold">Gerenciamento de Turmas</h2>
       <Button 
         onClick={onAddClassClick} 
-        className="flex items-center gap-2 w-full sm:w-auto"
-        disabled={isLoading}
+        className="flex items-center gap-2"
+        variant="default"
       >
         <Plus className="h-4 w-4" />
         Nova Turma

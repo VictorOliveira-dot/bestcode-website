@@ -50,7 +50,7 @@ const ClassManagement = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-full">
+    <div className="space-y-6">
       <ClassManagementHeader 
         onAddClassClick={() => setIsAddClassOpen(true)}
         isLoading={isLoading}
