@@ -1,9 +1,15 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClassInfo } from "@/components/teacher/ClassItem";
+import { 
+  fetchClassesForTeacher, 
+  addClass, 
+  updateClass, 
+  deleteClass 
+} from "@/services/teacher/classService";
+import { validateClassData } from "@/utils/teacher/classValidation";
 
 export function useClassManagement() {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
@@ -22,62 +28,8 @@ export function useClassManagement() {
     setIsLoading(true);
     setError(null);
     try {
-      console.log("Fetching classes for teacher ID:", user.id);
-      
-      // Get classes where the current teacher is the teacher_id
-      const { data, error } = await supabase
-        .from('classes')
-        .select(`
-          id,
-          name,
-          description,
-          start_date
-        `)
-        .eq('teacher_id', user.id);
-      
-      if (error) {
-        console.error("Error fetching classes:", error);
-        setError(error.message);
-        throw error;
-      }
-      
-      if (data) {
-        console.log("Classes fetched:", data.length);
-        
-        // Get student counts for each class separately
-        const classesWithStudents: ClassInfo[] = await Promise.all(
-          data.map(async (cls) => {
-            try {
-              const { count, error: countError } = await supabase
-                .from('enrollments')
-                .select('id', { count: 'exact', head: true })
-                .eq('class_id', cls.id);
-              
-              if (countError) throw countError;
-              
-              return {
-                id: cls.id,
-                name: cls.name,
-                description: cls.description,
-                startDate: cls.start_date,
-                studentsCount: count || 0
-              };
-            } catch (err) {
-              // If there's an error counting students, return 0
-              console.error("Error counting students for class:", cls.id, err);
-              return {
-                id: cls.id,
-                name: cls.name,
-                description: cls.description,
-                startDate: cls.start_date,
-                studentsCount: 0
-              };
-            }
-          })
-        );
-        
-        setClasses(classesWithStudents);
-      }
+      const fetchedClasses = await fetchClassesForTeacher(user.id);
+      setClasses(fetchedClasses);
     } catch (error: any) {
       console.error("Error fetching classes:", error);
       setError(error.message || "Ocorreu um erro ao buscar suas turmas.");
@@ -98,49 +50,22 @@ export function useClassManagement() {
   }) => {
     if (!user) return false;
     
-    if (!newClass.name || !newClass.description || !newClass.startDate) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
+    if (!validateClassData(newClass)) {
       return false;
     }
 
     setIsLoading(true);
     try {
-      // Insert new class into the database
-      const { data, error } = await supabase
-        .from('classes')
-        .insert([{
-          name: newClass.name,
-          description: newClass.description,
-          start_date: newClass.startDate,
-          teacher_id: user.id
-        }])
-        .select()
-        .single();
+      const newClassWithId = await addClass(user.id, newClass);
       
-      if (error) throw error;
+      // Add the new class to our local state
+      setClasses([...classes, newClassWithId]);
       
-      if (data) {
-        // Add the new class to our local state
-        const newClassWithId: ClassInfo = {
-          id: data.id,
-          name: data.name,
-          description: data.description,
-          startDate: data.start_date,
-          studentsCount: 0
-        };
-        
-        setClasses([...classes, newClassWithId]);
-        
-        toast({
-          title: "Turma adicionada",
-          description: "A turma foi adicionada com sucesso."
-        });
-        return true;
-      }
+      toast({
+        title: "Turma adicionada",
+        description: "A turma foi adicionada com sucesso."
+      });
+      return true;
     } catch (error: any) {
       console.error("Error adding class:", error);
       toast({
@@ -157,30 +82,13 @@ export function useClassManagement() {
   const handleEditClass = async (selectedClass: ClassInfo) => {
     if (!selectedClass || !user) return false;
     
-    if (!selectedClass.name || !selectedClass.description || !selectedClass.startDate) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
+    if (!validateClassData(selectedClass)) {
       return false;
     }
 
     setIsLoading(true);
     try {
-      // Update class in the database
-      const { error } = await supabase
-        .from('classes')
-        .update({
-          name: selectedClass.name,
-          description: selectedClass.description,
-          start_date: selectedClass.startDate,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedClass.id)
-        .eq('teacher_id', user.id);
-      
-      if (error) throw error;
+      await updateClass(user.id, selectedClass);
       
       // Update local state
       const updatedClasses = classes.map(c => 
@@ -212,14 +120,7 @@ export function useClassManagement() {
     
     setIsLoading(true);
     try {
-      // Delete class from the database
-      const { error } = await supabase
-        .from('classes')
-        .delete()
-        .eq('id', id)
-        .eq('teacher_id', user.id);
-      
-      if (error) throw error;
+      await deleteClass(user.id, id);
       
       // Update local state
       const updatedClasses = classes.filter(c => c.id !== id);
@@ -247,7 +148,7 @@ export function useClassManagement() {
     classes,
     isLoading,
     error,
-    fetchClasses, // Expose this so components can retry
+    fetchClasses,
     handleAddClass,
     handleEditClass,
     handleDeleteClass
