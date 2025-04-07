@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Loader } from "lucide-react";
 
 interface AddClassDialogProps {
   isOpen: boolean;
@@ -38,7 +39,11 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
   isLoading = false
 }) => {
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!isLoading) { // Prevent closing the dialog while loading
+        onOpenChange(open);
+      }
+    }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nova Turma</DialogTitle>
@@ -52,6 +57,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
               placeholder="Ex: Turma de JavaScript"
               value={newClass.name}
               onChange={(e) => setNewClass({...newClass, name: e.target.value})}
+              disabled={isLoading}
             />
           </div>
           
@@ -62,6 +68,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
               placeholder="Descreva a turma"
               value={newClass.description}
               onChange={(e) => setNewClass({...newClass, description: e.target.value})}
+              disabled={isLoading}
             />
           </div>
           
@@ -72,6 +79,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
               type="date"
               value={newClass.startDate}
               onChange={(e) => setNewClass({...newClass, startDate: e.target.value})}
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -88,7 +96,14 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
             onClick={handleAddClass}
             disabled={isLoading}
           >
-            {isLoading ? "Salvando..." : "Salvar"}
+            {isLoading ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin mr-2" />
+                Salvando...
+              </>
+            ) : (
+              "Salvar"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
