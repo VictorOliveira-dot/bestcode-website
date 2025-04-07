@@ -19,15 +19,26 @@ export function useClassManagement() {
 
   // Fetch classes from Supabase
   useEffect(() => {
-    fetchClasses();
-  }, [user]);
+    if (user?.id) {
+      fetchClasses();
+    }
+  }, [user?.id]);
 
   const fetchClasses = async () => {
-    if (!user) return;
+    if (!user?.id) {
+      setError("Usuário não está autenticado. Faça login novamente.");
+      toast({
+        title: "Erro de autenticação",
+        description: "Usuário não está autenticado. Faça login novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
     setError(null);
     try {
+      console.log("Fetching classes for user:", user.id);
       const fetchedClasses = await fetchClassesForTeacher(user.id);
       setClasses(fetchedClasses);
     } catch (error: any) {
@@ -48,7 +59,14 @@ export function useClassManagement() {
     description: string;
     startDate: string;
   }) => {
-    if (!user) return false;
+    if (!user?.id) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Usuário não está autenticado. Faça login novamente.",
+        variant: "destructive",
+      });
+      return false;
+    }
     
     if (!validateClassData(newClass)) {
       return false;
@@ -56,10 +74,11 @@ export function useClassManagement() {
 
     setIsLoading(true);
     try {
+      console.log("Adding class for user:", user.id, "with data:", newClass);
       const newClassWithId = await addClass(user.id, newClass);
       
       // Add the new class to our local state
-      setClasses([...classes, newClassWithId]);
+      setClasses(prev => [...prev, newClassWithId]);
       
       toast({
         title: "Turma adicionada",
@@ -80,7 +99,14 @@ export function useClassManagement() {
   };
 
   const handleEditClass = async (selectedClass: ClassInfo) => {
-    if (!selectedClass || !user) return false;
+    if (!selectedClass || !user?.id) {
+      toast({
+        title: "Erro de dados",
+        description: "Dados inválidos ou usuário não autenticado.",
+        variant: "destructive",
+      });
+      return false;
+    }
     
     if (!validateClassData(selectedClass)) {
       return false;
@@ -116,7 +142,14 @@ export function useClassManagement() {
   };
 
   const handleDeleteClass = async (id: string) => {
-    if (!user) return;
+    if (!user?.id) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Usuário não está autenticado. Faça login novamente.",
+        variant: "destructive",
+      });
+      return false;
+    }
     
     setIsLoading(true);
     try {

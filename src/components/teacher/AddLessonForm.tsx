@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,12 +19,13 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { NewLesson } from "@/components/student/types/lesson";
+import { Class } from "@/hooks/teacher/useDashboardData";
 
 interface AddLessonFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onAddLesson: (lesson: NewLesson) => void;
-  availableClasses: string[];
+  availableClasses: Class[];
 }
 
 const AddLessonForm: React.FC<AddLessonFormProps> = ({
@@ -42,17 +43,22 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
     visibility: "class_only",
   });
 
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setNewLesson({
+        title: "",
+        description: "",
+        youtubeUrl: "",
+        date: new Date().toISOString().split("T")[0],
+        class_id: availableClasses.length > 0 ? availableClasses[0].id : "",
+        visibility: "class_only",
+      });
+    }
+  }, [isOpen, availableClasses]);
+
   const handleSubmit = () => {
     onAddLesson(newLesson);
-    // Reset form
-    setNewLesson({
-      title: "",
-      description: "",
-      youtubeUrl: "",
-      date: new Date().toISOString().split("T")[0],
-      class_id: "",
-      visibility: "class_only",
-    });
   };
 
   return (
@@ -114,9 +120,9 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
                   <SelectValue placeholder="Selecione uma turma" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableClasses.map((className, index) => (
-                    <SelectItem key={index} value={className}>
-                      {className}
+                  {availableClasses.map((cls) => (
+                    <SelectItem key={cls.id} value={cls.id}>
+                      {cls.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

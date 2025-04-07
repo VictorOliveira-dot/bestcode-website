@@ -41,6 +41,8 @@ const TeacherDashboard = () => {
   const handleAddLesson = async (newLesson: NewLesson) => {
     if (!user) return;
     
+    console.log("Adding lesson:", newLesson);
+    
     const updatedLessons = await addLesson(
       newLesson,
       user.id,
@@ -85,7 +87,7 @@ const TeacherDashboard = () => {
         isOpen={isAddLessonOpen}
         onOpenChange={setIsAddLessonOpen}
         onAddLesson={handleAddLesson}
-        availableClasses={availableClasses.map(c => c.id)}
+        availableClasses={availableClasses}
       />
     </div>
   );

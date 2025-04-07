@@ -8,6 +8,11 @@ import { ClassInfo } from "@/components/teacher/ClassItem";
 export const fetchClassesForTeacher = async (teacherId: string): Promise<ClassInfo[]> => {
   console.log("Fetching classes for teacher ID:", teacherId);
   
+  if (!teacherId) {
+    console.error("No teacher ID provided");
+    return [];
+  }
+  
   // Get classes where the current teacher is the teacher_id
   const { data, error } = await supabase
     .from('classes')
@@ -70,6 +75,12 @@ export const addClass = async (
   teacherId: string,
   classData: { name: string; description: string; startDate: string }
 ): Promise<ClassInfo> => {
+  console.log("Adding class for teacher ID:", teacherId, "with data:", classData);
+  
+  if (!teacherId) {
+    throw new Error("No teacher ID provided. User must be logged in as a teacher.");
+  }
+  
   // Insert new class into the database
   const { data, error } = await supabase
     .from('classes')
@@ -82,9 +93,14 @@ export const addClass = async (
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error("Error adding class:", error);
+    throw error;
+  }
   
   if (!data) throw new Error("No data returned from the database");
+  
+  console.log("Class added successfully:", data);
   
   // Return the new class with student count 0
   return {
@@ -103,6 +119,10 @@ export const updateClass = async (
   teacherId: string,
   classData: ClassInfo
 ): Promise<void> => {
+  if (!teacherId) {
+    throw new Error("No teacher ID provided. User must be logged in as a teacher.");
+  }
+  
   const { error } = await supabase
     .from('classes')
     .update({
@@ -114,7 +134,10 @@ export const updateClass = async (
     .eq('id', classData.id)
     .eq('teacher_id', teacherId);
   
-  if (error) throw error;
+  if (error) {
+    console.error("Error updating class:", error);
+    throw error;
+  }
 };
 
 /**
@@ -124,11 +147,18 @@ export const deleteClass = async (
   teacherId: string,
   classId: string
 ): Promise<void> => {
+  if (!teacherId) {
+    throw new Error("No teacher ID provided. User must be logged in as a teacher.");
+  }
+  
   const { error } = await supabase
     .from('classes')
     .delete()
     .eq('id', classId)
     .eq('teacher_id', teacherId);
   
-  if (error) throw error;
+  if (error) {
+    console.error("Error deleting class:", error);
+    throw error;
+  }
 };

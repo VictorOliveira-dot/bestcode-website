@@ -12,10 +12,28 @@ export const validateClassData = (
     startDate: string;
   }
 ): boolean => {
-  if (!classData.name || !classData.description || !classData.startDate) {
+  if (!classData.name) {
     toast({
-      title: "Campos obrigatórios",
-      description: "Preencha todos os campos obrigatórios.",
+      title: "Campo obrigatório",
+      description: "O nome da turma é obrigatório.",
+      variant: "destructive"
+    });
+    return false;
+  }
+  
+  if (!classData.description) {
+    toast({
+      title: "Campo obrigatório",
+      description: "A descrição da turma é obrigatória.",
+      variant: "destructive"
+    });
+    return false;
+  }
+  
+  if (!classData.startDate) {
+    toast({
+      title: "Campo obrigatório",
+      description: "A data de início é obrigatória.",
       variant: "destructive"
     });
     return false;

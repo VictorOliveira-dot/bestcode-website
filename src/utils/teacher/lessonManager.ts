@@ -6,8 +6,37 @@ import { Class } from "@/hooks/teacher/useDashboardData";
 
 export async function addLesson(newLesson: NewLesson, userId: string, availableClasses: Class[], lessons: Lesson[]) {
   try {
+    console.log("Adding lesson with data:", newLesson);
+    
+    if (!userId) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Usuário não está autenticado. Faça login novamente.",
+        variant: "destructive",
+      });
+      return lessons;
+    }
+    
+    if (!newLesson.title || !newLesson.description || !newLesson.youtubeUrl || !newLesson.class_id) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return lessons;
+    }
+    
     // Find class name for display
     const classObj = availableClasses.find(c => c.id === newLesson.class_id);
+    
+    if (!classObj) {
+      toast({
+        title: "Turma não encontrada",
+        description: "A turma selecionada não foi encontrada.",
+        variant: "destructive",
+      });
+      return lessons;
+    }
     
     // Insert lesson into the database
     const { data, error } = await supabase
@@ -23,7 +52,10 @@ export async function addLesson(newLesson: NewLesson, userId: string, availableC
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error adding lesson:", error);
+      throw error;
+    }
     
     if (data) {
       // Create the new lesson with ID
@@ -43,6 +75,7 @@ export async function addLesson(newLesson: NewLesson, userId: string, availableC
         description: "Aula foi adicionada com sucesso."
       });
       
+      console.log("Lesson added successfully:", newLessonWithId);
       return [...lessons, newLessonWithId];
     }
     
@@ -61,13 +94,25 @@ export async function addLesson(newLesson: NewLesson, userId: string, availableC
 
 export async function deleteLesson(id: string, lessons: Lesson[]) {
   try {
+    if (!id) {
+      toast({
+        title: "ID inválido",
+        description: "ID da aula inválido.",
+        variant: "destructive",
+      });
+      return lessons;
+    }
+    
     // Delete lesson from the database
     const { error } = await supabase
       .from('lessons')
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error deleting lesson:", error);
+      throw error;
+    }
     
     // Remove lesson from local state
     const updatedLessons = lessons.filter(lesson => lesson.id !== id);
