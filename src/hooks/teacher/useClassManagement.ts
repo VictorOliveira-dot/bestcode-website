@@ -11,6 +11,9 @@ export function useClassManagement() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
+  // Verifica se o usuário é um usuário de teste (não autenticado no Supabase)
+  const isTestUser = user && !user.id.includes('-');
+
   // Fetch classes from Supabase
   useEffect(() => {
     fetchClasses();
@@ -23,6 +26,31 @@ export function useClassManagement() {
     setError(null);
     try {
       console.log("Fetching classes for teacher ID:", user.id);
+      
+      // Se for um usuário de teste, retorna dados fictícios
+      if (isTestUser) {
+        console.log("Using test user mode");
+        // Dados fictícios para usuários de teste
+        const mockClasses = [
+          {
+            id: "1",
+            name: "Turma de Teste 1",
+            description: "Descrição da turma de teste 1",
+            startDate: "2025-04-01",
+            studentsCount: 5
+          },
+          {
+            id: "2",
+            name: "Turma de Teste 2",
+            description: "Descrição da turma de teste 2",
+            startDate: "2025-04-15",
+            studentsCount: 3
+          }
+        ];
+        
+        setClasses(mockClasses);
+        return;
+      }
       
       // Get classes where the current teacher is the teacher_id
       const { data, error } = await supabase
@@ -109,6 +137,26 @@ export function useClassManagement() {
 
     setIsLoading(true);
     try {
+      // Para usuário de teste, simula a adição de uma turma
+      if (isTestUser) {
+        const newClassId = Math.random().toString().substring(2, 10);
+        const newClassWithId: ClassInfo = {
+          id: newClassId,
+          name: newClass.name,
+          description: newClass.description,
+          startDate: newClass.startDate,
+          studentsCount: 0
+        };
+        
+        setClasses([...classes, newClassWithId]);
+        
+        toast({
+          title: "Turma adicionada (modo teste)",
+          description: "A turma foi adicionada com sucesso no modo teste."
+        });
+        return true;
+      }
+      
       // Insert new class into the database
       const { data, error } = await supabase
         .from('classes')
@@ -168,6 +216,22 @@ export function useClassManagement() {
 
     setIsLoading(true);
     try {
+      // Para usuário de teste, simula a edição de uma turma
+      if (isTestUser) {
+        // Update local state
+        const updatedClasses = classes.map(c => 
+          c.id === selectedClass.id ? selectedClass : c
+        );
+
+        setClasses(updatedClasses);
+        
+        toast({
+          title: "Turma atualizada (modo teste)",
+          description: "A turma foi atualizada com sucesso no modo teste."
+        });
+        return true;
+      }
+      
       // Update class in the database
       const { error } = await supabase
         .from('classes')
@@ -212,6 +276,19 @@ export function useClassManagement() {
     
     setIsLoading(true);
     try {
+      // Para usuário de teste, simula a exclusão de uma turma
+      if (isTestUser) {
+        // Update local state
+        const updatedClasses = classes.filter(c => c.id !== id);
+        setClasses(updatedClasses);
+        
+        toast({
+          title: "Turma removida (modo teste)",
+          description: "A turma foi removida com sucesso no modo teste."
+        });
+        return true;
+      }
+      
       // Delete class from the database
       const { error } = await supabase
         .from('classes')
