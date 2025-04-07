@@ -35,15 +35,22 @@ const TeacherDashboard = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch classes
+        console.log("Fetching teacher data for user ID:", user.id);
+        
+        // Fetch classes - Usando a nova política de segurança
         const { data: classesData, error: classesError } = await supabase
           .from('classes')
           .select('id, name')
           .eq('teacher_id', user.id);
           
-        if (classesError) throw classesError;
+        if (classesError) {
+          console.error("Error fetching classes:", classesError);
+          throw classesError;
+        }
         
-        if (classesData) {
+        console.log("Classes fetched:", classesData?.length || 0);
+        
+        if (classesData && classesData.length > 0) {
           setAvailableClasses(classesData);
           
           // Fetch lessons
@@ -61,9 +68,14 @@ const TeacherDashboard = () => {
             `)
             .in('class_id', classesData.map(c => c.id));
           
-          if (lessonsError) throw lessonsError;
+          if (lessonsError) {
+            console.error("Error fetching lessons:", lessonsError);
+            throw lessonsError;
+          }
           
           if (lessonsData) {
+            console.log("Lessons fetched:", lessonsData.length);
+            
             const formattedLessons: Lesson[] = lessonsData.map(lesson => ({
               id: lesson.id,
               title: lesson.title,
@@ -92,6 +104,10 @@ const TeacherDashboard = () => {
           }
           
           setStudentCount(totalStudents);
+        } else {
+          console.log("No classes found for this teacher");
+          setAvailableClasses([]);
+          setLessons([]);
         }
       } catch (error: any) {
         console.error("Error fetching teacher data:", error);

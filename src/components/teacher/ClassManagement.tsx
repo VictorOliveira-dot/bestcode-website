@@ -30,6 +30,8 @@ const ClassManagement = () => {
       
       setIsLoading(true);
       try {
+        console.log("Fetching classes for teacher ID:", user.id);
+        
         // Get classes where the current teacher is the teacher_id
         const { data, error } = await supabase
           .from('classes')
@@ -37,23 +39,37 @@ const ClassManagement = () => {
             id,
             name,
             description,
-            start_date,
-            enrollments(count)
+            start_date
           `)
           .eq('teacher_id', user.id);
         
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching classes:", error);
+          throw error;
+        }
         
         if (data) {
-          const formattedClasses: ClassInfo[] = data.map(cls => ({
-            id: cls.id,
-            name: cls.name,
-            description: cls.description,
-            startDate: cls.start_date,
-            studentsCount: cls.enrollments?.[0]?.count || 0
-          }));
+          console.log("Classes fetched:", data.length);
           
-          setClasses(formattedClasses);
+          // Obter contagem de alunos para cada classe de forma separada
+          const classesWithStudents: ClassInfo[] = await Promise.all(
+            data.map(async (cls) => {
+              const { count, error: countError } = await supabase
+                .from('enrollments')
+                .select('id', { count: 'exact', head: true })
+                .eq('class_id', cls.id);
+              
+              return {
+                id: cls.id,
+                name: cls.name,
+                description: cls.description,
+                startDate: cls.start_date,
+                studentsCount: countError ? 0 : (count || 0)
+              };
+            })
+          );
+          
+          setClasses(classesWithStudents);
         }
       } catch (error: any) {
         console.error("Error fetching classes:", error);

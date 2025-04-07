@@ -269,7 +269,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      user_can_access_class: {
+        Args: {
+          class_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
