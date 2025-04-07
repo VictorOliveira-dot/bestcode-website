@@ -26,7 +26,7 @@ const Login = () => {
           <Alert className="mb-6 bg-blue-50 border-blue-200 text-blue-800 max-w-md mx-auto">
             <AlertCircle className="h-4 w-4 mr-2" />
             <AlertDescription>
-              Use as contas de teste listadas abaixo para acessar o sistema.
+              Utilize as contas de teste cadastradas no Supabase para acessar o sistema.
             </AlertDescription>
           </Alert>
           

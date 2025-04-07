@@ -1,16 +1,31 @@
 
 import React from "react";
+import { Card } from "@/components/ui/card";
 
 const TestAccountInfo = () => {
   return (
-    <div className="text-center text-sm pt-2">
-      <p className="mb-2 text-gray-600">
-        <strong>Dados de teste:</strong>
-      </p>
-      <p className="text-gray-600">Professor: professor@bestcode.com / teacher123</p>
-      <p className="text-gray-600">Aluno: aluno@bestcode.com / student123</p>
-      <p className="text-gray-600">Admin: admin@bestcode.com / admin123</p>
-    </div>
+    <Card className="p-4 mt-6 bg-gray-50 border border-gray-200">
+      <div className="text-sm">
+        <h3 className="font-medium text-gray-900 mb-2">Contas para teste:</h3>
+        <div className="space-y-2">
+          <div>
+            <p className="font-medium text-gray-700">Professor:</p>
+            <p>Email: professor@bestcode.com</p>
+            <p>Senha: teacher123</p>
+          </div>
+          <div>
+            <p className="font-medium text-gray-700">Aluno:</p>
+            <p>Email: aluno@bestcode.com</p>
+            <p>Senha: student123</p>
+          </div>
+          <div>
+            <p className="font-medium text-gray-700">Administrador:</p>
+            <p>Email: admin@bestcode.com</p>
+            <p>Senha: admin123</p>
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 };
 
