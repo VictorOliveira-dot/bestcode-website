@@ -12,9 +12,10 @@ import { ClassInfo } from "./ClassItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import MobileClassCard from "./MobileClassCard";
 import { useClassTable, ClassTableProps } from "@/hooks/teacher/useClassTable";
+import { AlertCircle } from "lucide-react";
 
 const ClassTable: React.FC<ClassTableProps> = (props) => {
-  const { classes, isLoading, isMobile, isEmpty } = useClassTable(props);
+  const { classes, isLoading, isMobile, isEmpty, error } = useClassTable(props);
   const { openEditDialog, handleDeleteClass } = props;
 
   if (isLoading) {
@@ -23,6 +24,18 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
         {[1, 2, 3].map((_, index) => (
           <Skeleton key={index} className="h-24 w-full" />
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center p-6 border rounded-md bg-destructive/10">
+        <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+        <p className="text-destructive-foreground font-medium">Erro ao carregar dados</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Tente recarregar a página ou entre em contato com o suporte.
+        </p>
       </div>
     );
   }

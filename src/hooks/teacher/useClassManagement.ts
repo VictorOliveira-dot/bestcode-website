@@ -8,6 +8,7 @@ import { ClassInfo } from "@/components/teacher/ClassItem";
 export function useClassManagement() {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   // Fetch classes from Supabase
@@ -19,6 +20,7 @@ export function useClassManagement() {
     if (!user) return;
     
     setIsLoading(true);
+    setError(null);
     try {
       console.log("Fetching classes for teacher ID:", user.id);
       
@@ -35,6 +37,7 @@ export function useClassManagement() {
       
       if (error) {
         console.error("Error fetching classes:", error);
+        setError(error.message);
         throw error;
       }
       
@@ -44,18 +47,32 @@ export function useClassManagement() {
         // Get student counts for each class separately
         const classesWithStudents: ClassInfo[] = await Promise.all(
           data.map(async (cls) => {
-            const { count, error: countError } = await supabase
-              .from('enrollments')
-              .select('id', { count: 'exact', head: true })
-              .eq('class_id', cls.id);
-            
-            return {
-              id: cls.id,
-              name: cls.name,
-              description: cls.description,
-              startDate: cls.start_date,
-              studentsCount: countError ? 0 : (count || 0)
-            };
+            try {
+              const { count, error: countError } = await supabase
+                .from('enrollments')
+                .select('id', { count: 'exact', head: true })
+                .eq('class_id', cls.id);
+              
+              if (countError) throw countError;
+              
+              return {
+                id: cls.id,
+                name: cls.name,
+                description: cls.description,
+                startDate: cls.start_date,
+                studentsCount: count || 0
+              };
+            } catch (err) {
+              // If there's an error counting students, return 0
+              console.error("Error counting students for class:", cls.id, err);
+              return {
+                id: cls.id,
+                name: cls.name,
+                description: cls.description,
+                startDate: cls.start_date,
+                studentsCount: 0
+              };
+            }
           })
         );
         
@@ -63,6 +80,7 @@ export function useClassManagement() {
       }
     } catch (error: any) {
       console.error("Error fetching classes:", error);
+      setError(error.message || "Ocorreu um erro ao buscar suas turmas.");
       toast({
         title: "Erro ao carregar turmas",
         description: error.message || "Ocorreu um erro ao buscar suas turmas.",
@@ -228,6 +246,8 @@ export function useClassManagement() {
   return {
     classes,
     isLoading,
+    error,
+    fetchClasses, // Expose this so components can retry
     handleAddClass,
     handleEditClass,
     handleDeleteClass
