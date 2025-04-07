@@ -62,7 +62,11 @@ const TeacherDashboard = () => {
 
   const renderTabContent = () => {
     if (activeTab === "classes") {
-      return <ClassManagement />;
+      return (
+        <div className="mt-6">
+          <ClassManagement />
+        </div>
+      );
     }
     
     return (

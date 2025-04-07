@@ -50,10 +50,10 @@ const ClassManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full">
       <ClassManagementHeader 
         onAddClassClick={() => setIsAddClassOpen(true)}
-        isLoading={isLoading}
+        isLoading={false} // Set to false to ensure button is enabled
       />
 
       <ClassTable 
