@@ -275,6 +275,12 @@ export type Database = {
         }
         Returns: string
       }
+      get_user_role_safe: {
+        Args: {
+          user_id: string
+        }
+        Returns: string
+      }
       user_can_access_class: {
         Args: {
           class_id: string
