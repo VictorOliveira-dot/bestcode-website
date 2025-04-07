@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Login = () => {
   return (
@@ -20,6 +22,14 @@ const Login = () => {
               Entre com suas credenciais para acessar a plataforma
             </p>
           </div>
+          
+          <Alert className="mb-6 bg-blue-50 border-blue-200 text-blue-800 max-w-md mx-auto">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <AlertDescription>
+              Use as contas de teste listadas abaixo para acessar o sistema.
+            </AlertDescription>
+          </Alert>
+          
           <LoginForm />
         </div>
       </main>

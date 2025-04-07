@@ -19,6 +19,25 @@ const LoginForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Mapeamento de usuários de teste para verificação direta
+  const TEST_USERS = {
+    "professor@bestcode.com": {
+      password: "teacher123",
+      name: "Professor Silva",
+      role: "teacher",
+    },
+    "aluno@bestcode.com": {
+      password: "student123",
+      name: "Maria Aluna",
+      role: "student",
+    },
+    "admin@bestcode.com": {
+      password: "admin123",
+      name: "Admin Sistema",
+      role: "admin",
+    },
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -36,6 +55,38 @@ const LoginForm = () => {
         return;
       }
       
+      // Verificar primeiro se é um usuário de teste
+      const testUser = TEST_USERS[email.toLowerCase()];
+      if (testUser && testUser.password === password) {
+        // Login com usuário de teste
+        toast({
+          title: "Login realizado com sucesso",
+          description: `Bem-vindo de volta, ${testUser.name}!`,
+        });
+        
+        // Guardar informações do usuário no localStorage
+        const userInfo = {
+          id: email.split('@')[0] + '_id',
+          name: testUser.name,
+          email: email,
+          role: testUser.role
+        };
+        localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+        
+        // Pequeno delay para melhorar UX
+        setTimeout(() => {
+          if (testUser.role === "teacher") {
+            navigate("/teacher/dashboard");
+          } else if (testUser.role === "admin") {
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/student/dashboard");
+          }
+        }, 300);
+        return;
+      }
+      
+      // Se não for usuário de teste, tentar login com Supabase
       const userData = await login(email, password);
       
       if (userData) {
