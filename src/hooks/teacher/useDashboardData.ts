@@ -25,11 +25,9 @@ export function useDashboardData() {
       try {
         console.log("Fetching teacher data for user ID:", user.id);
         
-        // Fetch classes - Using the new security policy
+        // Use RPC function to avoid RLS recursion issues
         const { data: classesData, error: classesError } = await supabase
-          .from('classes')
-          .select('id, name')
-          .eq('teacher_id', user.id);
+          .rpc('get_teacher_classes_simple', { teacher_id: user.id });
           
         if (classesError) {
           console.error("Error fetching classes:", classesError);
@@ -41,20 +39,9 @@ export function useDashboardData() {
         if (classesData && classesData.length > 0) {
           setAvailableClasses(classesData);
           
-          // Fetch lessons
+          // Fetch lessons using an RPC function
           const { data: lessonsData, error: lessonsError } = await supabase
-            .from('lessons')
-            .select(`
-              id,
-              title,
-              description,
-              youtube_url,
-              date,
-              class_id,
-              visibility,
-              classes(name)
-            `)
-            .in('class_id', classesData.map(c => c.id));
+            .rpc('get_teacher_lessons', { teacher_id: user.id });
           
           if (lessonsError) {
             console.error("Error fetching lessons:", lessonsError);
@@ -64,13 +51,13 @@ export function useDashboardData() {
           if (lessonsData) {
             console.log("Lessons fetched:", lessonsData.length);
             
-            const formattedLessons: Lesson[] = lessonsData.map(lesson => ({
+            const formattedLessons: Lesson[] = lessonsData.map((lesson: any) => ({
               id: lesson.id,
               title: lesson.title,
               description: lesson.description,
               youtubeUrl: lesson.youtube_url,
               date: lesson.date,
-              class: lesson.classes?.name || 'Sem turma',
+              class: lesson.class_name || 'Sem turma',
               class_id: lesson.class_id || '',
               visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
             }));
@@ -78,20 +65,13 @@ export function useDashboardData() {
             setLessons(formattedLessons);
           }
           
-          // Count students enrolled in teacher's classes
-          let totalStudents = 0;
-          for (const cls of classesData) {
-            const { count, error: countError } = await supabase
-              .from('enrollments')
-              .select('id', { count: 'exact', head: true })
-              .eq('class_id', cls.id);
+          // Count students enrolled in teacher's classes using an RPC function
+          const { data: studentCountData, error: countError } = await supabase
+            .rpc('get_teacher_student_count', { teacher_id: user.id });
               
-            if (!countError && count !== null) {
-              totalStudents += count;
-            }
+          if (!countError && studentCountData !== null) {
+            setStudentCount(studentCountData);
           }
-          
-          setStudentCount(totalStudents);
         } else {
           console.log("No classes found for this teacher");
           setAvailableClasses([]);

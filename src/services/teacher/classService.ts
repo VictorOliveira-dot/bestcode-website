@@ -14,16 +14,9 @@ export const fetchClassesForTeacher = async (teacherId: string): Promise<ClassIn
   }
   
   try {
-    // Get classes where the current teacher is the teacher_id
+    // Use a direct RPC call to avoid the RLS policy recursion issue
     const { data, error } = await supabase
-      .from('classes')
-      .select(`
-        id,
-        name,
-        description,
-        start_date
-      `)
-      .eq('teacher_id', teacherId);
+      .rpc('get_teacher_classes', { teacher_id: teacherId });
     
     if (error) {
       console.error("Error fetching classes:", error);
@@ -34,37 +27,14 @@ export const fetchClassesForTeacher = async (teacherId: string): Promise<ClassIn
     
     console.log("Classes fetched:", data.length);
     
-    // Get student counts for each class separately
-    const classesWithStudents: ClassInfo[] = await Promise.all(
-      data.map(async (cls) => {
-        try {
-          const { count, error: countError } = await supabase
-            .from('enrollments')
-            .select('id', { count: 'exact', head: true })
-            .eq('class_id', cls.id);
-          
-          if (countError) throw countError;
-          
-          return {
-            id: cls.id,
-            name: cls.name,
-            description: cls.description,
-            startDate: cls.start_date,
-            studentsCount: count || 0
-          };
-        } catch (err) {
-          // If there's an error counting students, return 0
-          console.error("Error counting students for class:", cls.id, err);
-          return {
-            id: cls.id,
-            name: cls.name,
-            description: cls.description,
-            startDate: cls.start_date,
-            studentsCount: 0
-          };
-        }
-      })
-    );
+    // Format the data to match the ClassInfo interface
+    const classesWithStudents: ClassInfo[] = data.map((cls: any) => ({
+      id: cls.id,
+      name: cls.name,
+      description: cls.description,
+      startDate: cls.start_date,
+      studentsCount: cls.students_count || 0
+    }));
     
     return classesWithStudents;
   } catch (error: any) {
@@ -87,17 +57,14 @@ export const addClass = async (
   }
   
   try {
-    // Insert new class into the database
+    // Use a direct RPC call to avoid the RLS policy recursion issue
     const { data, error } = await supabase
-      .from('classes')
-      .insert([{
-        name: classData.name,
-        description: classData.description,
-        start_date: classData.startDate,
-        teacher_id: teacherId
-      }])
-      .select()
-      .single();
+      .rpc('create_class', { 
+        p_name: classData.name,
+        p_description: classData.description,
+        p_start_date: classData.startDate,
+        p_teacher_id: teacherId
+      });
     
     if (error) {
       console.error("Error adding class:", error);
@@ -135,15 +102,13 @@ export const updateClass = async (
   
   try {
     const { error } = await supabase
-      .from('classes')
-      .update({
-        name: classData.name,
-        description: classData.description,
-        start_date: classData.startDate,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', classData.id)
-      .eq('teacher_id', teacherId);
+      .rpc('update_class', { 
+        p_class_id: classData.id,
+        p_name: classData.name,
+        p_description: classData.description,
+        p_start_date: classData.startDate,
+        p_teacher_id: teacherId
+      });
     
     if (error) {
       console.error("Error updating class:", error);
@@ -168,10 +133,10 @@ export const deleteClass = async (
   
   try {
     const { error } = await supabase
-      .from('classes')
-      .delete()
-      .eq('id', classId)
-      .eq('teacher_id', teacherId);
+      .rpc('delete_class', { 
+        p_class_id: classId,
+        p_teacher_id: teacherId
+      });
     
     if (error) {
       console.error("Error deleting class:", error);
