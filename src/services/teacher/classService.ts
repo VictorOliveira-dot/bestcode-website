@@ -2,6 +2,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ClassInfo } from "@/components/teacher/ClassItem";
 
+// Helper function to validate UUID
+const isValidUUID = (uuid: string) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 /**
  * Fetches classes from Supabase for a specific teacher
  */
@@ -11,6 +17,12 @@ export const fetchClassesForTeacher = async (teacherId: string): Promise<ClassIn
   if (!teacherId) {
     console.error("No teacher ID provided");
     throw new Error("ID do professor não fornecido");
+  }
+  
+  // Validate that the teacher ID is in UUID format
+  if (!isValidUUID(teacherId)) {
+    console.error("Invalid teacher ID format. Expected UUID, got:", teacherId);
+    throw new Error("ID do professor em formato inválido");
   }
   
   try {
@@ -54,6 +66,12 @@ export const addClass = async (
   
   if (!teacherId) {
     throw new Error("ID do professor não fornecido. O usuário deve estar logado como professor.");
+  }
+  
+  // Validate that the teacher ID is in UUID format
+  if (!isValidUUID(teacherId)) {
+    console.error("Invalid teacher ID format. Expected UUID, got:", teacherId);
+    throw new Error("ID do professor em formato inválido");
   }
   
   try {
@@ -103,6 +121,12 @@ export const updateClass = async (
     throw new Error("ID do professor não fornecido. O usuário deve estar logado como professor.");
   }
   
+  // Validate that the teacher ID is in UUID format
+  if (!isValidUUID(teacherId)) {
+    console.error("Invalid teacher ID format. Expected UUID, got:", teacherId);
+    throw new Error("ID do professor em formato inválido");
+  }
+  
   try {
     const { error } = await supabase
       .rpc('update_class', { 
@@ -132,6 +156,12 @@ export const deleteClass = async (
 ): Promise<void> => {
   if (!teacherId) {
     throw new Error("ID do professor não fornecido. O usuário deve estar logado como professor.");
+  }
+  
+  // Validate that the teacher ID is in UUID format
+  if (!isValidUUID(teacherId)) {
+    console.error("Invalid teacher ID format. Expected UUID, got:", teacherId);
+    throw new Error("ID do professor em formato inválido");
   }
   
   try {
