@@ -10,10 +10,12 @@ export interface Class {
   name: string;
 }
 
-// Helper function to validate UUID
-const isValidUUID = (uuid: string) => {
+// Helper function to validate UUID or numeric ID
+const isValidUserID = (id: string) => {
+  // Accept either UUID format or numeric IDs
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
+  const numericRegex = /^\d+$/;
+  return uuidRegex.test(id) || numericRegex.test(id);
 };
 
 export function useDashboardData() {
@@ -26,9 +28,9 @@ export function useDashboardData() {
   useEffect(() => {
     if (!user || !user.id) return;
     
-    // Validate that the user ID is in UUID format
-    if (!isValidUUID(user.id)) {
-      console.error("Invalid user ID format. Expected UUID, got:", user.id);
+    // Validate that the user ID is in acceptable format
+    if (!isValidUserID(user.id)) {
+      console.error("Invalid user ID format. Expected UUID or numeric ID, got:", user.id);
       toast({
         title: "Erro de autenticação",
         description: "ID de usuário em formato inválido. Entre em contato com o suporte.",

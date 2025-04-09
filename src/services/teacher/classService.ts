@@ -2,10 +2,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ClassInfo } from "@/components/teacher/ClassItem";
 
-// Helper function to validate UUID
-const isValidUUID = (uuid: string) => {
+// Helper function to validate UUID or numeric ID
+const isValidUserID = (id: string) => {
+  // Accept either UUID format or numeric IDs
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
+  const numericRegex = /^\d+$/;
+  return uuidRegex.test(id) || numericRegex.test(id);
 };
 
 /**
@@ -19,9 +21,9 @@ export const fetchClassesForTeacher = async (teacherId: string): Promise<ClassIn
     throw new Error("ID do professor não fornecido");
   }
   
-  // Validate that the teacher ID is in UUID format
-  if (!isValidUUID(teacherId)) {
-    console.error("Invalid teacher ID format. Expected UUID, got:", teacherId);
+  // Validate that the teacher ID is in acceptable format
+  if (!isValidUserID(teacherId)) {
+    console.error("Invalid teacher ID format. Expected UUID or numeric ID, got:", teacherId);
     throw new Error("ID do professor em formato inválido");
   }
   
@@ -68,9 +70,9 @@ export const addClass = async (
     throw new Error("ID do professor não fornecido. O usuário deve estar logado como professor.");
   }
   
-  // Validate that the teacher ID is in UUID format
-  if (!isValidUUID(teacherId)) {
-    console.error("Invalid teacher ID format. Expected UUID, got:", teacherId);
+  // Validate that the teacher ID is in acceptable format
+  if (!isValidUserID(teacherId)) {
+    console.error("Invalid teacher ID format. Expected UUID or numeric ID, got:", teacherId);
     throw new Error("ID do professor em formato inválido");
   }
   
@@ -121,9 +123,9 @@ export const updateClass = async (
     throw new Error("ID do professor não fornecido. O usuário deve estar logado como professor.");
   }
   
-  // Validate that the teacher ID is in UUID format
-  if (!isValidUUID(teacherId)) {
-    console.error("Invalid teacher ID format. Expected UUID, got:", teacherId);
+  // Validate that the teacher ID is in acceptable format
+  if (!isValidUserID(teacherId)) {
+    console.error("Invalid teacher ID format. Expected UUID or numeric ID, got:", teacherId);
     throw new Error("ID do professor em formato inválido");
   }
   
@@ -158,9 +160,9 @@ export const deleteClass = async (
     throw new Error("ID do professor não fornecido. O usuário deve estar logado como professor.");
   }
   
-  // Validate that the teacher ID is in UUID format
-  if (!isValidUUID(teacherId)) {
-    console.error("Invalid teacher ID format. Expected UUID, got:", teacherId);
+  // Validate that the teacher ID is in acceptable format
+  if (!isValidUserID(teacherId)) {
+    console.error("Invalid teacher ID format. Expected UUID or numeric ID, got:", teacherId);
     throw new Error("ID do professor em formato inválido");
   }
   
