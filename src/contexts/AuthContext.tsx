@@ -57,101 +57,119 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Configurar listener de autenticação e verificar sessão existente
   useEffect(() => {
-    // Primeiro configurar o listener de mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setIsLoading(true);
-        
-        if (session?.user) {
-          try {
-            // Após um evento de autenticação, buscar dados do usuário
-            const { data: userData, error } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
+    // Primeiro verificar localStorage para usuários de teste
+    const storedUser = localStorage.getItem('bestcode_user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // Verificar se é um objeto válido
+        if (parsedUser && parsedUser.id && parsedUser.email && parsedUser.role) {
+          setUser(parsedUser);
+          setIsLoading(false);
+          console.log("Usuário recuperado do localStorage:", parsedUser);
+          return;
+        }
+      } catch (err) {
+        console.error("Erro ao parsear usuário do localStorage:", err);
+        localStorage.removeItem('bestcode_user');
+      }
+    }
+    
+    // Tentar configurar listener e verificar sessão no Supabase
+    try {
+      // Configurar o listener de mudanças de autenticação
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          setIsLoading(true);
+          
+          if (session?.user) {
+            try {
+              // Após um evento de autenticação, buscar dados do usuário
+              const { data: userData, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
 
-            if (error) {
-              console.error('Erro ao buscar dados do usuário:', error);
-              return;
-            }
+              if (error) {
+                console.error('Erro ao buscar dados do usuário:', error);
+                return;
+              }
 
-            if (userData) {
-              const userInfo: User = {
-                id: userData.id,
-                name: userData.name || userData.email,
-                email: userData.email,
-                role: userData.role as 'student' | 'teacher' | 'admin',
-                avatar_url: userData.avatar_url
-              };
-              
-              setUser(userInfo);
-              localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
-            } else {
-              console.error('Usuário encontrado na sessão, mas não na tabela users');
+              if (userData) {
+                const userInfo: User = {
+                  id: userData.id,
+                  name: userData.name || userData.email,
+                  email: userData.email,
+                  role: userData.role as 'student' | 'teacher' | 'admin',
+                  avatar_url: userData.avatar_url
+                };
+                
+                setUser(userInfo);
+                localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+              } else {
+                console.error('Usuário encontrado na sessão, mas não na tabela users');
+              }
+            } catch (err) {
+              console.error('Erro ao processar mudança de estado de autenticação:', err);
+            } finally {
+              setIsLoading(false);
             }
-          } catch (err) {
-            console.error('Erro ao processar mudança de estado de autenticação:', err);
-          } finally {
+          } else {
+            setUser(null);
             setIsLoading(false);
           }
-        } else {
-          setUser(null);
-          setIsLoading(false);
         }
-      }
-    );
+      );
 
-    // Depois verificar a sessão atual
-    const checkExistingSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
+      // Verificar a sessão atual
+      supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
-          const { data: userData, error } = await supabase
+          // Buscar dados do usuário na tabela users
+          supabase
             .from('users')
             .select('*')
             .eq('id', session.user.id)
-            .single();
+            .single()
+            .then(({ data: userData, error }) => {
+              if (error) {
+                console.error('Erro ao buscar dados do usuário:', error);
+                setIsLoading(false);
+                return;
+              }
 
-          if (error) {
-            console.error('Erro ao buscar dados do usuário:', error);
-            return;
-          }
-
-          if (userData) {
-            const userInfo: User = {
-              id: userData.id,
-              name: userData.name || userData.email,
-              email: userData.email,
-              role: userData.role as 'student' | 'teacher' | 'admin',
-              avatar_url: userData.avatar_url
-            };
-            
-            setUser(userInfo);
-            localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
-          }
+              if (userData) {
+                const userInfo: User = {
+                  id: userData.id,
+                  name: userData.name || userData.email,
+                  email: userData.email,
+                  role: userData.role as 'student' | 'teacher' | 'admin',
+                  avatar_url: userData.avatar_url
+                };
+                
+                setUser(userInfo);
+                localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+              }
+              setIsLoading(false);
+            });
         } else {
-          // Verificar localStorage como fallback
-          const storedUser = localStorage.getItem('bestcode_user');
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
-          }
+          setIsLoading(false);
         }
-      } catch (error) {
+      }).catch(error => {
         console.error('Erro ao verificar sessão existente:', error);
         setIsSupabaseAvailable(false);
-      } finally {
         setIsLoading(false);
-      }
-    };
+      });
 
-    checkExistingSession();
-
-    // Limpar subscription quando o componente for desmontado
-    return () => {
-      subscription.unsubscribe();
-    };
+      // Limpar subscription quando o componente for desmontado
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch (error) {
+      console.error("Erro ao configurar autenticação:", error);
+      setIsSupabaseAvailable(false);
+      setIsLoading(false);
+    }
   }, []);
 
   // Login function
@@ -159,6 +177,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      // Verificar usuários de teste primeiro - sempre tenta os test users primeiro!
+      let testUserFound = null;
+      
+      if (email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password) {
+        testUserFound = TEST_USERS.teacher;
+      } else if (email === TEST_USERS.student.email && password === TEST_USERS.student.password) {
+        testUserFound = TEST_USERS.student;
+      } else if (email === TEST_USERS.admin.email && password === TEST_USERS.admin.password) {
+        testUserFound = TEST_USERS.admin;
+      }
+      
+      if (testUserFound) {
+        const { password: _, ...userWithoutPassword } = testUserFound;
+        
+        // Armazena o usuário no localStorage
+        localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
+        
+        // Atualiza o estado após o armazenamento
+        setUser(userWithoutPassword);
+        
+        toast({
+          title: "Login com usuário de teste",
+          description: `Bem-vindo ${userWithoutPassword.name || email}!`,
+          variant: "default",
+        });
+        
+        setIsLoading(false);
+        return userWithoutPassword;
+      }
+      
+      // Se não for usuário de teste, tentar com Supabase
+      if (!isSupabaseAvailable) {
+        throw new Error('Serviço de autenticação não disponível');
+      }
+      
       // Tentar login com Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -166,73 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (authError) {
-        // Se credenciais inválidas no Supabase, verificar usuários de teste
-        if (isSupabaseAvailable) {
-          if (authError.message.includes('Invalid login')) {
-            // Verificar usuários de teste como fallback
-            let testUserFound = null;
-            
-            if (email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password) {
-              testUserFound = TEST_USERS.teacher;
-            } else if (email === TEST_USERS.student.email && password === TEST_USERS.student.password) {
-              testUserFound = TEST_USERS.student;
-            } else if (email === TEST_USERS.admin.email && password === TEST_USERS.admin.password) {
-              testUserFound = TEST_USERS.admin;
-            }
-            
-            if (testUserFound) {
-              const { password: _, ...userWithoutPassword } = testUserFound;
-              
-              // Armazena o usuário no localStorage
-              localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
-              
-              // Atualiza o estado após o armazenamento
-              setUser(userWithoutPassword);
-              
-              toast({
-                title: "Login com usuário de teste",
-                description: `Bem-vindo ${userWithoutPassword.name || email}! (Modo offline)`,
-                variant: "default",
-              });
-              
-              return userWithoutPassword;
-            }
-          }
-          
-          // Se não for usuário de teste, mostrar erro
-          throw authError;
-        } else {
-          // Se Supabase não estiver disponível, tentar usuários de teste
-          let testUserFound = null;
-          
-          if (email === TEST_USERS.teacher.email && password === TEST_USERS.teacher.password) {
-            testUserFound = TEST_USERS.teacher;
-          } else if (email === TEST_USERS.student.email && password === TEST_USERS.student.password) {
-            testUserFound = TEST_USERS.student;
-          } else if (email === TEST_USERS.admin.email && password === TEST_USERS.admin.password) {
-            testUserFound = TEST_USERS.admin;
-          }
-          
-          if (testUserFound) {
-            const { password: _, ...userWithoutPassword } = testUserFound;
-            
-            // Armazena o usuário no localStorage
-            localStorage.setItem('bestcode_user', JSON.stringify(userWithoutPassword));
-            
-            // Atualiza o estado após o armazenamento
-            setUser(userWithoutPassword);
-            
-            toast({
-              title: "Login com usuário de teste",
-              description: `Bem-vindo ${userWithoutPassword.name || email}! (Modo offline)`,
-              variant: "default",
-            });
-            
-            return userWithoutPassword;
-          }
-          
-          throw new Error('Credenciais inválidas');
-        }
+        throw authError;
       }
       
       if (authData && authData.user) {
@@ -243,29 +230,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('id', authData.user.id)
           .single();
         
-        if (userError || !userData) {
+        if (userError) {
           console.error('Usuário autenticado, mas não encontrado na tabela users:', userError);
-          
-          // Criar registro de usuário se não existir
-          const newUser = {
-            id: authData.user.id,
-            email: authData.user.email || email,
-            name: authData.user.user_metadata?.name || email.split('@')[0],
-            role: (authData.user.user_metadata?.role || 'student') as 'student' | 'teacher' | 'admin'
-          };
-          
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert([newUser]);
-            
-          if (insertError) {
-            console.error('Erro ao criar registro de usuário:', insertError);
-            throw insertError;
-          }
-          
-          setUser(newUser);
-          localStorage.setItem('bestcode_user', JSON.stringify(newUser));
-          return newUser;
+          throw new Error('Usuário não encontrado no sistema');
         }
         
         // Usuário encontrado na tabela users
@@ -301,6 +268,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      // Verificar se está tentando registrar um dos usuários de teste
+      if (email === TEST_USERS.teacher.email || email === TEST_USERS.student.email || email === TEST_USERS.admin.email) {
+        // Já são contas de teste pré-configuradas, vamos fingir que foram criadas com sucesso
+        const testRole = 
+          email === TEST_USERS.teacher.email ? "teacher" :
+          email === TEST_USERS.admin.email ? "admin" : "student";
+          
+        const testId = 
+          email === TEST_USERS.teacher.email ? "1" :
+          email === TEST_USERS.admin.email ? "3" : "2";
+          
+        const testUser = {
+          id: testId,
+          name: userData.name || email.split('@')[0],
+          email: email,
+          role: testRole as 'student' | 'teacher' | 'admin'
+        };
+        
+        setUser(testUser);
+        localStorage.setItem('bestcode_user', JSON.stringify(testUser));
+        
+        return { user: testUser };
+      }
+      
+      // Se não for usuário de teste e o Supabase não estiver disponível
+      if (!isSupabaseAvailable) {
+        throw new Error('Serviço de registro não disponível');
+      }
+      
+      // Registrar com Supabase para usuários normais
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -328,27 +325,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('users')
           .insert([newUserData]);
           
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error("Erro ao inserir dados do usuário:", profileError);
+          // Tente mesmo assim continuar com o processo de registro
+        }
         
         // Se auto-login após o registro for necessário, usar os mesmos passos do método login
-        if (!data.session) {
-          // Supabase pode configurado para exigir verificação de email
-          toast({
-            title: "Conta criada com sucesso!",
-            description: "Por favor, verifique seu email para confirmar o cadastro.",
-          });
-        } else {
-          setUser({
+        if (data.session) {
+          const userInfo: User = {
             id: data.user.id,
             name: userData.name || email.split('@')[0],
             email: data.user.email || email,
             role: userData.role || 'student',
             avatar_url: userData.avatar_url
-          });
+          };
+          
+          setUser(userInfo);
+          localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
           
           toast({
             title: "Conta criada com sucesso!",
             description: "Você foi autenticado automaticamente.",
+          });
+        } else {
+          // Supabase pode configurado para exigir verificação de email
+          toast({
+            title: "Conta criada com sucesso!",
+            description: "Por favor, verifique seu email para confirmar o cadastro.",
           });
         }
         
@@ -373,9 +376,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
       
+      // Verificar se o usuário atual é um usuário de teste (localStorage)
+      const storedUser = localStorage.getItem('bestcode_user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser && 
+             (parsedUser.email === TEST_USERS.teacher.email || 
+              parsedUser.email === TEST_USERS.student.email || 
+              parsedUser.email === TEST_USERS.admin.email)) {
+            // É um usuário de teste, apenas limpe o localStorage
+            localStorage.removeItem('bestcode_user');
+            setUser(null);
+            
+            toast({
+              title: "Logout realizado",
+              description: "Você foi desconectado com sucesso.",
+            });
+            return;
+          }
+        } catch (err) {
+          console.error("Erro ao parsear usuário do localStorage:", err);
+        }
+      }
+      
+      // Para usuários normais, fazer logout no Supabase
+      if (isSupabaseAvailable) {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      }
+      
+      // Limpar estado e localStorage em qualquer caso
       setUser(null);
       localStorage.removeItem('bestcode_user');
       

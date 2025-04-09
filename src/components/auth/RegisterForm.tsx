@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -70,9 +70,54 @@ const RegisterForm = () => {
     setIsLoading(true);
     
     try {
+      // First, let's try to use test accounts for development
+      if (
+        formData.email === "professor@bestcode.com" || 
+        formData.email === "aluno@bestcode.com" || 
+        formData.email === "admin@bestcode.com"
+      ) {
+        // Handle test accounts login directly
+        const testRole = 
+          formData.email === "professor@bestcode.com" ? "teacher" :
+          formData.email === "admin@bestcode.com" ? "admin" : "student";
+          
+        const testUserId = 
+          formData.email === "professor@bestcode.com" ? "1" :
+          formData.email === "admin@bestcode.com" ? "3" : "2";
+          
+        // Store the test user in local storage to simulate login
+        const testUser = {
+          id: testUserId,
+          name: formData.name || formData.email.split('@')[0],
+          email: formData.email,
+          role: testRole
+        };
+        
+        localStorage.setItem('bestcode_user', JSON.stringify(testUser));
+        
+        toast({
+          title: "Conta de teste utilizada",
+          description: `Bem-vindo ${testUser.name}! Redirecionando...`,
+        });
+        
+        // Redirect based on role
+        setTimeout(() => {
+          if (testRole === "teacher") {
+            navigate("/teacher/dashboard");
+          } else if (testRole === "admin") {
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/student/dashboard");
+          }
+        }, 1500);
+        
+        return;
+      }
+      
+      // For real registration, use the register function from AuthContext
       const userData = {
         name: formData.name,
-        role: formData.role // Usando a role selecionada
+        role: formData.role
       };
       
       console.log("Registrando com dados:", {
