@@ -269,9 +269,61 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_class: {
+        Args: {
+          p_name: string
+          p_description: string
+          p_start_date: string
+          p_teacher_id: string
+        }
+        Returns: {
+          id: string
+          name: string
+          description: string
+          start_date: string
+        }[]
+      }
       create_test_users: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      delete_class: {
+        Args: { p_class_id: string; p_teacher_id: string }
+        Returns: undefined
+      }
+      get_teacher_classes: {
+        Args: { teacher_id: string }
+        Returns: {
+          id: string
+          name: string
+          description: string
+          start_date: string
+          students_count: number
+        }[]
+      }
+      get_teacher_classes_simple: {
+        Args: { teacher_id: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
+      get_teacher_lessons: {
+        Args: { teacher_id: string }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          youtube_url: string
+          date: string
+          class_id: string
+          class_name: string
+          visibility: string
+        }[]
+      }
+      get_teacher_student_count: {
+        Args: { teacher_id: string }
+        Returns: number
       }
       get_user_role: {
         Args: { user_id: string }
@@ -280,6 +332,16 @@ export type Database = {
       get_user_role_safe: {
         Args: { user_id: string }
         Returns: string
+      }
+      update_class: {
+        Args: {
+          p_class_id: string
+          p_name: string
+          p_description: string
+          p_start_date: string
+          p_teacher_id: string
+        }
+        Returns: undefined
       }
       user_can_access_class: {
         Args: { class_id: string }

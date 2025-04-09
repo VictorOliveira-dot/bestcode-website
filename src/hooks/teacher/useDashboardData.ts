@@ -34,9 +34,9 @@ export function useDashboardData() {
           throw classesError;
         }
         
-        console.log("Classes fetched:", classesData?.length || 0);
+        console.log("Classes fetched:", classesData ? classesData.length : 0);
         
-        if (classesData && classesData.length > 0) {
+        if (classesData && Array.isArray(classesData) && classesData.length > 0) {
           setAvailableClasses(classesData);
           
           // Fetch lessons using an RPC function
@@ -48,7 +48,7 @@ export function useDashboardData() {
             throw lessonsError;
           }
           
-          if (lessonsData) {
+          if (lessonsData && Array.isArray(lessonsData)) {
             console.log("Lessons fetched:", lessonsData.length);
             
             const formattedLessons: Lesson[] = lessonsData.map((lesson: any) => ({
@@ -70,7 +70,7 @@ export function useDashboardData() {
             .rpc('get_teacher_student_count', { teacher_id: user.id });
               
           if (!countError && studentCountData !== null) {
-            setStudentCount(studentCountData);
+            setStudentCount(Number(studentCountData));
           }
         } else {
           console.log("No classes found for this teacher");

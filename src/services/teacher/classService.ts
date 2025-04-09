@@ -23,7 +23,7 @@ export const fetchClassesForTeacher = async (teacherId: string): Promise<ClassIn
       throw error;
     }
     
-    if (!data) return [];
+    if (!data || !Array.isArray(data)) return [];
     
     console.log("Classes fetched:", data.length);
     
@@ -71,16 +71,19 @@ export const addClass = async (
       throw error;
     }
     
-    if (!data) throw new Error("Nenhum dado retornado do banco de dados");
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      throw new Error("Nenhum dado retornado do banco de dados");
+    }
     
-    console.log("Class added successfully:", data);
+    const newClass = data[0];
+    console.log("Class added successfully:", newClass);
     
     // Return the new class with student count 0
     return {
-      id: data.id,
-      name: data.name,
-      description: data.description,
-      startDate: data.start_date,
+      id: newClass.id,
+      name: newClass.name,
+      description: newClass.description,
+      startDate: newClass.start_date,
       studentsCount: 0
     };
   } catch (error: any) {
