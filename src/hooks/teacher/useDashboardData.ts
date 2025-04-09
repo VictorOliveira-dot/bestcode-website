@@ -44,57 +44,122 @@ export function useDashboardData() {
       try {
         console.log("Fetching teacher data for user ID:", user.id);
         
-        // Use RPC function to avoid RLS recursion issues - with type assertion
-        const { data: classesData, error: classesError } = await supabase
-          .rpc('get_teacher_classes_simple', { teacher_id: user.id }) as any;
-          
-        if (classesError) {
-          console.error("Error fetching classes:", classesError);
-          throw classesError;
-        }
-        
-        console.log("Classes fetched:", classesData ? classesData.length : 0);
-        
-        if (classesData && Array.isArray(classesData) && classesData.length > 0) {
-          setAvailableClasses(classesData);
-          
-          // Fetch lessons using an RPC function - with type assertion
-          const { data: lessonsData, error: lessonsError } = await supabase
-            .rpc('get_teacher_lessons', { teacher_id: user.id }) as any;
-          
-          if (lessonsError) {
-            console.error("Error fetching lessons:", lessonsError);
-            throw lessonsError;
+        // For numeric IDs, we need to use direct table queries instead of RPC functions
+        if (/^\d+$/.test(user.id)) {
+          // Fetch classes using direct query for numeric IDs
+          const { data: classesData, error: classesError } = await supabase
+            .from('classes')
+            .select('id, name')
+            .eq('teacher_id', user.id);
+            
+          if (classesError) {
+            console.error("Error fetching classes:", classesError);
+            throw classesError;
           }
           
-          if (lessonsData && Array.isArray(lessonsData)) {
-            console.log("Lessons fetched:", lessonsData.length);
-            
-            const formattedLessons: Lesson[] = lessonsData.map((lesson: any) => ({
-              id: lesson.id,
-              title: lesson.title,
-              description: lesson.description,
-              youtubeUrl: lesson.youtube_url,
-              date: lesson.date,
-              class: lesson.class_name || 'Sem turma',
-              class_id: lesson.class_id || '',
-              visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
-            }));
-            
-            setLessons(formattedLessons);
-          }
+          console.log("Classes fetched:", classesData ? classesData.length : 0);
           
-          // Count students enrolled in teacher's classes using an RPC function - with type assertion
-          const { data: studentCountData, error: countError } = await supabase
-            .rpc('get_teacher_student_count', { teacher_id: user.id }) as any;
+          if (classesData && Array.isArray(classesData) && classesData.length > 0) {
+            setAvailableClasses(classesData);
+            
+            // Fetch lessons using direct query
+            const { data: lessonsData, error: lessonsError } = await supabase
+              .from('lessons')
+              .select(`
+                id, title, description, youtube_url, date, visibility,
+                classes:class_id (id, name)
+              `)
+              .in('class_id', classesData.map(cls => cls.id));
+            
+            if (lessonsError) {
+              console.error("Error fetching lessons:", lessonsError);
+              throw lessonsError;
+            }
+            
+            if (lessonsData && Array.isArray(lessonsData)) {
+              console.log("Lessons fetched:", lessonsData.length);
               
-          if (!countError && studentCountData !== null) {
-            setStudentCount(Number(studentCountData));
+              const formattedLessons: Lesson[] = lessonsData.map((lesson: any) => ({
+                id: lesson.id,
+                title: lesson.title,
+                description: lesson.description,
+                youtubeUrl: lesson.youtube_url,
+                date: lesson.date,
+                class: lesson.classes?.name || 'Sem turma',
+                class_id: lesson.classes?.id || '',
+                visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
+              }));
+              
+              setLessons(formattedLessons);
+            }
+            
+            // Count students using direct query
+            const { data: enrollmentsData, error: countError } = await supabase
+              .from('enrollments')
+              .select('student_id', { count: 'exact', head: true })
+              .in('class_id', classesData.map(cls => cls.id));
+              
+            if (!countError) {
+              setStudentCount(enrollmentsData?.length || 0);
+            }
+          } else {
+            console.log("No classes found for this teacher");
+            setAvailableClasses([]);
+            setLessons([]);
           }
         } else {
-          console.log("No classes found for this teacher");
-          setAvailableClasses([]);
-          setLessons([]);
+          // Use RPC function for UUID format (original implementation with type assertion)
+          const { data: classesData, error: classesError } = await supabase
+            .rpc('get_teacher_classes_simple', { teacher_id: user.id }) as any;
+            
+          if (classesError) {
+            console.error("Error fetching classes:", classesError);
+            throw classesError;
+          }
+          
+          console.log("Classes fetched:", classesData ? classesData.length : 0);
+          
+          if (classesData && Array.isArray(classesData) && classesData.length > 0) {
+            setAvailableClasses(classesData);
+            
+            // Fetch lessons using an RPC function - with type assertion
+            const { data: lessonsData, error: lessonsError } = await supabase
+              .rpc('get_teacher_lessons', { teacher_id: user.id }) as any;
+            
+            if (lessonsError) {
+              console.error("Error fetching lessons:", lessonsError);
+              throw lessonsError;
+            }
+            
+            if (lessonsData && Array.isArray(lessonsData)) {
+              console.log("Lessons fetched:", lessonsData.length);
+              
+              const formattedLessons: Lesson[] = lessonsData.map((lesson: any) => ({
+                id: lesson.id,
+                title: lesson.title,
+                description: lesson.description,
+                youtubeUrl: lesson.youtube_url,
+                date: lesson.date,
+                class: lesson.class_name || 'Sem turma',
+                class_id: lesson.class_id || '',
+                visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
+              }));
+              
+              setLessons(formattedLessons);
+            }
+            
+            // Count students enrolled in teacher's classes using an RPC function - with type assertion
+            const { data: studentCountData, error: countError } = await supabase
+              .rpc('get_teacher_student_count', { teacher_id: user.id }) as any;
+                
+            if (!countError && studentCountData !== null) {
+              setStudentCount(Number(studentCountData));
+            }
+          } else {
+            console.log("No classes found for this teacher");
+            setAvailableClasses([]);
+            setLessons([]);
+          }
         }
       } catch (error: any) {
         console.error("Error fetching teacher data:", error);
