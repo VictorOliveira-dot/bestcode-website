@@ -25,9 +25,9 @@ export function useDashboardData() {
       try {
         console.log("Fetching teacher data for user ID:", user.id);
         
-        // Use RPC function to avoid RLS recursion issues
+        // Use RPC function to avoid RLS recursion issues - with type assertion
         const { data: classesData, error: classesError } = await supabase
-          .rpc('get_teacher_classes_simple', { teacher_id: user.id });
+          .rpc('get_teacher_classes_simple', { teacher_id: user.id }) as any;
           
         if (classesError) {
           console.error("Error fetching classes:", classesError);
@@ -39,9 +39,9 @@ export function useDashboardData() {
         if (classesData && Array.isArray(classesData) && classesData.length > 0) {
           setAvailableClasses(classesData);
           
-          // Fetch lessons using an RPC function
+          // Fetch lessons using an RPC function - with type assertion
           const { data: lessonsData, error: lessonsError } = await supabase
-            .rpc('get_teacher_lessons', { teacher_id: user.id });
+            .rpc('get_teacher_lessons', { teacher_id: user.id }) as any;
           
           if (lessonsError) {
             console.error("Error fetching lessons:", lessonsError);
@@ -65,9 +65,9 @@ export function useDashboardData() {
             setLessons(formattedLessons);
           }
           
-          // Count students enrolled in teacher's classes using an RPC function
+          // Count students enrolled in teacher's classes using an RPC function - with type assertion
           const { data: studentCountData, error: countError } = await supabase
-            .rpc('get_teacher_student_count', { teacher_id: user.id });
+            .rpc('get_teacher_student_count', { teacher_id: user.id }) as any;
               
           if (!countError && studentCountData !== null) {
             setStudentCount(Number(studentCountData));

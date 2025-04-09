@@ -14,9 +14,9 @@ export const fetchClassesForTeacher = async (teacherId: string): Promise<ClassIn
   }
   
   try {
-    // Use a direct RPC call to avoid the RLS policy recursion issue
+    // Use a direct RPC call to avoid the RLS policy recursion issue - with type assertion
     const { data, error } = await supabase
-      .rpc('get_teacher_classes', { teacher_id: teacherId });
+      .rpc('get_teacher_classes', { teacher_id: teacherId }) as any;
     
     if (error) {
       console.error("Error fetching classes:", error);
@@ -57,14 +57,14 @@ export const addClass = async (
   }
   
   try {
-    // Use a direct RPC call to avoid the RLS policy recursion issue
+    // Use a direct RPC call to avoid the RLS policy recursion issue - with type assertion
     const { data, error } = await supabase
       .rpc('create_class', { 
         p_name: classData.name,
         p_description: classData.description,
         p_start_date: classData.startDate,
         p_teacher_id: teacherId
-      });
+      }) as any;
     
     if (error) {
       console.error("Error adding class:", error);
@@ -111,7 +111,7 @@ export const updateClass = async (
         p_description: classData.description,
         p_start_date: classData.startDate,
         p_teacher_id: teacherId
-      });
+      }) as any;
     
     if (error) {
       console.error("Error updating class:", error);
@@ -139,7 +139,7 @@ export const deleteClass = async (
       .rpc('delete_class', { 
         p_class_id: classId,
         p_teacher_id: teacherId
-      });
+      }) as any;
     
     if (error) {
       console.error("Error deleting class:", error);
