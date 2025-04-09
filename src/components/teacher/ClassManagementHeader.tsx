@@ -18,10 +18,10 @@ const ClassManagementHeader: React.FC<ClassManagementHeaderProps> = ({
       <Button 
         onClick={onAddClassClick} 
         className="flex items-center gap-2"
-        variant="default"
+        disabled={isLoading}
       >
         <Plus className="h-4 w-4" />
-        Nova Turma
+        {isLoading ? "Carregando..." : "Nova Turma"}
       </Button>
     </div>
   );

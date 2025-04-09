@@ -35,7 +35,7 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
         <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
         <p className="text-destructive-foreground font-medium">Erro ao carregar dados</p>
         <p className="text-sm text-muted-foreground mt-1">
-          {error}
+          {error || "Ocorreu um erro ao carregar as turmas. Por favor, tente novamente."}
         </p>
         {refetch && (
           <Button 

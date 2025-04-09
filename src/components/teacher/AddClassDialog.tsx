@@ -38,6 +38,8 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
   handleAddClass,
   isLoading = false
 }) => {
+  const isFormValid = newClass.name.trim() !== '' && newClass.description.trim() !== '' && newClass.startDate !== '';
+  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!isLoading) { // Prevent closing the dialog while loading
@@ -94,7 +96,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
           </Button>
           <Button 
             onClick={handleAddClass}
-            disabled={isLoading}
+            disabled={isLoading || !isFormValid}
           >
             {isLoading ? (
               <>

@@ -26,10 +26,11 @@ export function useClassManagement() {
 
   const fetchClasses = async () => {
     if (!user?.id) {
-      setError("Usuário não está autenticado. Faça login novamente.");
+      const authError = "Usuário não está autenticado. Faça login novamente.";
+      setError(authError);
       toast({
         title: "Erro de autenticação",
-        description: "Usuário não está autenticado. Faça login novamente.",
+        description: authError,
         variant: "destructive",
       });
       return;
@@ -43,10 +44,11 @@ export function useClassManagement() {
       setClasses(fetchedClasses);
     } catch (error: any) {
       console.error("Error fetching classes:", error);
-      setError(error.message || "Ocorreu um erro ao buscar suas turmas.");
+      const errorMsg = error.message || "Ocorreu um erro ao buscar suas turmas.";
+      setError(errorMsg);
       toast({
         title: "Erro ao carregar turmas",
-        description: error.message || "Ocorreu um erro ao buscar suas turmas.",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -92,10 +94,10 @@ export function useClassManagement() {
         description: error.message || "Ocorreu um erro ao adicionar a turma.",
         variant: "destructive",
       });
+      throw error; // Re-throw to handle in the component
     } finally {
       setIsLoading(false);
     }
-    return false;
   };
 
   const handleEditClass = async (selectedClass: ClassInfo) => {
@@ -135,10 +137,10 @@ export function useClassManagement() {
         description: error.message || "Ocorreu um erro ao atualizar a turma.",
         variant: "destructive",
       });
+      throw error; // Re-throw to handle in the component
     } finally {
       setIsLoading(false);
     }
-    return false;
   };
 
   const handleDeleteClass = async (id: string) => {
@@ -171,10 +173,10 @@ export function useClassManagement() {
         description: error.message || "Ocorreu um erro ao remover a turma.",
         variant: "destructive",
       });
+      throw error; // Re-throw to handle in the component
     } finally {
       setIsLoading(false);
     }
-    return false;
   };
 
   return {

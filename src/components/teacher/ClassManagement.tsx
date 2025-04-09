@@ -6,6 +6,7 @@ import EditClassDialog from "./EditClassDialog";
 import { ClassInfo } from "./ClassItem";
 import ClassManagementHeader from "./ClassManagementHeader";
 import { useClassManagement } from "@/hooks/teacher/useClassManagement";
+import { toast } from "@/hooks/use-toast";
 
 const ClassManagement = () => {
   const [isAddClassOpen, setIsAddClassOpen] = useState(false);
@@ -33,18 +34,44 @@ const ClassManagement = () => {
   };
 
   const onAddClass = async () => {
-    const success = await handleAddClass(newClass);
-    if (success) {
-      setNewClass({ name: '', description: '', startDate: '' });
-      setIsAddClassOpen(false);
+    try {
+      const success = await handleAddClass(newClass);
+      if (success) {
+        setNewClass({ name: '', description: '', startDate: '' });
+        setIsAddClassOpen(false);
+        toast({
+          title: "Sucesso",
+          description: "Turma adicionada com sucesso",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error adding class:", error);
+      toast({
+        title: "Erro",
+        description: error?.message || "Ocorreu um erro ao adicionar a turma",
+        variant: "destructive"
+      });
     }
   };
 
   const onEditClass = async () => {
     if (selectedClass) {
-      const success = await handleEditClass(selectedClass);
-      if (success) {
-        setIsEditClassOpen(false);
+      try {
+        const success = await handleEditClass(selectedClass);
+        if (success) {
+          setIsEditClassOpen(false);
+          toast({
+            title: "Sucesso",
+            description: "Turma atualizada com sucesso",
+          });
+        }
+      } catch (error: any) {
+        console.error("Error editing class:", error);
+        toast({
+          title: "Erro",
+          description: error?.message || "Ocorreu um erro ao atualizar a turma",
+          variant: "destructive"
+        });
       }
     }
   };
@@ -56,14 +83,16 @@ const ClassManagement = () => {
         isLoading={isLoading}
       />
 
-      <ClassTable 
-        classes={classes}
-        openEditDialog={openEditDialog}
-        handleDeleteClass={handleDeleteClass}
-        isLoading={isLoading}
-        error={error}
-        refetch={fetchClasses}
-      />
+      <div className="overflow-x-hidden w-full">
+        <ClassTable 
+          classes={classes}
+          openEditDialog={openEditDialog}
+          handleDeleteClass={handleDeleteClass}
+          isLoading={isLoading}
+          error={error}
+          refetch={fetchClasses}
+        />
+      </div>
 
       <AddClassDialog
         isOpen={isAddClassOpen}
