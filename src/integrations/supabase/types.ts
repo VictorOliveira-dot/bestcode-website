@@ -269,6 +269,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_class: {
+        Args: { class_id: string }
+        Returns: boolean
+      }
       create_class: {
         Args: {
           p_name: string
