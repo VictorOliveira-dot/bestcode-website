@@ -8,12 +8,22 @@ import AdminDashboardHeader from "@/components/admin/DashboardHeader";
 import AdminDashboardCards from "@/components/admin/DashboardCards";
 import AdminDashboardContent from "@/components/admin/DashboardContent";
 import DashboardActions from "@/components/admin/DashboardActions";
-import { useQuery, QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
 
-const AdminDashboard = () => {
+// Wrapper component to provide QueryClient context
+const AdminDashboardWithQueryClient = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AdminDashboardContent />
+    </QueryClientProvider>
+  );
+};
+
+// Actual dashboard content component
+const AdminDashboardContent = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("students");
@@ -30,29 +40,39 @@ const AdminDashboard = () => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [studentsData, teachersData, coursesData] = await Promise.all([
-        supabase.rpc('admin_get_students_data'),
-        supabase.rpc('admin_get_teachers'),
-        supabase.from('classes').select('id', { count: 'exact' })
-      ]);
+      try {
+        console.log("Fetching admin stats...");
+        const [studentsData, teachersData, coursesData] = await Promise.all([
+          supabase.rpc('admin_get_students_data'),
+          supabase.rpc('admin_get_teachers'),
+          supabase.from('classes').select('id', { count: 'exact' })
+        ]);
 
-      if (studentsData.error) throw studentsData.error;
-      if (teachersData.error) throw teachersData.error;
-      if (coursesData.error) throw coursesData.error;
+        console.log("Students data:", studentsData);
+        console.log("Teachers data:", teachersData);
+        console.log("Courses data:", coursesData);
 
-      // Calculate total revenue (this should be replaced with actual revenue calculation)
-      const revenue = await supabase
-        .from('enrollments')
-        .select('id', { count: 'exact' });
+        if (studentsData.error) throw studentsData.error;
+        if (teachersData.error) throw teachersData.error;
+        if (coursesData.error) throw coursesData.error;
 
-      const revenueAmount = revenue.count ? revenue.count * 997 : 0; // Assuming R$ 997 per enrollment
+        // Calculate total revenue (this should be replaced with actual revenue calculation)
+        const revenue = await supabase
+          .from('enrollments')
+          .select('id', { count: 'exact' });
 
-      return {
-        studentsCount: studentsData.data?.length || 0,
-        teachersCount: teachersData.data?.length || 0,
-        coursesCount: coursesData.count || 0,
-        revenueAmount: `R$ ${revenueAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-      };
+        const revenueAmount = revenue.count ? revenue.count * 997 : 0; // Assuming R$ 997 per enrollment
+
+        return {
+          studentsCount: studentsData.data?.length || 0,
+          teachersCount: teachersData.data?.length || 0,
+          coursesCount: coursesData.count || 0,
+          revenueAmount: `R$ ${revenueAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+        };
+      } catch (error) {
+        console.error("Error fetching admin stats:", error);
+        throw error;
+      }
     }
   });
 
@@ -111,6 +131,15 @@ const AdminDashboard = () => {
         />
       </main>
     </div>
+  );
+};
+
+// Main component that wraps everything in QueryClientProvider
+const AdminDashboard = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AdminDashboardContent />
+    </QueryClientProvider>
   );
 };
 
