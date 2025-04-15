@@ -19,118 +19,101 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const mockCourses = [
-  {
-    id: "1",
-    title: "QA Avançado",
-    description: "Curso completo de QA com técnicas avançadas",
-    category: "QA",
-    status: "active",
-    price: "R$ 997,00",
-    duration: "60 horas",
-    students_count: 42,
-    rating: 4.8
-  },
-  {
-    id: "2",
-    title: "Testes de API",
-    description: "Aprenda testes de API do básico ao avançado",
-    category: "QA",
-    status: "active",
-    price: "R$ 597,00",
-    duration: "40 horas",
-    students_count: 38,
-    rating: 4.7
-  },
-  {
-    id: "3",
-    title: "Automação com Cypress",
-    description: "Automação de testes web com Cypress",
-    category: "Automação",
-    status: "active",
-    price: "R$ 797,00",
-    duration: "50 horas",
-    students_count: 35,
-    rating: 4.9
-  },
-  {
-    id: "4",
-    title: "Testes Mobile",
-    description: "Aprenda a testar aplicações mobile",
-    category: "Mobile",
-    status: "draft",
-    price: "R$ 897,00",
-    duration: "45 horas",
-    students_count: 0,
-    rating: 0
-  },
-  {
-    id: "5",
-    title: "Testes de Performance",
-    description: "Testes de carga e performance para aplicações web",
-    category: "Performance",
-    status: "active",
-    price: "R$ 1.197,00",
-    duration: "55 horas",
-    students_count: 28,
-    rating: 4.6
+interface Class {
+  id: string;
+  name: string;
+  description: string;
+  start_date: string;
+  teacher_name: string;
+  students_count: number;
+  is_active: boolean;
+}
+
+const CoursesTable: React.FC = () => {
+  const { data: courses, isLoading, error } = useQuery({
+    queryKey: ['courses'],
+    queryFn: async () => {
+      const { data: classes, error } = await supabase
+        .from('classes')
+        .select(`
+          id,
+          name,
+          description,
+          start_date,
+          is_active,
+          teacher:users!classes_teacher_id_fkey(name),
+          students:enrollments(student_id)
+        `);
+
+      if (error) throw error;
+
+      return classes.map(c => ({
+        ...c,
+        teacher_name: c.teacher?.name || 'Sem professor',
+        students_count: c.students?.length || 0
+      })) as Class[];
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    );
   }
-];
 
-const AdminCoursesTable: React.FC = () => {
+  if (error) {
+    return <div className="text-red-500">Error loading courses: {error.message}</div>;
+  }
+
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px]">#</TableHead>
-            <TableHead>Título</TableHead>
-            <TableHead className="hidden lg:table-cell">Categoria</TableHead>
+            <TableHead>Nome</TableHead>
+            <TableHead className="hidden lg:table-cell">Professor</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Preço</TableHead>
-            <TableHead className="hidden md:table-cell">Duração</TableHead>
+            <TableHead className="hidden md:table-cell">Início</TableHead>
             <TableHead className="hidden md:table-cell">Alunos</TableHead>
-            <TableHead className="hidden md:table-cell">Avaliação</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockCourses.map((course) => (
+          {courses?.map((course, index) => (
             <TableRow key={course.id}>
-              <TableCell className="font-medium">{course.id}</TableCell>
+              <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>
                 <div>
-                  <p className="font-medium">{course.title}</p>
+                  <p className="font-medium">{course.name}</p>
                   <p className="text-sm text-gray-500 hidden md:block">{course.description}</p>
                 </div>
               </TableCell>
-              <TableCell className="hidden lg:table-cell">{course.category}</TableCell>
+              <TableCell className="hidden lg:table-cell">{course.teacher_name}</TableCell>
               <TableCell>
                 <Badge
-                  variant={course.status === "active" ? "default" : "secondary"}
+                  variant={course.is_active ? "default" : "secondary"}
                   className={
-                    course.status === "active"
+                    course.is_active
                       ? "bg-green-100 text-green-800 hover:bg-green-100"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-100"
                   }
                 >
-                  {course.status === "active" ? "Ativo" : "Rascunho"}
+                  {course.is_active ? "Ativo" : "Inativo"}
                 </Badge>
               </TableCell>
-              <TableCell>{course.price}</TableCell>
-              <TableCell className="hidden md:table-cell">{course.duration}</TableCell>
-              <TableCell className="hidden md:table-cell">{course.students_count}</TableCell>
               <TableCell className="hidden md:table-cell">
-                {course.rating > 0 ? (
-                  <div className="flex items-center">
-                    {course.rating}
-                    <span className="text-yellow-500 ml-1">★</span>
-                  </div>
-                ) : (
-                  <span className="text-gray-400">N/A</span>
-                )}
+                {new Date(course.start_date).toLocaleDateString('pt-BR')}
               </TableCell>
+              <TableCell className="hidden md:table-cell">{course.students_count}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -165,4 +148,4 @@ const AdminCoursesTable: React.FC = () => {
   );
 };
 
-export default AdminCoursesTable;
+export default CoursesTable;

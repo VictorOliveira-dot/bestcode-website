@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,18 +8,12 @@ import AdminDashboardHeader from "@/components/admin/DashboardHeader";
 import AdminDashboardCards from "@/components/admin/DashboardCards";
 import AdminDashboardContent from "@/components/admin/DashboardContent";
 import DashboardActions from "@/components/admin/DashboardActions";
+import { useQuery } from "@tanstack/react-query";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("students");
-  const [stats, setStats] = useState({
-    studentsCount: 0,
-    teachersCount: 0,
-    coursesCount: 0,
-    revenueAmount: "R$ 0,00"
-  });
-  const [isLoading, setIsLoading] = useState(false);
 
   if (!user) {
     return <Navigate to="/login" />;
@@ -28,44 +23,35 @@ const AdminDashboard = () => {
     return <Navigate to="/" />;
   }
 
-  const fetchAdminData = async () => {
-    setIsLoading(true);
-    try {
-      const { data: studentsData, error: studentsError } = await supabase.rpc('admin_get_students_data');
-      if (studentsError) throw studentsError;
+  // Fetch dashboard stats using React Query
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      const [studentsData, teachersData, coursesData] = await Promise.all([
+        supabase.rpc('admin_get_students_data'),
+        supabase.rpc('admin_get_teachers'),
+        supabase.from('classes').select('id', { count: 'exact' })
+      ]);
 
-      const { data: teachersData, error: teachersError } = await supabase.rpc('admin_get_teachers');
-      if (teachersError) throw teachersError;
+      if (studentsData.error) throw studentsData.error;
+      if (teachersData.error) throw teachersData.error;
+      if (coursesData.error) throw coursesData.error;
 
-      const { count: coursesCount, error: coursesError } = await supabase
-        .from('classes')
-        .select('id', { count: 'exact', head: true });
-        
-      if (coursesError) throw coursesError;
-        
-      setStats({
-        studentsCount: studentsData?.length || 0,
-        teachersCount: teachersData?.length || 0,
-        coursesCount: coursesCount || 0,
-        revenueAmount: "R$ 24.850,00" // Placeholder value
-      });
-    } catch (error: any) {
-      console.error("Error fetching admin data:", error);
-      toast({
-        title: "Erro ao carregar dados",
-        description: error.message || "Ocorreu um erro ao carregar os dados administrativos.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      // Calculate total revenue (this should be replaced with actual revenue calculation)
+      const revenue = await supabase
+        .from('enrollments')
+        .select('id', { count: 'exact' });
+
+      const revenueAmount = revenue.count ? revenue.count * 997 : 0; // Assuming R$ 997 per enrollment
+
+      return {
+        studentsCount: studentsData.data?.length || 0,
+        teachersCount: teachersData.data?.length || 0,
+        coursesCount: coursesData.count || 0,
+        revenueAmount: `R$ ${revenueAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+      };
     }
-  };
-
-  useEffect(() => {
-    if (user?.role === 'admin') {
-      fetchAdminData();
-    }
-  }, [user]);
+  });
 
   useEffect(() => {
     const path = location.pathname.split('/').pop();
@@ -92,15 +78,22 @@ const AdminDashboard = () => {
 
       <main className="container-custom py-4 md:py-8 px-2 md:px-0">
         <DashboardActions 
-          onTeacherAdded={fetchAdminData} 
-          onClassAdded={fetchAdminData} 
+          onTeacherAdded={() => {
+            // Invalidate relevant queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['teachers'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+          }} 
+          onClassAdded={() => {
+            queryClient.invalidateQueries({ queryKey: ['courses'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+          }} 
         />
 
         <AdminDashboardCards 
-          studentsCount={stats.studentsCount}
-          teachersCount={stats.teachersCount}
-          coursesCount={stats.coursesCount}
-          revenueAmount={stats.revenueAmount}
+          studentsCount={stats?.studentsCount || 0}
+          teachersCount={stats?.teachersCount || 0}
+          coursesCount={stats?.coursesCount || 0}
+          revenueAmount={stats?.revenueAmount || "R$ 0,00"}
           onChangeTab={setActiveTab}
         />
 
