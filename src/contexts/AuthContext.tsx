@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -55,121 +54,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [isSupabaseAvailable, setIsSupabaseAvailable] = useState(true);
 
-  // Configurar listener de autenticação e verificar sessão existente
   useEffect(() => {
-    // Primeiro verificar localStorage para usuários de teste
-    const storedUser = localStorage.getItem('bestcode_user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        // Verificar se é um objeto válido
-        if (parsedUser && parsedUser.id && parsedUser.email && parsedUser.role) {
-          setUser(parsedUser);
-          setIsLoading(false);
-          console.log("Usuário recuperado do localStorage:", parsedUser);
-          return;
-        }
-      } catch (err) {
-        console.error("Erro ao parsear usuário do localStorage:", err);
-        localStorage.removeItem('bestcode_user');
-      }
-    }
+    console.log("AuthProvider initial mount - Checking authentication state");
     
-    // Tentar configurar listener e verificar sessão no Supabase
-    try {
-      // Configurar o listener de mudanças de autenticação
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          setIsLoading(true);
-          
-          if (session?.user) {
-            try {
-              // Após um evento de autenticação, buscar dados do usuário
-              const { data: userData, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
+    // First, clear any existing local storage for testing
+    localStorage.removeItem('bestcode_user');
 
-              if (error) {
-                console.error('Erro ao buscar dados do usuário:', error);
-                return;
-              }
-
-              if (userData) {
-                const userInfo: User = {
-                  id: userData.id,
-                  name: userData.name || userData.email,
-                  email: userData.email,
-                  role: userData.role as 'student' | 'teacher' | 'admin',
-                  avatar_url: userData.avatar_url
-                };
-                
-                setUser(userInfo);
-                localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
-              } else {
-                console.error('Usuário encontrado na sessão, mas não na tabela users');
-              }
-            } catch (err) {
-              console.error('Erro ao processar mudança de estado de autenticação:', err);
-            } finally {
-              setIsLoading(false);
-            }
-          } else {
-            setUser(null);
-            setIsLoading(false);
-          }
-        }
-      );
-
-      // Verificar a sessão atual
-      supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkAuthState = async () => {
+      try {
+        console.log("Checking Supabase session...");
+        const { data: { session } } = await supabase.auth.getSession();
+        
         if (session?.user) {
-          // Buscar dados do usuário na tabela users
-          supabase
+          console.log("Active Supabase session found:", session.user);
+          
+          // Fetch user details from the users table
+          const { data: userData, error } = await supabase
             .from('users')
             .select('*')
             .eq('id', session.user.id)
-            .single()
-            .then(({ data: userData, error }) => {
-              if (error) {
-                console.error('Erro ao buscar dados do usuário:', error);
-                setIsLoading(false);
-                return;
-              }
+            .single();
 
-              if (userData) {
-                const userInfo: User = {
-                  id: userData.id,
-                  name: userData.name || userData.email,
-                  email: userData.email,
-                  role: userData.role as 'student' | 'teacher' | 'admin',
-                  avatar_url: userData.avatar_url
-                };
-                
-                setUser(userInfo);
-                localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
-              }
-              setIsLoading(false);
-            });
+          if (error) {
+            console.error('Error fetching user details:', error);
+            return;
+          }
+
+          if (userData) {
+            const userInfo: User = {
+              id: userData.id,
+              name: userData.name || userData.email,
+              email: userData.email,
+              role: userData.role as 'student' | 'teacher' | 'admin',
+              avatar_url: userData.avatar_url
+            };
+
+            console.log("User details retrieved:", userInfo);
+            setUser(userInfo);
+            localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+          }
         } else {
-          setIsLoading(false);
+          console.log("No active Supabase session found");
         }
-      }).catch(error => {
-        console.error('Erro ao verificar sessão existente:', error);
-        setIsSupabaseAvailable(false);
+      } catch (error) {
+        console.error("Error in authentication check:", error);
+      } finally {
         setIsLoading(false);
-      });
+      }
+    };
 
-      // Limpar subscription quando o componente for desmontado
-      return () => {
-        subscription.unsubscribe();
-      };
-    } catch (error) {
-      console.error("Erro ao configurar autenticação:", error);
-      setIsSupabaseAvailable(false);
-      setIsLoading(false);
-    }
+    checkAuthState();
   }, []);
 
   // Login function
