@@ -8,7 +8,7 @@ import AdminDashboardHeader from "@/components/admin/DashboardHeader";
 import AdminDashboardCards from "@/components/admin/DashboardCards";
 import AdminDashboardContent from "@/components/admin/DashboardContent";
 import DashboardActions from "@/components/admin/DashboardActions";
-import { useQuery, QueryClient } from "@tanstack/react-query";
+import { useQuery, QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -75,21 +75,25 @@ const AdminDashboard = () => {
     });
   }, []);
 
+  const handleTeacherAdded = () => {
+    // Invalidate relevant queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ['teachers'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+  };
+
+  const handleClassAdded = () => {
+    queryClient.invalidateQueries({ queryKey: ['courses'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminDashboardHeader userName={user.name} />
 
       <main className="container-custom py-4 md:py-8 px-2 md:px-0">
         <DashboardActions 
-          onTeacherAdded={() => {
-            // Invalidate relevant queries to refresh data
-            queryClient.invalidateQueries({ queryKey: ['teachers'] });
-            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-          }} 
-          onClassAdded={() => {
-            queryClient.invalidateQueries({ queryKey: ['courses'] });
-            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-          }} 
+          onTeacherAdded={handleTeacherAdded} 
+          onClassAdded={handleClassAdded} 
         />
 
         <AdminDashboardCards 
