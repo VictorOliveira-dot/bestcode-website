@@ -8,7 +8,10 @@ import AdminDashboardHeader from "@/components/admin/DashboardHeader";
 import AdminDashboardCards from "@/components/admin/DashboardCards";
 import AdminDashboardContent from "@/components/admin/DashboardContent";
 import DashboardActions from "@/components/admin/DashboardActions";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, QueryClient } from "@tanstack/react-query";
+
+// Create a QueryClient instance
+const queryClient = new QueryClient();
 
 const AdminDashboard = () => {
   const { user } = useAuth();
