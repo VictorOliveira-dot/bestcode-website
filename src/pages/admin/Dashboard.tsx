@@ -6,24 +6,15 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import AdminDashboardHeader from "@/components/admin/DashboardHeader";
 import AdminDashboardCards from "@/components/admin/DashboardCards";
-import AdminDashboardContent from "@/components/admin/DashboardContent";
+import DashboardContent from "@/components/admin/DashboardContent";
 import DashboardActions from "@/components/admin/DashboardActions";
 import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
 
-// Wrapper component to provide QueryClient context
-const AdminDashboardWithQueryClient = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AdminDashboardContent />
-    </QueryClientProvider>
-  );
-};
-
 // Actual dashboard content component
-const AdminDashboardContent = () => {
+const AdminDashboardComponent = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("students");
@@ -124,7 +115,7 @@ const AdminDashboardContent = () => {
           onChangeTab={setActiveTab}
         />
 
-        <AdminDashboardContent 
+        <DashboardContent 
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           isLoading={isLoading}
@@ -138,7 +129,7 @@ const AdminDashboardContent = () => {
 const AdminDashboard = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AdminDashboardContent />
+      <AdminDashboardComponent />
     </QueryClientProvider>
   );
 };
