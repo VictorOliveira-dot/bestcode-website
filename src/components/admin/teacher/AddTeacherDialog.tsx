@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -34,38 +35,73 @@ interface AddTeacherDialogProps {
 }
 
 const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: ""
+    }
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    if (!user || user.role !== 'admin') {
+      toast({
+        title: "Erro de permissão",
+        description: "Você precisa ser um administrador para criar professores.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
     try {
+      console.log("Criando professor com dados:", {
+        email: data.email,
+        name: data.name,
+        // Não logamos a senha por segurança
+      });
+      
       const { data: result, error } = await supabase.rpc('admin_create_teacher', {
         p_email: data.email,
         p_name: data.name,
         p_password: data.password
       });
+      
+      if (error) {
+        console.error("Erro ao criar professor:", error);
+        throw error;
+      }
 
-      if (error) throw error;
-
+      console.log("Professor criado com sucesso, ID:", result);
+      
       toast({
         title: "Professor criado com sucesso",
         description: `Professor ${data.name} foi adicionado ao sistema.`,
       });
 
       form.reset();
+      setIsOpen(false);
       onTeacherAdded();
     } catch (error: any) {
+      console.error("Erro capturado:", error);
       toast({
         title: "Erro ao criar professor",
         description: error.message || "Ocorreu um erro ao criar o professor.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="default">Adicionar Professor</Button>
       </DialogTrigger>
@@ -115,10 +151,19 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
               )}
             />
             <div className="flex justify-end space-x-2">
-              <DialogTrigger asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DialogTrigger>
-              <Button type="submit">Salvar</Button>
+              <Button 
+                variant="outline" 
+                type="button"
+                onClick={() => setIsOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Salvando..." : "Salvar"}
+              </Button>
             </div>
           </form>
         </Form>
