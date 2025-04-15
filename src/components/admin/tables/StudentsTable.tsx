@@ -17,11 +17,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface Student {
   id: string;
@@ -37,9 +37,26 @@ const StudentsTable: React.FC = () => {
   const { data: students, isLoading, error } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_get_students_data');
-      if (error) throw error;
-      return data as Student[];
+      try {
+        console.log("Fetching students data...");
+        const { data, error } = await supabase.rpc('admin_get_students_data');
+        
+        if (error) {
+          console.error("Error in admin_get_students_data:", error);
+          throw error;
+        }
+        
+        console.log("Students data fetched successfully:", data?.length || 0);
+        return data as Student[];
+      } catch (err: any) {
+        console.error("Failed to fetch students:", err);
+        toast({
+          title: "Erro ao carregar alunos",
+          description: err.message || "Ocorreu um erro ao buscar os dados dos alunos.",
+          variant: "destructive",
+        });
+        throw err;
+      }
     }
   });
 
@@ -54,7 +71,21 @@ const StudentsTable: React.FC = () => {
   }
 
   if (error) {
-    return <div className="text-red-500">Error loading students: {error.message}</div>;
+    return (
+      <div className="p-4 text-red-500 border border-red-300 rounded-md bg-red-50">
+        <h3 className="text-lg font-medium mb-2">Erro ao carregar alunos:</h3>
+        <p>{(error as Error).message}</p>
+        <p className="mt-2 text-sm">Por favor, tente novamente mais tarde ou contate o suporte.</p>
+      </div>
+    );
+  }
+
+  if (!students || students.length === 0) {
+    return (
+      <div className="text-center py-12 border rounded-md">
+        <p className="text-muted-foreground">Nenhum aluno encontrado no sistema.</p>
+      </div>
+    );
   }
 
   return (
@@ -73,7 +104,7 @@ const StudentsTable: React.FC = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {students?.map((student, index) => (
+          {students.map((student, index) => (
             <TableRow key={student.id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>{student.name}</TableCell>
