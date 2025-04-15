@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AdminDashboardHeader from "@/components/admin/DashboardHeader";
 import AdminDashboardCards from "@/components/admin/DashboardCards";
 import AdminDashboardContent from "@/components/admin/DashboardContent";
+import DashboardActions from "@/components/admin/DashboardActions";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -20,7 +20,6 @@ const AdminDashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if not authenticated or not an admin
   if (!user) {
     return <Navigate to="/login" />;
   }
@@ -29,64 +28,48 @@ const AdminDashboard = () => {
     return <Navigate to="/" />;
   }
 
-  // Fetch data when component mounts
-  useEffect(() => {
-    const fetchAdminData = async () => {
-      setIsLoading(true);
-      try {
-        // Count students (users with role 'student')
-        const { count: studentsCount, error: studentsError } = await supabase
-          .from('users')
-          .select('id', { count: 'exact', head: true })
-          .eq('role', 'student');
-          
-        if (studentsError) throw studentsError;
-        
-        // Count teachers (users with role 'teacher')
-        const { count: teachersCount, error: teachersError } = await supabase
-          .from('users')
-          .select('id', { count: 'exact', head: true })
-          .eq('role', 'teacher');
-          
-        if (teachersError) throw teachersError;
-        
-        // Count classes (as courses)
-        const { count: coursesCount, error: coursesError } = await supabase
-          .from('classes')
-          .select('id', { count: 'exact', head: true });
-          
-        if (coursesError) throw coursesError;
-        
-        // For now, we'll use a placeholder for revenue
-        // In a real app, this would come from a payments table
-        
-        setStats({
-          studentsCount: studentsCount || 0,
-          teachersCount: teachersCount || 0,
-          coursesCount: coursesCount || 0,
-          revenueAmount: "R$ 24.850,00" // Placeholder value
-        });
-      } catch (error: any) {
-        console.error("Error fetching admin data:", error);
-        toast({
-          title: "Erro ao carregar dados",
-          description: error.message || "Ocorreu um erro ao carregar os dados administrativos.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchAdminData();
-  }, []);
+  const fetchAdminData = async () => {
+    setIsLoading(true);
+    try {
+      const { data: studentsData, error: studentsError } = await supabase.rpc('admin_get_students_data');
+      if (studentsError) throw studentsError;
 
-  // Determine active tab based on route
+      const { data: teachersData, error: teachersError } = await supabase.rpc('admin_get_teachers');
+      if (teachersError) throw teachersError;
+
+      const { count: coursesCount, error: coursesError } = await supabase
+        .from('classes')
+        .select('id', { count: 'exact', head: true });
+        
+      if (coursesError) throw coursesError;
+        
+      setStats({
+        studentsCount: studentsData?.length || 0,
+        teachersCount: teachersData?.length || 0,
+        coursesCount: coursesCount || 0,
+        revenueAmount: "R$ 24.850,00" // Placeholder value
+      });
+    } catch (error: any) {
+      console.error("Error fetching admin data:", error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: error.message || "Ocorreu um erro ao carregar os dados administrativos.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Extract the last part of the pathname
+    if (user?.role === 'admin') {
+      fetchAdminData();
+    }
+  }, [user]);
+
+  useEffect(() => {
     const path = location.pathname.split('/').pop();
     
-    // Map path to tab
     if (path === "dashboard" || path === "admin") {
       setActiveTab("students");
     } else if (path === "students" || path === "teachers" || 
@@ -96,7 +79,6 @@ const AdminDashboard = () => {
     }
   }, [location.pathname]);
 
-  // Show welcome toast on load
   React.useEffect(() => {
     toast({
       title: "Bem-vindo ao painel de administração",
@@ -109,6 +91,11 @@ const AdminDashboard = () => {
       <AdminDashboardHeader userName={user.name} />
 
       <main className="container-custom py-4 md:py-8 px-2 md:px-0">
+        <DashboardActions 
+          onTeacherAdded={fetchAdminData} 
+          onClassAdded={fetchAdminData} 
+        />
+
         <AdminDashboardCards 
           studentsCount={stats.studentsCount}
           teachersCount={stats.teachersCount}

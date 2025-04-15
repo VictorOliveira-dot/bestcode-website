@@ -269,6 +269,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_class: {
+        Args: {
+          p_name: string
+          p_description: string
+          p_start_date: string
+          p_teacher_id: string
+        }
+        Returns: string
+      }
+      admin_create_teacher: {
+        Args: { p_email: string; p_name: string; p_password: string }
+        Returns: string
+      }
+      admin_get_students_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          email: string
+          created_at: string
+          classes_count: number
+          last_active: string
+          progress_average: number
+        }[]
+      }
+      admin_get_teachers: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          email: string
+          created_at: string
+          classes_count: number
+          students_count: number
+        }[]
+      }
       can_access_class: {
         Args: { class_id: string }
         Returns: boolean
