@@ -39,6 +39,9 @@ const StudentsTable: React.FC = () => {
     queryFn: async () => {
       try {
         console.log("Fetching students data...");
+        // Adicionando mais logs para depuração
+        console.log("Auth user ID:", (await supabase.auth.getUser()).data.user?.id);
+        
         const { data, error } = await supabase.rpc('admin_get_students_data');
         
         if (error) {
@@ -47,6 +50,7 @@ const StudentsTable: React.FC = () => {
         }
         
         console.log("Students data fetched successfully:", data?.length || 0);
+        console.log("Sample student data:", data?.[0]);
         return data as Student[];
       } catch (err: any) {
         console.error("Failed to fetch students:", err);

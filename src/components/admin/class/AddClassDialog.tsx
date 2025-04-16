@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,6 +50,7 @@ interface AddClassDialogProps {
 const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
   const [teachers, setTeachers] = React.useState<Teacher[]>([]);
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const { user } = useAuth();
 
   React.useEffect(() => {
@@ -88,6 +90,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
+      setIsLoading(true);
       console.log("Creating class with data:", data);
       
       if (!user?.id) {
@@ -95,9 +98,16 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
       }
       
       console.log("User role:", user.role);
+      console.log("User ID:", user.id);
       
+      // Verificação adicional para garantir que é um admin
       if (user.role !== 'admin') {
-        throw new Error("Apenas administradores podem criar turmas");
+        toast({
+          title: "Acesso negado",
+          description: "Apenas administradores podem criar turmas.",
+          variant: "destructive",
+        });
+        return;
       }
       
       const { data: result, error } = await supabase.rpc('admin_create_class', {
@@ -127,6 +137,8 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
         description: error.message || "Ocorreu um erro ao criar a turma.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -205,10 +217,12 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
               )}
             />
             <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
                 Cancelar
               </Button>
-              <Button type="submit">Salvar</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Criando..." : "Salvar"}
+              </Button>
             </div>
           </form>
         </Form>
