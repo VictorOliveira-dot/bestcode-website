@@ -34,7 +34,7 @@ interface Student {
 }
 
 const StudentsTable: React.FC = () => {
-  const { data: students, isLoading, error } = useQuery({
+  const { data: students, isLoading, error, refetch } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
       try {
@@ -50,11 +50,6 @@ const StudentsTable: React.FC = () => {
         return data as Student[];
       } catch (err: any) {
         console.error("Failed to fetch students:", err);
-        toast({
-          title: "Erro ao carregar alunos",
-          description: err.message || "Ocorreu um erro ao buscar os dados dos alunos.",
-          variant: "destructive",
-        });
         throw err;
       }
     }
@@ -63,9 +58,9 @@ const StudentsTable: React.FC = () => {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
       </div>
     );
   }
@@ -73,9 +68,15 @@ const StudentsTable: React.FC = () => {
   if (error) {
     return (
       <div className="p-4 text-red-500 border border-red-300 rounded-md bg-red-50">
-        <h3 className="text-lg font-medium mb-2">Erro ao carregar alunos:</h3>
+        <h3 className="text-lg font-medium mb-2">Erro ao carregar alunos</h3>
         <p>{(error as Error).message}</p>
-        <p className="mt-2 text-sm">Por favor, tente novamente mais tarde ou contate o suporte.</p>
+        <Button 
+          onClick={() => refetch()} 
+          variant="secondary" 
+          className="mt-4"
+        >
+          Tentar novamente
+        </Button>
       </div>
     );
   }
