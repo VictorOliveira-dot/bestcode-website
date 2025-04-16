@@ -38,7 +38,7 @@ export async function addLesson(newLesson: NewLesson, userId: string, availableC
       return lessons;
     }
     
-    // Insert lesson into the database
+    // Insert lesson into the database - RLS will ensure only teacher's classes
     const { data, error } = await supabase
       .from('lessons')
       .insert([{

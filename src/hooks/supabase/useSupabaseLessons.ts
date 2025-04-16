@@ -1,4 +1,3 @@
-
 import { useSupabaseBase } from './useSupabaseBase';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -37,8 +36,7 @@ export const useSupabaseLessons = () => {
     try {
       let query = supabase
         .from('lesson_progress')
-        .select('*')
-        .eq('student_id', studentId);
+        .select('*');
         
       if (lessonId) {
         query = query.eq('lesson_id', lessonId);

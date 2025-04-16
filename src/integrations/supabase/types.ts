@@ -45,6 +45,13 @@ export type Database = {
             foreignKeyName: "classes_teacher_id_fkey"
             columns: ["teacher_id"]
             isOneToOne: false
+            referencedRelation: "class_enrollments_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "classes_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -59,6 +66,7 @@ export type Database = {
           status: string
           student_id: string
           updated_at: string | null
+          user_id: string
         }
         Insert: {
           class_id: string
@@ -68,6 +76,7 @@ export type Database = {
           status: string
           student_id: string
           updated_at?: string | null
+          user_id: string
         }
         Update: {
           class_id?: string
@@ -77,6 +86,7 @@ export type Database = {
           status?: string
           student_id?: string
           updated_at?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -85,6 +95,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "class_enrollments_view"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "enrollments_student_id_fkey"
@@ -136,6 +153,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "lessons"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "class_enrollments_view"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "lesson_progress_student_id_fkey"
@@ -229,6 +253,13 @@ export type Database = {
             foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "class_enrollments_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -266,7 +297,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      class_enrollments_view: {
+        Row: {
+          class_id: string | null
+          class_name: string | null
+          enrollment_id: string | null
+          student_email: string | null
+          student_id: string | null
+          teacher_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "class_enrollments_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "classes_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_create_class: {
@@ -330,6 +393,16 @@ export type Database = {
       delete_class: {
         Args: { p_class_id: string; p_teacher_id: string }
         Returns: undefined
+      }
+      get_my_class_enrollments: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          enrollment_id: string
+          class_id: string
+          class_name: string
+          teacher_id: string
+          student_id: string
+        }[]
       }
       get_teacher_classes: {
         Args: { teacher_id: string }

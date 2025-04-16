@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ClassInfo } from "@/components/teacher/ClassItem";
 
@@ -28,66 +27,37 @@ export const fetchClassesForTeacher = async (teacherId: string): Promise<ClassIn
   }
   
   try {
-    let classesWithStudents: ClassInfo[] = [];
+    // With RLS policies in place, teacher will only get their own classes
+    const { data: classesData, error: classesError } = await supabase
+      .from('classes')
+      .select('*');
     
-    // For numeric IDs, we need to use direct table queries instead of RPC functions
-    if (/^\d+$/.test(teacherId)) {
-      // First get the classes
-      const { data: classesData, error: classesError } = await supabase
-        .from('classes')
-        .select('id, name, description, start_date')
-        .eq('teacher_id', teacherId);
+    if (classesError) {
+      console.error("Error fetching classes:", classesError);
+      throw classesError;
+    }
+    
+    if (!classesData || !Array.isArray(classesData)) return [];
+    
+    console.log("Classes fetched:", classesData.length);
+    
+    // For each class, count the students
+    const classesPromises = classesData.map(async (cls) => {
+      const { count: studentsCount, error: countError } = await supabase
+        .from('enrollments')
+        .select('*', { count: 'exact', head: true })
+        .eq('class_id', cls.id);
       
-      if (classesError) {
-        console.error("Error fetching classes:", classesError);
-        throw classesError;
-      }
-      
-      if (!classesData || !Array.isArray(classesData)) return [];
-      
-      console.log("Classes fetched:", classesData.length);
-      
-      // For each class, count the students
-      const classesPromises = classesData.map(async (cls) => {
-        const { data: enrollmentsData, error: enrollmentsError } = await supabase
-          .from('enrollments')
-          .select('student_id', { count: 'exact', head: true })
-          .eq('class_id', cls.id);
-        
-        return {
-          id: cls.id,
-          name: cls.name,
-          description: cls.description,
-          startDate: cls.start_date,
-          studentsCount: enrollmentsData?.length || 0
-        };
-      });
-      
-      classesWithStudents = await Promise.all(classesPromises);
-    } else {
-      // Use RPC function for UUID format (original implementation with type assertion)
-      const { data, error } = await supabase
-        .rpc('get_teacher_classes', { teacher_id: teacherId }) as any;
-      
-      if (error) {
-        console.error("Error fetching classes:", error);
-        throw error;
-      }
-      
-      if (!data || !Array.isArray(data)) return [];
-      
-      console.log("Classes fetched:", data.length);
-      
-      // Format the data to match the ClassInfo interface
-      classesWithStudents = data.map((cls: any) => ({
+      return {
         id: cls.id,
         name: cls.name,
         description: cls.description,
         startDate: cls.start_date,
-        studentsCount: cls.students_count || 0
-      }));
-    }
+        studentsCount: studentsCount || 0
+      };
+    });
     
+    const classesWithStudents = await Promise.all(classesPromises);
     return classesWithStudents;
   } catch (error: any) {
     console.error("Error in fetchClassesForTeacher:", error);

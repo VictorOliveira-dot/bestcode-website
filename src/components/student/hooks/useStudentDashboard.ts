@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Lesson, LessonProgress } from "../types/lesson";
@@ -18,6 +19,8 @@ export function useStudentDashboard() {
     
     const fetchStudentData = async () => {
       try {
+        console.log("Fetching student data with user ID:", user.id);
+        
         // First, get the student's class by checking enrollments
         const { data: enrollmentData, error: enrollmentError } = await supabase
           .from('enrollments')
@@ -42,11 +45,10 @@ export function useStudentDashboard() {
           setStudentClass("Não definida");
         }
         
-        // Fetch lessons
+        // Fetch lessons - RLS will automatically filter lessons the user has access to
         const { data: lessonsData, error: lessonsError } = await supabase
           .from('lessons')
-          .select('*')
-          .or(`visibility.eq.all${classId ? ',class_id.eq.' + classId : ''}`);
+          .select('*');
           
         if (lessonsError) {
           console.error('Error fetching lessons:', lessonsError);
@@ -70,11 +72,10 @@ export function useStudentDashboard() {
           setLessons(formattedLessons);
         }
         
-        // Fetch lesson progress
+        // Fetch lesson progress - RLS will automatically filter for current user
         const { data: progressData, error: progressError } = await supabase
           .from('lesson_progress')
-          .select('*')
-          .eq('student_id', user.id);
+          .select('*');
           
         if (progressError) {
           console.error('Error fetching lesson progress:', progressError);
@@ -91,11 +92,10 @@ export function useStudentDashboard() {
           setLessonProgress(formattedProgress);
         }
         
-        // Fetch notifications
+        // Fetch notifications - RLS will automatically filter for current user
         const { data: notificationsData, error: notificationsError } = await supabase
           .from('notifications')
           .select('*')
-          .eq('user_id', user.id)
           .order('date', { ascending: false });
           
         if (notificationsError) {

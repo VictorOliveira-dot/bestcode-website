@@ -57,9 +57,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log("AuthProvider initial mount - Checking authentication state");
     
-    // First, clear any existing local storage for testing
-    localStorage.removeItem('bestcode_user');
+    // First, check if there's a stored user in localStorage
+    const storedUser = localStorage.getItem('bestcode_user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        console.log("Found stored user:", parsedUser);
+        setUser(parsedUser);
+        setIsLoading(false);
+        return;
+      } catch (err) {
+        console.error("Error parsing stored user:", err);
+        localStorage.removeItem('bestcode_user');
+      }
+    }
 
+    // If no stored user, check Supabase session
     const checkAuthState = async () => {
       try {
         console.log("Checking Supabase session...");
@@ -77,6 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (error) {
             console.error('Error fetching user details:', error);
+            setIsLoading(false);
             return;
           }
 
