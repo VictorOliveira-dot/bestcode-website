@@ -38,6 +38,8 @@ export async function addLesson(newLesson: NewLesson, userId: string, availableC
       return lessons;
     }
     
+    console.log("Class found:", classObj.name, "userId:", userId);
+    
     // Insert lesson into the database - RLS will ensure only teacher's classes
     const { data, error } = await supabase
       .from('lessons')

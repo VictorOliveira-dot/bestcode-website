@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -48,12 +49,15 @@ interface AddClassDialogProps {
 
 const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
   const [teachers, setTeachers] = React.useState<Teacher[]>([]);
+  const [isOpen, setIsOpen] = React.useState(false);
+  const { user } = useAuth();
 
   React.useEffect(() => {
     const fetchTeachers = async () => {
       const { data, error } = await supabase.rpc('admin_get_teachers');
       
       if (error) {
+        console.error("Error fetching teachers:", error);
         toast({
           title: "Erro ao carregar professores",
           description: error.message,
@@ -62,18 +66,41 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
         return;
       }
 
-      setTeachers(data);
+      if (data) {
+        console.log("Teachers fetched:", data.length);
+        setTeachers(data);
+      }
     };
 
-    fetchTeachers();
-  }, []);
+    if (isOpen) {
+      fetchTeachers();
+    }
+  }, [isOpen]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      startDate: new Date().toISOString().split('T')[0],
+      teacherId: "",
+    },
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
+      console.log("Creating class with data:", data);
+      
+      if (!user?.id) {
+        throw new Error("Usuário não autenticado");
+      }
+      
+      console.log("User role:", user.role);
+      
+      if (user.role !== 'admin') {
+        throw new Error("Apenas administradores podem criar turmas");
+      }
+      
       const { data: result, error } = await supabase.rpc('admin_create_class', {
         p_name: data.name,
         p_description: data.description,
@@ -81,7 +108,10 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
         p_teacher_id: data.teacherId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating class:", error);
+        throw error;
+      }
 
       toast({
         title: "Turma criada com sucesso",
@@ -89,8 +119,10 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
       });
 
       form.reset();
+      setIsOpen(false);
       onClassAdded();
     } catch (error: any) {
+      console.error("Failed to create class:", error);
       toast({
         title: "Erro ao criar turma",
         description: error.message || "Ocorreu um erro ao criar a turma.",
@@ -100,9 +132,9 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">Adicionar Turma</Button>
+        <Button variant="default" onClick={() => setIsOpen(true)}>Adicionar Turma</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -174,9 +206,9 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
               )}
             />
             <div className="flex justify-end space-x-2">
-              <DialogTrigger asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DialogTrigger>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                Cancelar
+              </Button>
               <Button type="submit">Salvar</Button>
             </div>
           </form>

@@ -10,6 +10,7 @@ export const useSupabaseLessons = () => {
     setError(null);
     
     try {
+      console.log("Fetching lessons with class filter:", classFilter);
       let query = supabase.from('lessons').select('*');
       
       if (classFilter) {
@@ -18,9 +19,15 @@ export const useSupabaseLessons = () => {
       
       const { data, error } = await query.order('date', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching lessons:", error);
+        throw error;
+      }
+      
+      console.log(`Fetched ${data?.length || 0} lessons`);
       return data;
     } catch (err: any) {
+      console.error("Error in fetchLessons:", err);
       setError(err.message);
       return [];
     } finally {
@@ -34,6 +41,7 @@ export const useSupabaseLessons = () => {
     setError(null);
     
     try {
+      console.log(`Fetching lesson progress for student ${studentId}${lessonId ? ` and lesson ${lessonId}` : ''}`);
       let query = supabase
         .from('lesson_progress')
         .select('*');
@@ -42,11 +50,19 @@ export const useSupabaseLessons = () => {
         query = query.eq('lesson_id', lessonId);
       }
       
+      query = query.eq('student_id', studentId);
+      
       const { data, error } = await query;
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching lesson progress:", error);
+        throw error;
+      }
+      
+      console.log(`Fetched ${data?.length || 0} progress records`);
       return data;
     } catch (err: any) {
+      console.error("Error in fetchLessonProgress:", err);
       setError(err.message);
       return [];
     } finally {
