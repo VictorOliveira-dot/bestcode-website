@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import {
   Table,
@@ -50,27 +49,22 @@ const StudentsTable: React.FC = () => {
       try {
         console.log("Fetching students data...");
         
-        // Verificar autenticação
-        const { data: authData, error: authError } = await supabase.auth.getSession();
+        // First ensure we have a valid session
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         
-        if (authError) {
-          console.error("Auth error:", authError);
-          throw authError;
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          throw new Error(`Authentication error: ${sessionError.message}`);
         }
         
-        console.log("Auth session:", authData.session ? "Active" : "Not active");
-        console.log("Auth user ID:", authData.session?.user?.id);
-        
-        // Verifica se já tem uma sessão ativa, caso contrário, tentar pegar o usuário
-        if (!authData.session) {
-          const { data: userData, error: userError } = await supabase.auth.getUser();
-          if (userError) {
-            console.error("User error:", userError);
-          } else {
-            console.log("User ID from getUser:", userData?.user?.id);
-          }
+        if (!sessionData.session) {
+          console.error("No active session found");
+          throw new Error("No active session found. Please log in again.");
         }
         
+        console.log("Session verified:", sessionData.session.user.id);
+        
+        // Now fetch student data with the verified session
         const { data, error } = await supabase.rpc('admin_get_students_data');
         
         if (error) {
@@ -79,14 +73,17 @@ const StudentsTable: React.FC = () => {
         }
         
         console.log("Students data fetched successfully:", data?.length || 0);
-        console.log("Sample student data:", data?.[0]);
+        if (data && data.length > 0) {
+          console.log("Sample student data:", data[0]);
+        }
+        
         return data as Student[];
       } catch (err: any) {
         console.error("Failed to fetch students:", err);
         throw err;
       }
     },
-    enabled: !!user?.id && user?.role === 'admin' // Só executa a query se o usuário estiver logado e for admin
+    enabled: !!user?.id && user?.role === 'admin' // Only execute the query if the user is logged in and is admin
   });
 
   if (isLoading) {

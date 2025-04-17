@@ -100,10 +100,18 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       }
       
       if (!sessionData.session) {
-        throw new Error("Sessão de usuário não encontrada ou expirada");
+        // Tentativa de refresh da sessão
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError || !refreshData.session) {
+          console.error("Failed to refresh session:", refreshError);
+          throw new Error("Sessão de usuário não encontrada ou expirada. Por favor, faça login novamente.");
+        }
+        
+        console.log("Session refreshed successfully");
       }
       
-      console.log("Session verified, user authenticated");
+      console.log("Session verified, proceeding with teacher creation");
       
       const { data: result, error } = await supabase.rpc('admin_create_teacher', {
         p_email: data.email,
