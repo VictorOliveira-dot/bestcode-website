@@ -9,7 +9,6 @@ import LoginFormHeader from "./LoginFormHeader";
 import EmailField from "./EmailField";
 import PasswordField from "./PasswordField";
 import LoginFormActions from "./LoginFormActions";
-import TestAccountInfo from "./TestAccountInfo";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -36,6 +35,8 @@ const LoginForm = () => {
         return;
       }
       
+      console.log("Tentando login com:", { email });
+      
       // Realizar login através do Supabase
       const userData = await login(email, password);
       
@@ -44,6 +45,8 @@ const LoginForm = () => {
           title: "Login realizado com sucesso",
           description: `Bem-vindo de volta, ${userData.name || userData.email}!`,
         });
+        
+        console.log("Login bem-sucedido, redirecionando para:", userData.role);
         
         // Pequeno delay para melhorar UX
         setTimeout(() => {
