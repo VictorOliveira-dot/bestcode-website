@@ -47,12 +47,27 @@ export const useClassCreation = (onSuccess?: () => void) => {
         throw sessionError;
       }
       
-      if (!sessionData.session) {
-        console.error("No active session found");
-        throw new Error("Sessão não encontrada ou expirada");
+      let session = sessionData.session;
+      
+      if (!session) {
+        console.log("No active session, attempting to refresh...");
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError) {
+          console.error("Error refreshing session:", refreshError);
+          throw new Error("Sessão expirada. Por favor, faça login novamente.");
+        }
+        
+        session = refreshData.session;
+        
+        if (!session) {
+          throw new Error("Sessão não encontrada após tentativa de atualização. Por favor, faça login novamente.");
+        }
+        
+        console.log("Session refreshed successfully");
       }
       
-      console.log("Session verified:", sessionData.session.user.id);
+      console.log("Session verified:", session.user.id);
       
       const { data: result, error } = await supabase.rpc('admin_create_class', {
         p_name: data.name,

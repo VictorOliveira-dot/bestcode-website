@@ -99,13 +99,21 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
         throw new Error(`Erro de sessão: ${sessionError.message}`);
       }
       
-      if (!sessionData.session) {
+      let session = sessionData.session;
+      
+      if (!session) {
         // Tentativa de refresh da sessão
         const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
         
-        if (refreshError || !refreshData.session) {
+        if (refreshError) {
           console.error("Failed to refresh session:", refreshError);
           throw new Error("Sessão de usuário não encontrada ou expirada. Por favor, faça login novamente.");
+        }
+        
+        session = refreshData.session;
+        
+        if (!session) {
+          throw new Error("Ainda sem sessão após refresh. Por favor, faça login novamente.");
         }
         
         console.log("Session refreshed successfully");

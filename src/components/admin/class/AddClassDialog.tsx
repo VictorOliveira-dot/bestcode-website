@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,8 @@ interface AddClassDialogProps {
 
 const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const { teachers, fetchTeachers, isLoading: teachersLoading } = useTeachers(isOpen);
+  const [authReady, setAuthReady] = useState(false);
+  const { teachers, fetchTeachers, isLoading: teachersLoading } = useTeachers(isOpen && authReady);
   const { createClass, isLoading: creationLoading } = useClassCreation(() => {
     setIsOpen(false);
     onClassAdded();
@@ -32,14 +33,15 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
     if (user) {
       console.log("Current user in AddClassDialog:", user);
       console.log("User role:", user.role);
+      setAuthReady(true);
     }
   }, [user]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && authReady) {
       fetchTeachers();
     }
-  }, [isOpen, fetchTeachers]);
+  }, [isOpen, fetchTeachers, authReady]);
 
   const handleSubmit = async (data: ClassFormValues) => {
     console.log("Submitting class creation with data:", data);

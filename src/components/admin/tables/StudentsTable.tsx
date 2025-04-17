@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -35,11 +36,13 @@ interface Student {
 
 const StudentsTable: React.FC = () => {
   const { user } = useAuth();
+  const [isSessionChecked, setIsSessionChecked] = useState(false);
 
   useEffect(() => {
     if (user) {
       console.log("Current user in StudentsTable:", user);
       console.log("User role:", user.role);
+      setIsSessionChecked(true);
     }
   }, [user]);
 
@@ -58,11 +61,16 @@ const StudentsTable: React.FC = () => {
         }
         
         if (!sessionData.session) {
-          console.error("No active session found");
-          throw new Error("No active session found. Please log in again.");
+          // Try to refresh the session
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError || !refreshData.session) {
+            console.error("No active session found and refresh failed");
+            throw new Error("No active session found. Please log in again.");
+          }
+          
+          console.log("Session refreshed successfully");
         }
-        
-        console.log("Session verified:", sessionData.session.user.id);
         
         // Now fetch student data with the verified session
         const { data, error } = await supabase.rpc('admin_get_students_data');
@@ -83,7 +91,7 @@ const StudentsTable: React.FC = () => {
         throw err;
       }
     },
-    enabled: !!user?.id && user?.role === 'admin' // Only execute the query if the user is logged in and is admin
+    enabled: !!user?.id && user?.role === 'admin' && isSessionChecked // Only execute the query if the user is logged in and is admin
   });
 
   if (isLoading) {
