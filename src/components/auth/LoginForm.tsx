@@ -58,19 +58,13 @@ const LoginForm = () => {
             navigate("/student/dashboard");
           }
         }, 300);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Erro ao fazer login",
-          description: "Email ou senha inválidos. Verifique suas credenciais e tente novamente.",
-        });
       }
     } catch (error: any) {
       console.error("Erro de login:", error);
       toast({
         variant: "destructive",
         title: "Erro ao fazer login",
-        description: error.message || "Ocorreu um problema ao tentar fazer login. Tente novamente.",
+        description: "Email ou senha inválidos. Verifique suas credenciais e tente novamente.",
       });
     } finally {
       setIsLoading(false);

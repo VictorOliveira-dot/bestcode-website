@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -150,24 +149,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log("Attempting login with email:", email);
       
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
-      if (authError) {
-        console.error("Login error:", authError.message);
-        throw authError;
+      if (error) {
+        console.error("Login error:", error.message);
+        throw error;
       }
       
-      if (authData && authData.user) {
+      if (data && data.user) {
         console.log("Login successful, fetching user profile...");
         
         // Fetch user details from the users table
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('*')
-          .eq('id', authData.user.id)
+          .eq('id', data.user.id)
           .single();
         
         if (userError) {
@@ -189,23 +188,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userInfo);
         localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
         
-        toast({
-          title: "Login successful",
-          description: `Welcome back, ${userInfo.name || userInfo.email}!`,
-        });
-        
         return userInfo;
       }
       
       return null;
     } catch (err: any) {
       console.error("Error during login:", err);
-      toast({
-        variant: "destructive",
-        title: "Login error",
-        description: err.message || "An error occurred during login. Please check your credentials.",
-      });
-      return null;
+      throw err;
     } finally {
       setIsLoading(false);
     }

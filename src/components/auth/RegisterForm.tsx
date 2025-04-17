@@ -18,7 +18,6 @@ import EmailField from './EmailField';
 import PasswordField from './PasswordField';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import TestAccountInfo from './TestAccountInfo';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -145,8 +144,6 @@ const RegisterForm = () => {
         </form>
       </Form>
       
-      <TestAccountInfo />
-
       <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
         <h3 className="text-sm font-medium text-yellow-800">Contas de teste disponíveis:</h3>
         <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5">
