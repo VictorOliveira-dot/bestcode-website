@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,14 @@ import { ClassFormValues } from "@/components/admin/class/ClassForm";
 export const useClassCreation = (onSuccess?: () => void) => {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
+
+  // Log user information whenever it changes
+  useEffect(() => {
+    if (user) {
+      console.log("User in useClassCreation:", user.id);
+      console.log("User role:", user.role);
+    }
+  }, [user]);
 
   const createClass = async (data: ClassFormValues) => {
     try {
@@ -31,6 +39,21 @@ export const useClassCreation = (onSuccess?: () => void) => {
         return false;
       }
       
+      // Verificar sessão atual
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Error getting session:", sessionError);
+        throw sessionError;
+      }
+      
+      if (!sessionData.session) {
+        console.error("No active session found");
+        throw new Error("Sessão não encontrada ou expirada");
+      }
+      
+      console.log("Session verified:", sessionData.session.user.id);
+      
       const { data: result, error } = await supabase.rpc('admin_create_class', {
         p_name: data.name,
         p_description: data.description,
@@ -43,6 +66,8 @@ export const useClassCreation = (onSuccess?: () => void) => {
         throw error;
       }
 
+      console.log("Class created successfully:", result);
+      
       toast({
         title: "Turma criada com sucesso",
         description: `A turma ${data.name} foi criada.`,

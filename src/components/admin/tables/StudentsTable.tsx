@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -22,6 +22,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Student {
   id: string;
@@ -34,13 +35,41 @@ interface Student {
 }
 
 const StudentsTable: React.FC = () => {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      console.log("Current user in StudentsTable:", user);
+      console.log("User role:", user.role);
+    }
+  }, [user]);
+
   const { data: students, isLoading, error, refetch } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
       try {
         console.log("Fetching students data...");
-        // Adicionando mais logs para depuração
-        console.log("Auth user ID:", (await supabase.auth.getUser()).data.user?.id);
+        
+        // Verificar autenticação
+        const { data: authData, error: authError } = await supabase.auth.getSession();
+        
+        if (authError) {
+          console.error("Auth error:", authError);
+          throw authError;
+        }
+        
+        console.log("Auth session:", authData.session ? "Active" : "Not active");
+        console.log("Auth user ID:", authData.session?.user?.id);
+        
+        // Verifica se já tem uma sessão ativa, caso contrário, tentar pegar o usuário
+        if (!authData.session) {
+          const { data: userData, error: userError } = await supabase.auth.getUser();
+          if (userError) {
+            console.error("User error:", userError);
+          } else {
+            console.log("User ID from getUser:", userData?.user?.id);
+          }
+        }
         
         const { data, error } = await supabase.rpc('admin_get_students_data');
         
@@ -56,7 +85,8 @@ const StudentsTable: React.FC = () => {
         console.error("Failed to fetch students:", err);
         throw err;
       }
-    }
+    },
+    enabled: !!user?.id && user?.role === 'admin' // Só executa a query se o usuário estiver logado e for admin
   });
 
   if (isLoading) {

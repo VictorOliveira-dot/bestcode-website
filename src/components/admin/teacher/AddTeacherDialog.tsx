@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { PlusCircle } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -39,6 +40,18 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   
+  useEffect(() => {
+    // Verificar se o usuário está logado e é admin quando o componente monta
+    const checkAuthStatus = async () => {
+      if (user) {
+        console.log("Current user in AddTeacherDialog:", user);
+        console.log("User role:", user.role);
+      }
+    };
+    
+    checkAuthStatus();
+  }, [user]);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,7 +62,19 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    if (!user || user.role !== 'admin') {
+    if (!user) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para criar professores.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log("User attempting to create teacher:", user.id);
+    console.log("User role:", user.role);
+    
+    if (user.role !== 'admin') {
       toast({
         title: "Erro de permissão",
         description: "Você precisa ser um administrador para criar professores.",
@@ -66,6 +91,19 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
         name: data.name,
         // Não logamos a senha por segurança
       });
+      
+      // Primeiro, verifique a sessão do usuário para confirmar a autenticação
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw new Error(`Erro de sessão: ${sessionError.message}`);
+      }
+      
+      if (!sessionData.session) {
+        throw new Error("Sessão de usuário não encontrada ou expirada");
+      }
+      
+      console.log("Session verified, user authenticated");
       
       const { data: result, error } = await supabase.rpc('admin_create_teacher', {
         p_email: data.email,
@@ -103,7 +141,10 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">Adicionar Professor</Button>
+        <Button variant="default" onClick={() => setIsOpen(true)}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Adicionar Professor
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

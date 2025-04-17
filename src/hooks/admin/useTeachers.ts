@@ -15,6 +15,16 @@ export const useTeachers = (shouldFetch: boolean = false) => {
   const fetchTeachers = async () => {
     setIsLoading(true);
     try {
+      console.log("Fetching teachers data...");
+      
+      // Verificar usuário atual
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        throw new Error(`Erro ao obter usuário atual: ${userError.message}`);
+      }
+      
+      console.log("Current user:", userData?.user?.id);
+      
       const { data, error } = await supabase.rpc('admin_get_teachers');
       
       if (error) {
@@ -28,7 +38,8 @@ export const useTeachers = (shouldFetch: boolean = false) => {
       }
 
       if (data) {
-        console.log("Teachers fetched:", data.length);
+        console.log("Teachers fetched successfully:", data.length);
+        console.log("Sample teacher data:", data[0]);
         setTeachers(data);
       }
     } catch (error: any) {

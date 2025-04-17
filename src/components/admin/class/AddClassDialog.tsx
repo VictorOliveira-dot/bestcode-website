@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { ClassForm, ClassFormValues } from "./ClassForm";
 import { useTeachers } from "@/hooks/admin/useTeachers";
 import { useClassCreation } from "@/hooks/admin/useClassCreation";
 import { PlusCircle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AddClassDialogProps {
   onClassAdded: () => void;
@@ -19,19 +20,29 @@ interface AddClassDialogProps {
 
 const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const { teachers, fetchTeachers } = useTeachers(isOpen);
-  const { createClass, isLoading } = useClassCreation(() => {
+  const { teachers, fetchTeachers, isLoading: teachersLoading } = useTeachers(isOpen);
+  const { createClass, isLoading: creationLoading } = useClassCreation(() => {
     setIsOpen(false);
     onClassAdded();
   });
+  const { user } = useAuth();
 
-  React.useEffect(() => {
+  // Log user information for debugging
+  useEffect(() => {
+    if (user) {
+      console.log("Current user in AddClassDialog:", user);
+      console.log("User role:", user.role);
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (isOpen) {
       fetchTeachers();
     }
   }, [isOpen, fetchTeachers]);
 
   const handleSubmit = async (data: ClassFormValues) => {
+    console.log("Submitting class creation with data:", data);
     await createClass(data);
   };
 
@@ -50,7 +61,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
         <ClassForm
           onSubmit={handleSubmit}
           teachers={teachers}
-          isLoading={isLoading}
+          isLoading={creationLoading || teachersLoading}
           onCancel={() => setIsOpen(false)}
         />
       </DialogContent>
