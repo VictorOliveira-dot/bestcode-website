@@ -18,11 +18,16 @@ const AdminDashboardComponent = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("students");
-  const [isRedirecting, setIsRedirecting] = useState(false);
-
-  // Moving the Navigate component outside of the conditional return
-  if (!user || user.role !== 'admin') {
-    setIsRedirecting(true);
+  
+  // Redirect if user is not authenticated or not an admin
+  if (!user) {
+    console.log("No authenticated user found, redirecting to login");
+    return <Navigate to="/login" />;
+  }
+  
+  if (user.role !== 'admin') {
+    console.log("User is not an admin, redirecting to home");
+    return <Navigate to="/" />;
   }
 
   // Fetch dashboard stats using React Query
@@ -62,8 +67,7 @@ const AdminDashboardComponent = () => {
         console.error("Error fetching admin stats:", error);
         throw error;
       }
-    },
-    enabled: !isRedirecting // Only run the query if not redirecting
+    }
   });
 
   useEffect(() => {
@@ -78,11 +82,11 @@ const AdminDashboardComponent = () => {
     }
   }, [location.pathname]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       toast({
-        title: "Bem-vindo ao painel de administração",
-        description: `Olá, ${user.name}!`,
+        title: "Welcome to the admin panel",
+        description: `Hello, ${user.name}!`,
       });
     }
   }, [user]);
@@ -97,16 +101,6 @@ const AdminDashboardComponent = () => {
     queryClient.invalidateQueries({ queryKey: ['courses'] });
     queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
   };
-
-  // Return the Navigate components after all hooks have been called
-  if (isRedirecting) {
-    if (!user) {
-      return <Navigate to="/login" />;
-    }
-    if (user.role !== 'admin') {
-      return <Navigate to="/" />;
-    }
-  }
 
   return (
     <div className="min-h-screen bg-slate-50">

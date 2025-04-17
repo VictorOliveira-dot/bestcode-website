@@ -29,12 +29,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Check for session on initial load
   useEffect(() => {
     const checkAuthState = async () => {
       try {
+        setIsLoading(true);
+        console.log("Checking authentication state...");
+        
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
+          console.log("Session found, fetching user data from the database...");
+          
           // Fetch user details from the users table
           const { data: userData, error } = await supabase
             .from('users')
@@ -44,7 +50,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (error) {
             console.error('Error fetching user details:', error);
-            setIsLoading(false);
             return;
           }
 
@@ -57,8 +62,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               avatar_url: userData.avatar_url
             };
 
+            console.log("User data retrieved successfully:", userInfo.email, userInfo.role);
             setUser(userInfo);
             localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+          } else {
+            console.log("No user data found in database for session user");
+          }
+        } else {
+          console.log("No session found");
+          // Try to restore from localStorage if available
+          const savedUser = localStorage.getItem('bestcode_user');
+          if (savedUser) {
+            try {
+              const parsedUser = JSON.parse(savedUser);
+              // Validate the session before using the saved user
+              const { data, error } = await supabase.auth.getUser();
+              if (data?.user && data.user.id === parsedUser.id) {
+                console.log("Restored user from localStorage:", parsedUser.email);
+                setUser(parsedUser);
+              } else {
+                console.log("Stored user session is invalid, clearing...");
+                localStorage.removeItem('bestcode_user');
+              }
+            } catch (e) {
+              console.error("Error parsing saved user:", e);
+              localStorage.removeItem('bestcode_user');
+            }
           }
         }
       } catch (error) {
@@ -69,6 +98,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     checkAuthState();
+    
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        try {
+          // Fetch user details from the users table
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching user details on auth change:', error);
+            return;
+          }
+          
+          if (userData) {
+            const userInfo: User = {
+              id: userData.id,
+              name: userData.name || userData.email,
+              email: userData.email,
+              role: userData.role as 'student' | 'teacher' | 'admin',
+              avatar_url: userData.avatar_url
+            };
+            
+            setUser(userInfo);
+            localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+          }
+        } catch (err) {
+          console.error("Error handling sign in:", err);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        localStorage.removeItem('bestcode_user');
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Login function
@@ -76,16 +148,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
+      console.log("Attempting login with email:", email);
+      
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (authError) {
+        console.error("Login error:", authError.message);
         throw authError;
       }
       
       if (authData && authData.user) {
+        console.log("Login successful, fetching user profile...");
+        
         // Fetch user details from the users table
         const { data: userData, error: userError } = await supabase
           .from('users')
@@ -94,11 +171,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .single();
         
         if (userError) {
-          console.error('Usuário autenticado, mas não encontrado na tabela users:', userError);
-          throw new Error('Usuário não encontrado no sistema');
+          console.error('User authenticated, but not found in users table:', userError);
+          throw new Error('User not found in the system');
         }
         
-        // Usuário encontrado na tabela users
+        // Found user in the users table
         const userInfo: User = {
           id: userData.id,
           name: userData.name || userData.email,
@@ -107,12 +184,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           avatar_url: userData.avatar_url
         };
         
+        console.log("User profile retrieved:", userInfo.email, userInfo.role);
+        
         setUser(userInfo);
         localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
         
         toast({
-          title: "Login realizado com sucesso",
-          description: `Bem-vindo de volta, ${userInfo.name || userInfo.email}!`,
+          title: "Login successful",
+          description: `Welcome back, ${userInfo.name || userInfo.email}!`,
         });
         
         return userInfo;
@@ -120,11 +199,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return null;
     } catch (err: any) {
-      console.error("Erro durante login:", err);
+      console.error("Error during login:", err);
       toast({
         variant: "destructive",
-        title: "Erro ao fazer login",
-        description: err.message || "Ocorreu um erro durante o login. Verifique suas credenciais.",
+        title: "Login error",
+        description: err.message || "An error occurred during login. Please check your credentials.",
       });
       return null;
     } finally {
@@ -137,7 +216,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
-      // Register with Supabase for normal users
+      console.log("Attempting to register new user:", email);
+      
+      // Register with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -149,7 +230,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Registration error:", error);
+        throw error;
+      }
       
       if (data.user) {
         // Create user record in the users table
@@ -161,16 +245,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           avatar_url: userData.avatar_url
         };
         
+        console.log("Creating user profile in database:", newUserData.email);
+        
         const { error: profileError } = await supabase
           .from('users')
           .insert([newUserData]);
           
         if (profileError) {
-          console.error("Erro ao inserir dados do usuário:", profileError);
-          // Continue with the registration process
+          console.error("Error inserting user data:", profileError);
+          // Continue with the registration process despite this error
         }
         
         if (data.session) {
+          // User is automatically signed in
           const userInfo: User = {
             id: data.user.id,
             name: userData.name || email.split('@')[0],
@@ -183,14 +270,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
           
           toast({
-            title: "Conta criada com sucesso!",
-            description: "Você foi autenticado automaticamente.",
+            title: "Account created successfully!",
+            description: "You have been automatically logged in.",
           });
         } else {
           // Supabase may be configured to require email verification
           toast({
-            title: "Conta criada com sucesso!",
-            description: "Por favor, verifique seu email para confirmar o cadastro.",
+            title: "Account created successfully!",
+            description: "Please check your email to confirm your registration.",
           });
         }
         
@@ -199,11 +286,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return null;
     } catch (err: any) {
-      console.error("Erro durante registro:", err);
+      console.error("Error during registration:", err);
       toast({
         variant: "destructive",
-        title: "Erro ao criar conta",
-        description: err.message || "Ocorreu um erro durante o registro.",
+        title: "Error creating account",
+        description: err.message || "An error occurred during registration.",
       });
       return null;
     } finally {
@@ -216,11 +303,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
-      if (isLoading) return;
+      console.log("Attempting to log out");
       
       const { error } = await supabase.auth.signOut();
       
       if (error) {
+        console.error("Logout error:", error);
         throw error;
       }
       
@@ -229,15 +317,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('bestcode_user');
       
       toast({
-        title: "Logout realizado",
-        description: "Você foi desconectado com sucesso.",
+        title: "Logout successful",
+        description: "You have been successfully logged out.",
       });
+      
+      console.log("User logged out successfully");
     } catch (error: any) {
-      console.error("Erro durante logout:", error);
+      console.error("Error during logout:", error);
       toast({
         variant: "destructive",
-        title: "Erro ao fazer logout",
-        description: error.message || "Ocorreu um erro durante o logout.",
+        title: "Error during logout",
+        description: error.message || "An error occurred during logout.",
       });
     } finally {
       setIsLoading(false);

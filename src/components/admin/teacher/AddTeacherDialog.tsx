@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -40,18 +40,6 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   
-  useEffect(() => {
-    // Verificar se o usuário está logado e é admin quando o componente monta
-    const checkAuthStatus = async () => {
-      if (user) {
-        console.log("Current user in AddTeacherDialog:", user);
-        console.log("User role:", user.role);
-      }
-    };
-    
-    checkAuthStatus();
-  }, [user]);
-  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -64,8 +52,8 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (!user) {
       toast({
-        title: "Erro de autenticação",
-        description: "Você precisa estar logado para criar professores.",
+        title: "Authentication error",
+        description: "You must be logged in to create teachers.",
         variant: "destructive",
       });
       return;
@@ -76,8 +64,8 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     
     if (user.role !== 'admin') {
       toast({
-        title: "Erro de permissão",
-        description: "Você precisa ser um administrador para criar professores.",
+        title: "Permission error",
+        description: "You must be an administrator to create teachers.",
         variant: "destructive",
       });
       return;
@@ -86,37 +74,26 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      console.log("Criando professor com dados:", {
+      console.log("Creating teacher with data:", {
         email: data.email,
         name: data.name,
-        // Não logamos a senha por segurança
+        // Not logging password for security
       });
       
-      // Primeiro, verifique a sessão do usuário para confirmar a autenticação
+      // First, check the user's session
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
-        throw new Error(`Erro de sessão: ${sessionError.message}`);
+        throw new Error(`Session error: ${sessionError.message}`);
       }
       
-      let session = sessionData.session;
-      
-      if (!session) {
-        // Tentativa de refresh da sessão
+      if (!sessionData.session) {
+        // Try to refresh the session
         const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
         
-        if (refreshError) {
-          console.error("Failed to refresh session:", refreshError);
-          throw new Error("Sessão de usuário não encontrada ou expirada. Por favor, faça login novamente.");
+        if (refreshError || !refreshData.session) {
+          throw new Error("Session not found or expired. Please log in again.");
         }
-        
-        session = refreshData.session;
-        
-        if (!session) {
-          throw new Error("Ainda sem sessão após refresh. Por favor, faça login novamente.");
-        }
-        
-        console.log("Session refreshed successfully");
       }
       
       console.log("Session verified, proceeding with teacher creation");
@@ -128,25 +105,25 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       });
       
       if (error) {
-        console.error("Erro ao criar professor:", error);
+        console.error("Error creating teacher:", error);
         throw error;
       }
 
-      console.log("Professor criado com sucesso, ID:", result);
+      console.log("Teacher created successfully, ID:", result);
       
       toast({
-        title: "Professor criado com sucesso",
-        description: `Professor ${data.name} foi adicionado ao sistema.`,
+        title: "Teacher created successfully",
+        description: `Teacher ${data.name} has been added to the system.`,
       });
 
       form.reset();
       setIsOpen(false);
       onTeacherAdded();
     } catch (error: any) {
-      console.error("Erro capturado:", error);
+      console.error("Error caught:", error);
       toast({
-        title: "Erro ao criar professor",
-        description: error.message || "Ocorreu um erro ao criar o professor.",
+        title: "Error creating teacher",
+        description: error.message || "An error occurred while creating the teacher.",
         variant: "destructive",
       });
     } finally {
@@ -159,12 +136,12 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       <DialogTrigger asChild>
         <Button variant="default" onClick={() => setIsOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Professor
+          Add Teacher
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Adicionar Novo Professor</DialogTitle>
+          <DialogTitle>Add New Teacher</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -173,9 +150,9 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nome do professor" {...field} />
+                    <Input placeholder="Teacher name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,7 +165,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="email@exemplo.com" {...field} />
+                    <Input type="email" placeholder="email@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -199,7 +176,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Senha</FormLabel>
+                  <FormLabel>Password</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="******" {...field} />
                   </FormControl>
@@ -213,13 +190,13 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
                 type="button"
                 onClick={() => setIsOpen(false)}
               >
-                Cancelar
+                Cancel
               </Button>
               <Button 
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Salvando..." : "Salvar"}
+                {isSubmitting ? "Saving..." : "Save"}
               </Button>
             </div>
           </form>
