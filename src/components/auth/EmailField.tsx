@@ -7,7 +7,6 @@ import { Mail } from "lucide-react";
 
 interface EmailFieldProps {
   control?: Control<any>;
-  // Add the following props to match what LoginForm is trying to pass
   email?: string;
   setEmail?: React.Dispatch<React.SetStateAction<string>>;
   disabled?: boolean;

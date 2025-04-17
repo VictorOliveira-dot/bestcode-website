@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 
 interface PasswordFieldProps {
   control?: Control<any>;
-  // Add the following props to match what LoginForm is trying to pass
   password?: string;
   setPassword?: React.Dispatch<React.SetStateAction<string>>;
   onForgotPassword?: () => void;
