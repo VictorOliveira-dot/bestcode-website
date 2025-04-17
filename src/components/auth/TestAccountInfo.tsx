@@ -9,10 +9,14 @@ const TestAccountInfo = () => {
       <Alert className="bg-blue-50 border-blue-200 text-blue-800">
         <Info className="h-4 w-4 mr-2" />
         <AlertDescription className="text-xs">
-          <strong>Registration Information:</strong>
+          <strong>Informações de Registro:</strong>
           <div className="mt-1">
-            Create a new account by registering. All new accounts are created as student accounts by default.
-            To create teacher accounts, an admin account is needed.
+            Você pode criar uma nova conta selecionando um dos seguintes tipos:
+            <ul className="list-disc pl-5 mt-1">
+              <li><strong>Estudante:</strong> Acesso a dashboard de aluno, cursos e materiais.</li>
+              <li><strong>Professor:</strong> Acesso a criação de aulas e gerenciamento de alunos.</li>
+              <li><strong>Administrador:</strong> Acesso completo ao sistema, incluindo gerenciamento de professores.</li>
+            </ul>
           </div>
         </AlertDescription>
       </Alert>
