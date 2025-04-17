@@ -13,7 +13,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import EmailField from './EmailField';
 import PasswordField from './PasswordField';
@@ -107,7 +106,7 @@ const RegisterForm = () => {
               <FormItem>
                 <FormLabel>Nome Completo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Seu nome" {...field} />
+                  <input placeholder="Seu nome" {...field} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -140,13 +139,22 @@ const RegisterForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="w-full bg-bestcode-600 hover:bg-bestcode-700" disabled={isSubmitting}>
             {isSubmitting ? 'Criando conta...' : 'Registrar'}
           </Button>
         </form>
       </Form>
       
       <TestAccountInfo />
+
+      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+        <h3 className="text-sm font-medium text-yellow-800">Contas de teste disponíveis:</h3>
+        <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5">
+          <li><strong>Admin:</strong> admin@bestcode.com (Senha: Senha123!)</li>
+          <li><strong>Professor:</strong> professor@bestcode.com (Senha: Senha123!)</li>
+          <li><strong>Aluno:</strong> aluno@bestcode.com (Senha: Senha123!)</li>
+        </ul>
+      </div>
     </div>
   );
 };
