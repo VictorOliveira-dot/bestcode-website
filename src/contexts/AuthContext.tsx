@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -149,9 +150,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log("Attempting login with email:", email);
       
+      // Limpar espaços em branco no email e senha
+      const cleanEmail = email.trim();
+      const cleanPassword = password.trim();
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: cleanEmail,
+        password: cleanPassword
       });
       
       if (error) {
