@@ -13,12 +13,9 @@ export function useAuthActions(setUser: (user: User | null) => void) {
       
       console.log("Login attempt with email:", email);
       
-      const cleanEmail = email.trim();
-      console.log(`Processing login for: "${cleanEmail}"`);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password
+        email: email.trim(),
+        password: password // Não modifica a senha
       });
       
       if (error) {
