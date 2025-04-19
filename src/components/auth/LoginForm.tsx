@@ -35,7 +35,7 @@ const LoginForm = () => {
         return;
       }
       
-      console.log("Tentando login com:", { email });
+      console.log("Tentando login com email:", email);
       
       const userData = await login(email, password);
       
@@ -60,10 +60,14 @@ const LoginForm = () => {
       }
     } catch (error: any) {
       console.error("Erro de login:", error);
+      
+      // Mensagem de erro mais específica
+      const errorMessage = error.message || "Email ou senha inválidos. Verifique suas credenciais e tente novamente.";
+      
       toast({
         variant: "destructive",
         title: "Erro ao fazer login",
-        description: "Email ou senha inválidos. Verifique suas credenciais e tente novamente.",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -92,7 +96,7 @@ const LoginForm = () => {
             <LoginFormActions isLoading={isLoading} />
             
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-              <h3 className="text-sm font-bold text-yellow-800">Contas de teste atualizadas:</h3>
+              <h3 className="text-sm font-bold text-yellow-800">Contas de teste:</h3>
               <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5">
                 <li><strong>Admin:</strong> admin@bestcode.com (Senha: Senha123!)</li>
                 <li><strong>Professor:</strong> professor@bestcode.com (Senha: Senha123!)</li>

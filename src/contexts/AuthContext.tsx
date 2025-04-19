@@ -152,11 +152,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Limpar espaços em branco no email e senha
       const cleanEmail = email.trim();
-      const cleanPassword = password.trim();
+      // NÃO faça trim() na senha - pode quebrar casos onde a senha tem espaços
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password: cleanPassword
+        password: password
       });
       
       if (error) {
