@@ -37,6 +37,7 @@ const LoginForm = () => {
       
       console.log("Tentando login com email:", email);
       
+      // Importante: não modificamos a senha ou email aqui, enviamos exatamente como digitado
       const userData = await login(email, password);
       
       if (userData) {
@@ -62,7 +63,17 @@ const LoginForm = () => {
       console.error("Erro de login:", error);
       
       // Mensagem de erro mais específica
-      const errorMessage = error.message || "Email ou senha inválidos. Verifique suas credenciais e tente novamente.";
+      let errorMessage = "Email ou senha inválidos. Verifique suas credenciais e tente novamente.";
+      
+      if (error?.message) {
+        console.log("Erro específico:", error.message);
+        
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Credenciais inválidas. Verifique seu email e senha e tente novamente.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
       
       toast({
         variant: "destructive",

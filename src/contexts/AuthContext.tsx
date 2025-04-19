@@ -36,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(true);
         console.log("Checking authentication state...");
         
+        // Get current session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
@@ -64,6 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             console.log("User data retrieved successfully:", userInfo.email, userInfo.role);
             setUser(userInfo);
+            
+            // Store user info for quick access
             localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
           } else {
             console.log("No user data found in database for session user");
@@ -76,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
               const parsedUser = JSON.parse(savedUser);
               // Validate the session before using the saved user
-              const { data, error } = await supabase.auth.getUser();
+              const { data } = await supabase.auth.getUser();
               if (data?.user && data.user.id === parsedUser.id) {
                 console.log("Restored user from localStorage:", parsedUser.email);
                 setUser(parsedUser);
@@ -150,13 +153,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log("Attempting login with email:", email);
       
-      // Limpar espaços em branco no email e senha
+      // Important: Only trim email, not password
       const cleanEmail = email.trim();
-      // NÃO faça trim() na senha - pode quebrar casos onde a senha tem espaços
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password: password
+        password: password // Do not trim password
       });
       
       if (error) {
