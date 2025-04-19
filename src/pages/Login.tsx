@@ -26,7 +26,7 @@ const Login = () => {
           <Alert className="mb-6 bg-blue-50 border-blue-200 text-blue-800 max-w-md mx-auto">
             <AlertCircle className="h-4 w-4 mr-2" />
             <AlertDescription>
-              Utilize as contas de teste: admin@bestcode.com, professor@bestcode.com ou aluno@bestcode.com - Senha para todas: Senha123!
+              Utilize as contas de teste: admin@bestcode.com (admin123), professor@bestcode.com (teacher123) ou aluno@bestcode.com (student123)
             </AlertDescription>
           </Alert>
           

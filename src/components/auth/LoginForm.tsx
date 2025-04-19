@@ -37,7 +37,7 @@ const LoginForm = () => {
       
       console.log("Tentando login com email:", email);
       
-      // IMPORTANTE: Mantenha os dados exatamente como digitados pelo usuário
+      // IMPORTANTE: Manter os dados exatamente como digitados pelo usuário
       const userData = await login(email, password);
       
       if (userData) {
@@ -109,11 +109,11 @@ const LoginForm = () => {
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
               <h3 className="text-sm font-bold text-yellow-800">Contas de teste:</h3>
               <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5">
-                <li><strong>Admin:</strong> admin@bestcode.com (Senha: Senha123!)</li>
-                <li><strong>Professor:</strong> professor@bestcode.com (Senha: Senha123!)</li>
-                <li><strong>Aluno:</strong> aluno@bestcode.com (Senha: Senha123!)</li>
+                <li><strong>Admin:</strong> admin@bestcode.com (Senha: admin123)</li>
+                <li><strong>Professor:</strong> professor@bestcode.com (Senha: teacher123)</li>
+                <li><strong>Aluno:</strong> aluno@bestcode.com (Senha: student123)</li>
               </ul>
-              <p className="mt-2 text-xs text-yellow-600 italic">Certifique-se de digitar a senha exatamente como mostrada acima, incluindo a letra maiúscula e o ponto de exclamação.</p>
+              <p className="mt-2 text-xs text-yellow-600 italic">Certifique-se de digitar a senha exatamente como mostrada acima.</p>
             </div>
           </form>
         </CardContent>

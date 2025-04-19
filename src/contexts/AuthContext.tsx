@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -31,30 +30,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check for session on initial load
   useEffect(() => {
+    console.log("AuthProvider initialized, checking for existing session...");
+    
     const checkAuthState = async () => {
       try {
         setIsLoading(true);
-        console.log("Checking authentication state...");
         
         // Get current session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Error getting session:", sessionError);
+          return;
+        }
         
         if (session?.user) {
-          console.log("Session found, fetching user data from the database...");
+          console.log("Found existing session for user:", session.user.id);
           
           // Fetch user details from the users table
-          const { data: userData, error } = await supabase
+          const { data: userData, error: userError } = await supabase
             .from('users')
             .select('*')
             .eq('id', session.user.id)
             .single();
 
-          if (error) {
-            console.error('Error fetching user details:', error);
+          if (userError) {
+            console.error('Error fetching user details:', userError);
             return;
           }
 
           if (userData) {
+            console.log("Retrieved user data:", userData.email, userData.role);
+            
             const userInfo: User = {
               id: userData.id,
               name: userData.name || userData.email,
@@ -63,50 +70,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               avatar_url: userData.avatar_url
             };
 
-            console.log("User data retrieved successfully:", userInfo.email, userInfo.role);
             setUser(userInfo);
-            
-            // Store user info for quick access
             localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
-          } else {
-            console.log("No user data found in database for session user");
+            console.log("Session restored successfully");
           }
         } else {
-          console.log("No session found");
-          // Try to restore from localStorage if available
-          const savedUser = localStorage.getItem('bestcode_user');
-          if (savedUser) {
-            try {
-              const parsedUser = JSON.parse(savedUser);
-              // Validate the session before using the saved user
-              const { data } = await supabase.auth.getUser();
-              if (data?.user && data.user.id === parsedUser.id) {
-                console.log("Restored user from localStorage:", parsedUser.email);
-                setUser(parsedUser);
-              } else {
-                console.log("Stored user session is invalid, clearing...");
-                localStorage.removeItem('bestcode_user');
-              }
-            } catch (e) {
-              console.error("Error parsing saved user:", e);
-              localStorage.removeItem('bestcode_user');
-            }
-          }
+          console.log("No active session found");
+          localStorage.removeItem('bestcode_user');
         }
       } catch (error) {
-        console.error("Error in authentication check:", error);
+        console.error("Authentication check error:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuthState();
-    
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.id);
+      console.log("Auth state changed:", event);
       
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log("User signed in:", session.user.id);
+        
         try {
           // Fetch user details from the users table
           const { data: userData, error } = await supabase
@@ -131,47 +116,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             setUser(userInfo);
             localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+            console.log("User data updated after sign in");
           }
         } catch (err) {
           console.error("Error handling sign in:", err);
         }
       } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         setUser(null);
         localStorage.removeItem('bestcode_user');
       }
     });
+    
+    // Initial auth check
+    checkAuthState();
     
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  // Login function - fixed to correctly handle credentials
+  // Login function with special attention to credential handling
   const login = async (email: string, password: string): Promise<User | null> => {
     try {
       setIsLoading(true);
       
-      console.log("Attempting login with email:", email);
+      console.log("Login attempt with email:", email);
       
-      // Clean the email but DO NOT modify the password
+      // Don't modify the email or password, use exactly as entered
+      // Only trim whitespace from email to help prevent common mistakes
       const cleanEmail = email.trim();
       
-      // Log credentials for debugging (without showing the actual password)
-      console.log(`Login attempt with email: "${cleanEmail}" and password length: ${password.length}`);
+      console.log(`Processing login for: "${cleanEmail}"`);
       
-      // Authenticate with Supabase
+      // Log the attempt without exposing the password
+      console.log(`Login attempt with email: "${cleanEmail}" (password provided: ${password ? "yes" : "no"})`);
+      
+      // Direct authentication attempt with user input
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password // Keep password exactly as entered
+        password: password // Use password exactly as provided
       });
       
       if (error) {
-        console.error("Login error:", error.message);
+        console.error("Authentication error:", error.message);
         throw error;
       }
       
       if (data && data.user) {
-        console.log("Login successful, fetching user profile...");
+        console.log("Authentication successful, fetching user profile...");
         
         // Fetch user details from the users table
         const { data: userData, error: userError } = await supabase
@@ -181,11 +174,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .single();
         
         if (userError) {
-          console.error('User authenticated, but not found in users table:', userError);
-          throw new Error('User not found in the system');
+          console.error('User authenticated but not found in users table:', userError);
+          throw new Error('User profile not found. Please contact support.');
         }
         
-        // Found user in the users table
+        // Create user object from profile data
         const userInfo: User = {
           id: userData.id,
           name: userData.name || userData.email,
@@ -194,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           avatar_url: userData.avatar_url
         };
         
-        console.log("User profile retrieved:", userInfo.email, userInfo.role);
+        console.log("Login successful for:", userInfo.email, "with role:", userInfo.role);
         
         setUser(userInfo);
         localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
@@ -202,16 +195,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return userInfo;
       }
       
-      return null;
+      throw new Error("Authentication succeeded but user data is missing");
     } catch (err: any) {
-      console.error("Error during login:", err);
+      console.error("Login error:", err.message);
       throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Register function
+  // Register function - using the existing implementation
   const register = async (email: string, password: string, userData: any): Promise<any> => {
     try {
       setIsLoading(true);
@@ -298,7 +291,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Logout function
+  // Logout function - using the existing implementation
   const logout = async (): Promise<void> => {
     try {
       setIsLoading(true);
