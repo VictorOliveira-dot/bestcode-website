@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   Dialog,
@@ -12,7 +11,7 @@ import { ClassForm, ClassFormValues } from "./ClassForm";
 import { useTeachers } from "@/hooks/admin/useTeachers";
 import { useClassCreation } from "@/hooks/admin/useClassCreation";
 import { PlusCircle } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 
 interface AddClassDialogProps {
   onClassAdded: () => void;
@@ -28,7 +27,6 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
   });
   const { user } = useAuth();
 
-  // Log user information for debugging
   useEffect(() => {
     if (user) {
       console.log("Current user in AddClassDialog:", user);

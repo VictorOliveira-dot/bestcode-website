@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { ClassInfo } from "@/components/teacher/ClassItem";
 import { 
   fetchClassesForTeacher, 

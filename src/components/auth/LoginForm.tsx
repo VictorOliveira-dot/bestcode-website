@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import LoginFormHeader from "./LoginFormHeader";

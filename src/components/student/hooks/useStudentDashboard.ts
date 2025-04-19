@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Lesson, LessonProgress } from "../types/lesson";
 import { Notification } from "../types/notification";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useStudentDashboard() {
@@ -13,7 +12,6 @@ export function useStudentDashboard() {
   const [studentClass, setStudentClass] = useState("");
   const { user } = useAuth();
   
-  // Fetch data from Supabase
   useEffect(() => {
     if (!user) return;
     
@@ -21,7 +19,6 @@ export function useStudentDashboard() {
       try {
         console.log("Fetching student data with user ID:", user.id);
         
-        // First, get the student's class by checking enrollments
         const { data: enrollmentData, error: enrollmentError } = await supabase
           .from('enrollments')
           .select('class_id, classes(name)')
@@ -45,7 +42,6 @@ export function useStudentDashboard() {
           setStudentClass("Não definida");
         }
         
-        // Fetch lessons - RLS will automatically filter lessons the user has access to
         const { data: lessonsData, error: lessonsError } = await supabase
           .from('lessons')
           .select('*');
@@ -58,13 +54,12 @@ export function useStudentDashboard() {
             variant: "destructive",
           });
         } else if (lessonsData) {
-          // Transform lessons data to match our Lesson type
           const formattedLessons: Lesson[] = lessonsData.map(lesson => ({
             id: lesson.id,
             title: lesson.title,
             description: lesson.description,
             date: lesson.date,
-            class: studentClass, // Use the class name we fetched earlier
+            class: studentClass,
             youtubeUrl: lesson.youtube_url,
             visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
           }));
@@ -72,7 +67,6 @@ export function useStudentDashboard() {
           setLessons(formattedLessons);
         }
         
-        // Fetch lesson progress - RLS will automatically filter for current user
         const { data: progressData, error: progressError } = await supabase
           .from('lesson_progress')
           .select('*');
@@ -80,7 +74,6 @@ export function useStudentDashboard() {
         if (progressError) {
           console.error('Error fetching lesson progress:', progressError);
         } else if (progressData) {
-          // Transform progress data to match our LessonProgress type
           const formattedProgress: LessonProgress[] = progressData.map(progress => ({
             lessonId: progress.lesson_id,
             progress: progress.progress,
@@ -92,7 +85,6 @@ export function useStudentDashboard() {
           setLessonProgress(formattedProgress);
         }
         
-        // Fetch notifications - RLS will automatically filter for current user
         const { data: notificationsData, error: notificationsError } = await supabase
           .from('notifications')
           .select('*')
@@ -101,7 +93,6 @@ export function useStudentDashboard() {
         if (notificationsError) {
           console.error('Error fetching notifications:', notificationsError);
         } else if (notificationsData) {
-          // Transform notifications data to match our Notification type
           const formattedNotifications: Notification[] = notificationsData.map(notification => ({
             id: notification.id,
             title: notification.title,
@@ -125,7 +116,6 @@ export function useStudentDashboard() {
     fetchStudentData();
   }, [user]);
 
-  // Update lesson progress
   const updateLessonProgress = async (lessonId: string, watchTimeMinutes: number, progress: number) => {
     if (!user) return;
     
@@ -133,11 +123,9 @@ export function useStudentDashboard() {
       const status = progress >= 100 ? 'completed' : 'in_progress';
       const now = new Date().toISOString();
       
-      // Find existing progress or create a new entry
       const existingIndex = lessonProgress.findIndex(p => p.lessonId === lessonId);
       
       if (existingIndex >= 0) {
-        // Update in Supabase
         const { error } = await supabase
           .from('lesson_progress')
           .update({
@@ -151,7 +139,6 @@ export function useStudentDashboard() {
           
         if (error) throw error;
         
-        // Update local state
         const updatedProgress = [...lessonProgress];
         updatedProgress[existingIndex] = {
           ...updatedProgress[existingIndex],
@@ -163,7 +150,6 @@ export function useStudentDashboard() {
         
         setLessonProgress(updatedProgress);
       } else {
-        // Create new record in Supabase
         const { data, error } = await supabase
           .from('lesson_progress')
           .insert([{
@@ -179,7 +165,6 @@ export function useStudentDashboard() {
           
         if (error) throw error;
         
-        // Add to local state
         if (data) {
           setLessonProgress([...lessonProgress, {
             lessonId: data.lesson_id,
@@ -200,7 +185,6 @@ export function useStudentDashboard() {
     }
   };
 
-  // Mark notification as read
   const handleMarkNotificationAsRead = async (id: string) => {
     try {
       const { error } = await supabase
@@ -211,7 +195,6 @@ export function useStudentDashboard() {
         
       if (error) throw error;
       
-      // Update local state
       setNotifications(notifications.map(notification =>
         notification.id === id ? { ...notification, read: true } : notification
       ));
@@ -225,13 +208,11 @@ export function useStudentDashboard() {
     }
   };
 
-  // Calculate student stats
   const getStudentStats = () => {
     const completedLessons = lessonProgress.filter(progress => progress.status === 'completed').length;
     const inProgressLessons = lessonProgress.filter(progress => progress.status === 'in_progress').length;
     const availableLessons = lessons.length;
     
-    // Calculate overall progress percentage
     const overallProgress = availableLessons > 0 
       ? Math.round((completedLessons / availableLessons) * 100) 
       : 0;

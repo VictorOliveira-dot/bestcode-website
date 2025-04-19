@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import AdminDashboardHeader from "@/components/admin/DashboardHeader";
@@ -10,16 +9,13 @@ import DashboardContent from "@/components/admin/DashboardContent";
 import DashboardActions from "@/components/admin/DashboardActions";
 import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// Create a QueryClient instance
 const queryClient = new QueryClient();
 
-// Actual dashboard content component
 const AdminDashboardComponent = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("students");
   
-  // Redirect if user is not authenticated or not an admin
   if (!user) {
     console.log("No authenticated user found, redirecting to login");
     return <Navigate to="/login" />;
@@ -30,7 +26,6 @@ const AdminDashboardComponent = () => {
     return <Navigate to="/" />;
   }
 
-  // Fetch dashboard stats using React Query
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
@@ -50,12 +45,11 @@ const AdminDashboardComponent = () => {
         if (teachersData.error) throw teachersData.error;
         if (coursesData.error) throw coursesData.error;
 
-        // Calculate total revenue (this should be replaced with actual revenue calculation)
         const revenue = await supabase
           .from('enrollments')
           .select('id', { count: 'exact' });
 
-        const revenueAmount = revenue.count ? revenue.count * 997 : 0; // Assuming R$ 997 per enrollment
+        const revenueAmount = revenue.count ? revenue.count * 997 : 0;
 
         return {
           studentsCount: studentsData.data?.length || 0,
@@ -92,7 +86,6 @@ const AdminDashboardComponent = () => {
   }, [user]);
 
   const handleTeacherAdded = () => {
-    // Invalidate relevant queries to refresh data
     queryClient.invalidateQueries({ queryKey: ['teachers'] });
     queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
   };
@@ -130,7 +123,6 @@ const AdminDashboardComponent = () => {
   );
 };
 
-// Main component that wraps everything in QueryClientProvider
 const AdminDashboard = () => {
   return (
     <QueryClientProvider client={queryClient}>
