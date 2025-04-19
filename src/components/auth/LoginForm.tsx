@@ -37,7 +37,7 @@ const LoginForm = () => {
       
       console.log("Tentando login com email:", email);
       
-      // Importante: não modificamos a senha ou email aqui, enviamos exatamente como digitado
+      // IMPORTANTE: Mantenha os dados exatamente como digitados pelo usuário
       const userData = await login(email, password);
       
       if (userData) {

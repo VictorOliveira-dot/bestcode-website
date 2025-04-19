@@ -146,19 +146,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Login function
+  // Login function - fixed to correctly handle credentials
   const login = async (email: string, password: string): Promise<User | null> => {
     try {
       setIsLoading(true);
       
       console.log("Attempting login with email:", email);
       
-      // Important: Only trim email, not password
+      // Clean the email but DO NOT modify the password
       const cleanEmail = email.trim();
       
+      // Log credentials for debugging (without showing the actual password)
+      console.log(`Login attempt with email: "${cleanEmail}" and password length: ${password.length}`);
+      
+      // Authenticate with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password: password // Do not trim password
+        password // Keep password exactly as entered
       });
       
       if (error) {
