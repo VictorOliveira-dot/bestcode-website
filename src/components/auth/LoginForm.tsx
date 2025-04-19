@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,7 +60,6 @@ const LoginForm = () => {
     } catch (error: any) {
       console.error("Erro de login:", error);
       
-      // Mensagem de erro mais específica
       let errorMessage = "Email ou senha inválidos. Verifique suas credenciais e tente novamente.";
       
       if (error?.message) {
