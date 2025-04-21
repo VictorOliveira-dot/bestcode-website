@@ -40,21 +40,22 @@ const LoginForm = () => {
       const cleanEmail = email.trim().toLowerCase();
       console.log("Tentando login com email:", cleanEmail);
       
-      // Tentar login diretamente via supabase primeiro para diagnóstico
-      console.log("Tentando login direto com Supabase...");
-      const directAuth = await supabase.auth.signInWithPassword({
+      // ABORDAGEM DE DIAGNÓSTICO DIRETO
+      // Isto é uma tentativa direta de login que nos ajudará a identificar problemas
+      console.log("Tentando login direto via Supabase (diagnóstico)...");
+      const directResult = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password: password
+        password
       });
       
-      if (directAuth.error) {
-        console.error("Erro direto do Supabase:", directAuth.error);
-        throw directAuth.error;
+      if (directResult.error) {
+        console.error("Erro direto do Supabase:", directResult.error);
+        throw new Error(`Erro de autenticação: ${directResult.error.message}`);
       }
       
-      console.log("Auth direta bem-sucedida:", directAuth.data);
+      console.log("Auth direta bem-sucedida:", directResult.data);
       
-      // Agora use o contexto de autenticação para completar o login
+      // Se o login direto funcionou, o hook de auth deve conseguir recuperar o usuário
       const userData = await login(cleanEmail, password);
       
       if (userData) {

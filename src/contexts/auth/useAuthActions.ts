@@ -69,8 +69,10 @@ export function useAuthActions(setUser: (user: User | null) => void) {
     try {
       setIsLoading(true);
       
+      const cleanEmail = email.trim().toLowerCase();
+      
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password,
         options: {
           data: {
@@ -85,8 +87,8 @@ export function useAuthActions(setUser: (user: User | null) => void) {
       if (data.user) {
         const newUserData = {
           id: data.user.id,
-          email: data.user.email || email,
-          name: userData.name || email.split('@')[0],
+          email: data.user.email || cleanEmail,
+          name: userData.name || cleanEmail.split('@')[0],
           role: userData.role || 'student',
           avatar_url: userData.avatar_url
         };

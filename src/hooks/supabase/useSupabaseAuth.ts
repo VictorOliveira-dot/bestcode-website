@@ -41,9 +41,11 @@ export const useSupabaseAuth = () => {
     setError(null);
     
     try {
+      const cleanEmail = email.trim().toLowerCase(); // Consistência em email
+      
       // First register the user in auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password,
         options: {
           data: {
@@ -62,7 +64,7 @@ export const useSupabaseAuth = () => {
           .insert([
             { 
               id: authData.user.id,
-              email,
+              email: cleanEmail,
               name: userData.name,
               role: userData.role || 'student',
               avatar_url: userData.avatar_url
@@ -74,6 +76,7 @@ export const useSupabaseAuth = () => {
       
       return authData;
     } catch (err: any) {
+      console.error("Registration error:", err.message);
       setError(err.message);
       return null;
     } finally {
@@ -112,6 +115,7 @@ export const useSupabaseAuth = () => {
       if (error) throw error;
       return true;
     } catch (err: any) {
+      console.error("Logout error:", err.message);
       setError(err.message);
       return false;
     } finally {
