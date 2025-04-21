@@ -19,10 +19,10 @@ const TEST_USERS = [
   { email: 'aluno@bestcode.com', password: 'student123', role: 'student' }
 ];
 
-// Checks for session on mount & redirects if found
-useLoginSessionRedirect();
-
 const LoginForm = () => {
+  // Move the hook inside the component
+  useLoginSessionRedirect();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
