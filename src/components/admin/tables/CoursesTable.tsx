@@ -126,7 +126,7 @@ const CoursesTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Visualizar informações completas do curso</p>
+                          <p>Ver informações completas, alunos e progresso do curso</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -139,7 +139,7 @@ const CoursesTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Modificar dados do curso</p>
+                          <p>Modificar conteúdo e configurações do curso</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -152,7 +152,7 @@ const CoursesTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Remover curso do sistema</p>
+                          <p>Remover curso do catálogo</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

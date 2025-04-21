@@ -127,7 +127,7 @@ const TeachersTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Visualizar informações completas do professor</p>
+                          <p>Ver perfil, turmas e avaliações do professor</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -140,7 +140,7 @@ const TeachersTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Modificar dados do professor</p>
+                          <p>Atualizar dados e permissões do professor</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -153,7 +153,7 @@ const TeachersTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Remover professor do sistema</p>
+                          <p>Desativar acesso do professor ao sistema</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

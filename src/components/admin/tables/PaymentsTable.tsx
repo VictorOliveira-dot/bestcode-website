@@ -152,7 +152,7 @@ const AdminPaymentsTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Visualizar detalhes completos do pagamento</p>
+                          <p>Visualizar detalhes completos da transação</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -165,7 +165,7 @@ const AdminPaymentsTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Gerar recibo do pagamento</p>
+                          <p>Baixar ou enviar recibo do pagamento por email</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -179,7 +179,7 @@ const AdminPaymentsTable: React.FC = () => {
                             </DropdownMenuItem>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Tentar processar o pagamento novamente</p>
+                            <p>Iniciar nova tentativa de processamento do pagamento</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

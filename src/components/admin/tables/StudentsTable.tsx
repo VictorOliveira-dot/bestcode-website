@@ -145,7 +145,7 @@ const StudentsTable: React.FC = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {students.map((student, index) => (
+          {students?.map((student, index) => (
             <TableRow key={student.id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>{student.name}</TableCell>
@@ -186,7 +186,7 @@ const StudentsTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Visualizar informações completas do aluno</p>
+                          <p>Ver perfil completo e histórico do aluno</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -199,7 +199,7 @@ const StudentsTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Modificar dados do aluno</p>
+                          <p>Atualizar informações cadastrais do aluno</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -212,7 +212,7 @@ const StudentsTable: React.FC = () => {
                           </DropdownMenuItem>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Remover aluno do sistema</p>
+                          <p>Remover aluno e todo seu histórico do sistema</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
