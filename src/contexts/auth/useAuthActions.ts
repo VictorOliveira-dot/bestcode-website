@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { User } from './types';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,10 +28,7 @@ export function useAuthActions(setUser: (user: User | null) => void) {
       // Try authentication with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password,
-        options: {
-          redirectTo: window.location.origin
-        }
+        password
       });
       
       if (error) {

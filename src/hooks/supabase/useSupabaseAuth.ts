@@ -1,4 +1,3 @@
-
 import { useSupabaseBase } from './useSupabaseBase';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,10 +26,8 @@ export const useSupabaseAuth = () => {
       // Try authentication with explicit options
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password,
-        options: {
-          redirectTo: window.location.origin
-        }
+        password
+        // Removed redirectTo option as it's causing TypeScript error
       });
       
       if (error) {

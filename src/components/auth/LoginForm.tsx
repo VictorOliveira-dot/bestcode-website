@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -88,10 +87,8 @@ const LoginForm = () => {
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
-        options: {
-          redirectTo: window.location.origin
-        }
+        password
+        // Removed redirectTo option as it's causing TypeScript error
       });
       
       if (error) {
