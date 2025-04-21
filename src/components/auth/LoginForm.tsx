@@ -27,7 +27,7 @@ const LoginForm = () => {
     setErrorMessage(null);
   }, []);
 
-  // Redirecionar usuário já logado para sua respectiva dashboard
+  // Redirect authenticated user to their respective dashboard
   useEffect(() => {
     if (user) {
       console.log("Usuário autenticado, redirecionando baseado no papel:", user.role);
@@ -44,16 +44,16 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Evitar submissão dupla
+    // Avoid double submission
     if (isLoading || loading) return;
 
-    // Limpar erro anterior
+    // Clear previous error
     setErrorMessage(null);
     setIsLoading(true);
 
     try {
-      // Validação básica
-      if (!email || !password) {
+      // Basic validation
+      if (!email.trim() || !password.trim()) {
         setErrorMessage("Por favor, preencha todos os campos");
         toast({
           variant: "destructive",
@@ -66,7 +66,7 @@ const LoginForm = () => {
 
       console.log("Submetendo formulário de login para:", email);
 
-      // Utiliza autenticação real do Supabase via contexto
+      // Use real Supabase authentication via context
       const result = await login(email, password);
       
       console.log("Resultado do login:", result);
@@ -77,23 +77,23 @@ const LoginForm = () => {
           description: "Você foi autenticado.",
           variant: "default",
         });
-        // O efeito acima já redireciona o usuário para a dashboard apropriada
+        // The effect above will redirect user to appropriate dashboard
       } else {
-        // Exibe mensagem de erro específica retornada pela função de login
+        // Display specific error message returned by login function
         setErrorMessage(result.message || "Login inválido. Tente novamente.");
         toast({
+          variant: "destructive",
           title: "Não foi possível fazer login",
           description: result.message || "Login inválido. Tente novamente.",
-          variant: "destructive",
         });
       }
     } catch (error: any) {
       console.error("Erro durante login:", error);
       setErrorMessage(error.message || "Login falhou. Por favor, tente novamente.");
       toast({
+        variant: "destructive",
         title: "Erro de autenticação",
         description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);

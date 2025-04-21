@@ -13,14 +13,17 @@ export const useAuthState = (): AuthState => {
   useEffect(() => {
     console.log('Iniciando verificação de autenticação');
     
+    // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       console.log('Evento de autenticação detectado:', event, newSession?.user?.id);
       
-      if (newSession) {
-        setSession(newSession);
-        
-        if (newSession.user) {
-          setTimeout(async () => {
+      // Synchronous updates only within the callback
+      setSession(newSession);
+      
+      if (newSession?.user) {
+        // Defer Supabase calls with setTimeout to prevent deadlocks
+        setTimeout(async () => {
+          try {
             const userData = await fetchUserData(newSession.user.id);
             
             if (userData) {
@@ -35,47 +38,62 @@ export const useAuthState = (): AuthState => {
                 role: metadata.role || 'student'
               });
             }
+          } catch (error) {
+            console.error('Erro ao buscar dados do usuário:', error);
+          } finally {
             setLoading(false);
-          }, 0);
-        }
+          }
+        }, 0);
       } else if (event === 'SIGNED_OUT') {
         console.log('Usuário desconectado');
         setUser(null);
-        setSession(null);
         setLoading(false);
       }
     });
 
-    // Verificar sessão inicial
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      console.log('Sessão inicial:', initialSession?.user?.id);
-      
-      if (initialSession) {
+    // Then check for existing session
+    const initializeSession = async () => {
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        console.log('Sessão inicial:', initialSession?.user?.id);
+        
+        // Set session state synchronously
         setSession(initialSession);
         
-        if (initialSession.user) {
+        if (initialSession?.user) {
+          // Defer the database query
           setTimeout(async () => {
-            const userData = await fetchUserData(initialSession.user.id);
-            
-            if (userData) {
-              console.log('Dados iniciais do usuário:', userData);
-              setUser(userData);
-            } else {
-              const metadata = initialSession.user.user_metadata || {};
-              setUser({
-                id: initialSession.user.id,
-                email: initialSession.user.email || '',
-                name: metadata.name || '',
-                role: metadata.role || 'student'
-              });
+            try {
+              const userData = await fetchUserData(initialSession.user.id);
+              
+              if (userData) {
+                console.log('Dados iniciais do usuário:', userData);
+                setUser(userData);
+              } else {
+                const metadata = initialSession.user.user_metadata || {};
+                setUser({
+                  id: initialSession.user.id,
+                  email: initialSession.user.email || '',
+                  name: metadata.name || '',
+                  role: metadata.role || 'student'
+                });
+              }
+            } catch (error) {
+              console.error('Erro ao carregar dados do usuário:', error);
+            } finally {
+              setLoading(false);
             }
-            setLoading(false);
           }, 0);
+        } else {
+          setLoading(false);
         }
-      } else {
+      } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
         setLoading(false);
       }
-    });
+    };
+
+    initializeSession();
 
     return () => {
       console.log('Limpando subscription de autenticação');

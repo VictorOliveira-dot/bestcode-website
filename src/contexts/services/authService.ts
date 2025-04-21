@@ -34,9 +34,20 @@ export const loginWithEmail = async (email: string, password: string) => {
   console.log('Iniciando processo de login para:', email);
 
   try {
+    // Make sure email and password are trimmed
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    
+    if (!trimmedEmail || !trimmedPassword) {
+      return { 
+        success: false, 
+        message: 'Email e senha são obrigatórios.' 
+      };
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
+      email: trimmedEmail,
+      password: trimmedPassword
     });
 
     if (error) {
@@ -74,12 +85,21 @@ export const registerUser = async (data: {
   role: string; 
 }) => {
   try {
+    // Trim inputs
+    const email = data.email.trim();
+    const password = data.password.trim();
+    const name = data.name.trim();
+    
+    if (!email || !password || !name) {
+      return { success: false, message: 'Todos os campos são obrigatórios.' };
+    }
+    
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
+      email,
+      password,
       options: {
         data: {
-          name: data.name,
+          name,
           role: data.role
         }
       }
@@ -100,8 +120,8 @@ export const registerUser = async (data: {
       .insert([
         {
           id: authData.user.id,
-          email: data.email,
-          name: data.name,
+          email,
+          name,
           role: data.role
         }
       ]);
@@ -111,7 +131,7 @@ export const registerUser = async (data: {
       return { success: false, message: 'Erro ao criar perfil. Por favor, contate o suporte.' };
     }
 
-    console.log('Usuário registrado com sucesso:', data.email);
+    console.log('Usuário registrado com sucesso:', email);
     return { success: true, message: 'Conta criada com sucesso!' };
   } catch (error: any) {
     console.error('Erro no processo de registro:', error);
@@ -122,7 +142,18 @@ export const registerUser = async (data: {
 export const logoutUser = async () => {
   console.log('Iniciando processo de logout');
   try {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error('Erro ao fazer logout:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao sair",
+        description: "Não foi possível realizar o logout. Por favor, tente novamente."
+      });
+      return { success: false };
+    }
+    
     console.log('Logout realizado com sucesso');
     return { success: true };
   } catch (error) {

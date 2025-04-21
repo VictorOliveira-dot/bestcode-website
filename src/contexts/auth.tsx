@@ -15,22 +15,25 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuthState();
+  const { user, loading, session } = useAuthState();
 
   const login = async (email: string, password: string) => {
     return loginWithEmail(email, password);
   };
 
   const logout = async () => {
-    const result = await logoutUser();
-    if (!result.success) {
-      return;
-    }
+    await logoutUser();
   };
 
   const register = async (data: { email: string; password: string; name: string; role: string }) => {
     return registerUser(data);
   };
+
+  console.log('Auth Provider state:', { 
+    userExists: !!user, 
+    loading, 
+    sessionExists: !!session 
+  });
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, register }}>
