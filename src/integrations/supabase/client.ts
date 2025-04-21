@@ -1,3 +1,4 @@
+
 // This is a mock replacement for the Supabase client
 // It provides mock implementations of the methods used in the project
 // so the application can function until a real backend is implemented
@@ -237,7 +238,9 @@ class MockSupabase {
               user: JSON.parse(mockUser),
               access_token: 'mock-token',
               refresh_token: 'mock-refresh-token',
-              expires_at: Date.now() + 3600 * 1000
+              expires_at: Date.now() + 3600 * 1000,
+              expires_in: 3600,
+              token_type: 'bearer'
             }
           },
           error: null
@@ -254,13 +257,101 @@ class MockSupabase {
               user: JSON.parse(mockUser),
               access_token: 'mock-token',
               refresh_token: 'mock-refresh-token',
-              expires_at: Date.now() + 3600 * 1000
+              expires_at: Date.now() + 3600 * 1000,
+              expires_in: 3600,
+              token_type: 'bearer'
             }
           },
           error: null
         };
       }
       return { data: { session: null }, error: null };
+    },
+    signInWithPassword: async ({ email, password }: { email: string, password: string }) => {
+      console.log(`Mock signInWithPassword: ${email}, ${password}`);
+      // Mock login based on test accounts
+      if (
+        (email === 'admin@bestcode.com' && password === 'admin123') || 
+        (email === 'professor@bestcode.com' && password === 'teacher123') || 
+        (email === 'aluno@bestcode.com' && password === 'student123')
+      ) {
+        let role = 'student';
+        let name = 'Estudante Padrão';
+        
+        if (email === 'admin@bestcode.com') {
+          role = 'admin';
+          name = 'Admin Sistema';
+        } else if (email === 'professor@bestcode.com') {
+          role = 'teacher';
+          name = 'Professor Silva';
+        } else if (email === 'aluno@bestcode.com') {
+          name = 'Maria Aluna';
+        }
+        
+        const user = {
+          id: generateUUID(),
+          email: email,
+          user_metadata: { name, role }
+        };
+        
+        localStorage.setItem('mockUser', JSON.stringify(user));
+        
+        return {
+          data: {
+            user,
+            session: {
+              user,
+              access_token: 'mock-token',
+              refresh_token: 'mock-refresh-token',
+              expires_at: Date.now() + 3600 * 1000,
+              expires_in: 3600,
+              token_type: 'bearer'
+            }
+          },
+          error: null
+        };
+      }
+      
+      return {
+        data: { user: null, session: null },
+        error: { message: 'Email ou senha inválidos.' }
+      };
+    },
+    signOut: async () => {
+      localStorage.removeItem('mockUser');
+      return { error: null };
+    },
+    signUp: async ({ email, password, options }: { 
+      email: string, 
+      password: string, 
+      options?: { data?: Record<string, any> } 
+    }) => {
+      console.log(`Mock signUp: ${email}, ${options?.data?.name}, ${options?.data?.role}`);
+      
+      const user = {
+        id: generateUUID(),
+        email: email,
+        user_metadata: options?.data || {}
+      };
+      
+      // In real implementation, we wouldn't log in the user automatically after signup
+      // due to email confirmation, but for mock purposes we do
+      localStorage.setItem('mockUser', JSON.stringify(user));
+      
+      return {
+        data: {
+          user,
+          session: {
+            user,
+            access_token: 'mock-token',
+            refresh_token: 'mock-refresh-token',
+            expires_at: Date.now() + 3600 * 1000,
+            expires_in: 3600,
+            token_type: 'bearer'
+          }
+        },
+        error: null
+      };
     },
     onAuthStateChange: (callback: (event: string, session: any) => void) => {
       // No-op in mock version

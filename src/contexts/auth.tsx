@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
 
 // User type com os dados essenciais incluindo o papel
@@ -61,23 +61,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Configurar listener de mudanças de auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        setSession(newSession);
-        
-        if (newSession?.user) {
+        if (newSession) {
+          setSession(newSession as Session);
+          
           // Usar setTimeout para evitar deadlock no Supabase
           setTimeout(async () => {
-            const userData = await fetchUserData(newSession.user.id);
-            if (userData) {
-              setUser(userData);
-            } else {
-              // Se não encontrar dados do usuário na tabela 'users'
-              setUser(null);
-              console.error('Dados do usuário não encontrados na tabela users');
+            // Aqui estamos usando a sessão do Supabase para buscar os dados do usuário
+            // Em uma implementação real, buscaríamos da tabela 'users'
+            // No mock, vamos criar um objeto User a partir dos metadados
+            if (newSession.user) {
+              const userData = await fetchUserData(newSession.user.id);
+              if (userData) {
+                setUser(userData);
+              } else {
+                // Se não encontrar dados, podemos tentar criar um objeto User a partir dos metadados
+                const metadata = newSession.user.user_metadata || {};
+                setUser({
+                  id: newSession.user.id,
+                  email: newSession.user.email || '',
+                  name: metadata.name || '',
+                  role: metadata.role || 'student'
+                });
+              }
             }
             setLoading(false);
           }, 0);
         } else {
           setUser(null);
+          setSession(null);
           setLoading(false);
         }
 
@@ -92,12 +103,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getInitialSession = async () => {
       try {
         const { data: { session: initialSession } } = await supabase.auth.getSession();
-        setSession(initialSession);
         
-        if (initialSession?.user) {
-          const userData = await fetchUserData(initialSession.user.id);
-          if (userData) {
-            setUser(userData);
+        if (initialSession) {
+          setSession(initialSession as Session);
+          
+          if (initialSession.user) {
+            const userData = await fetchUserData(initialSession.user.id);
+            if (userData) {
+              setUser(userData);
+            } else {
+              // Se não encontrar dados, criar um objeto User a partir dos metadados
+              const metadata = initialSession.user.user_metadata || {};
+              setUser({
+                id: initialSession.user.id,
+                email: initialSession.user.email || '',
+                name: metadata.name || '',
+                role: metadata.role || 'student'
+              });
+            }
           }
         }
       } catch (error) {
@@ -130,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: error.message };
       }
       
-      if (data.user) {
+      if (data?.user) {
         // O usuário está autenticado, agora buscamos os dados completos
         const userData = await fetchUserData(data.user.id);
         
@@ -139,6 +162,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(userData);
           return { success: true };
         } else {
+          // Caso não encontre dados do usuário na tabela pública, mas temos metadados
+          const metadata = data.user.user_metadata || {};
+          if (metadata.name && metadata.role) {
+            setUser({
+              id: data.user.id,
+              email: data.user.email || '',
+              name: metadata.name,
+              role: metadata.role as 'admin' | 'teacher' | 'student'
+            });
+            return { success: true };
+          }
+          
           // Dados do usuário não encontrados na tabela pública
           return { success: false, message: 'Conta de usuário incompleta. Por favor, contate o suporte.' };
         }
