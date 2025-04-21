@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -8,122 +8,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
-import { useNavigate } from "react-router-dom";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-  created_at: string;
-  classes_count: number;
-  last_active: string;
-  progress_average: number;
-}
-
-// Mock student data
-const MOCK_STUDENTS: Student[] = [
-  {
-    id: "1",
-    name: "Ana Silva",
-    email: "ana.silva@example.com",
-    created_at: "2023-02-15T08:30:00Z",
-    classes_count: 2,
-    last_active: "2023-04-18T14:25:00Z",
-    progress_average: 75
-  },
-  {
-    id: "2",
-    name: "Bruno Santos",
-    email: "bruno.santos@example.com",
-    created_at: "2023-03-10T10:15:00Z",
-    classes_count: 3,
-    last_active: "2023-04-20T09:45:00Z",
-    progress_average: 92
-  },
-  {
-    id: "3",
-    name: "Carla Oliveira",
-    email: "carla.oliveira@example.com",
-    created_at: "2023-01-05T11:20:00Z",
-    classes_count: 1,
-    last_active: "2023-04-15T16:30:00Z",
-    progress_average: 45
-  }
-];
+import { StudentActions } from "./StudentActions";
+import { useStudentsTable } from "@/hooks/admin/useStudentsTable";
 
 const StudentsTable: React.FC = () => {
   const { user } = useAuth();
-  const [isSessionChecked, setIsSessionChecked] = useState(false);
-  const navigate = useNavigate();
+  const {
+    students,
+    isLoading,
+    error,
+    isSessionChecked,
+    setIsSessionChecked,
+    handleViewDetails,
+    handleEdit,
+    handleDelete
+  } = useStudentsTable();
 
   useEffect(() => {
     if (user) {
-      console.log("Current user in StudentsTable:", user);
-      console.log("User role:", user.role);
       setIsSessionChecked(true);
     }
-  }, [user]);
-
-  const { data: students, isLoading, error, refetch } = useQuery({
-    queryKey: ['students'],
-    queryFn: async () => {
-      try {
-        console.log("Fetching students data...");
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        console.log("Students data fetched successfully:", MOCK_STUDENTS.length);
-        return MOCK_STUDENTS;
-      } catch (err: any) {
-        console.error("Failed to fetch students:", err);
-        throw err;
-      }
-    },
-    enabled: !!user?.id && user?.role === 'admin' && isSessionChecked
-  });
-
-  const handleViewDetails = (studentId: string) => {
-    toast({
-      title: "Visualizando detalhes do aluno",
-      description: `Redirecionando para a página de detalhes do aluno #${studentId}`,
-    });
-    // In a real app, this would navigate to a student details page
-    // navigate(`/admin/students/${studentId}`);
-  };
-
-  const handleEdit = (studentId: string) => {
-    toast({
-      title: "Editando aluno",
-      description: `Redirecionando para a página de edição do aluno #${studentId}`,
-    });
-    // In a real app, this would navigate to a student edit page
-    // navigate(`/admin/students/${studentId}/edit`);
-  };
-
-  const handleDelete = (studentId: string) => {
-    toast({
-      title: "Excluir aluno",
-      description: `Confirmação para excluir o aluno #${studentId}`,
-      variant: "destructive",
-    });
-    // In a real app, this would show a confirmation dialog and then delete the student
-  };
+  }, [user, setIsSessionChecked]);
 
   if (isLoading) {
     return (
@@ -140,11 +48,7 @@ const StudentsTable: React.FC = () => {
       <div className="p-4 text-red-500 border border-red-300 rounded-md bg-red-50">
         <h3 className="text-lg font-medium mb-2">Erro ao carregar alunos</h3>
         <p>{(error as Error).message}</p>
-        <Button 
-          onClick={() => refetch()} 
-          variant="secondary" 
-          className="mt-4"
-        >
+        <Button variant="secondary" className="mt-4">
           Tentar novamente
         </Button>
       </div>
@@ -175,7 +79,7 @@ const StudentsTable: React.FC = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {students?.map((student, index) => (
+          {students.map((student, index) => (
             <TableRow key={student.id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>{student.name}</TableCell>
@@ -197,60 +101,12 @@ const StudentsTable: React.FC = () => {
                 <span className="text-xs text-gray-500">{Math.round(student.progress_average)}%</span>
               </TableCell>
               <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Abrir menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuItem onClick={() => handleViewDetails(student.id)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span>Detalhes</span>
-                          </DropdownMenuItem>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Ver perfil completo e histórico do aluno</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuItem onClick={() => handleEdit(student.id)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Editar</span>
-                          </DropdownMenuItem>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Atualizar informações cadastrais do aluno</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(student.id)}
-                            className="text-red-600"
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            <span>Excluir</span>
-                          </DropdownMenuItem>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Remover aluno e todo seu histórico do sistema</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <StudentActions
+                  studentId={student.id}
+                  onViewDetails={handleViewDetails}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               </TableCell>
             </TableRow>
           ))}
