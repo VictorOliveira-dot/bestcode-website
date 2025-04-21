@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Table,
@@ -19,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Eye, Receipt, AlertTriangle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const mockPayments = [
   {
@@ -143,19 +143,46 @@ const AdminPaymentsTable: React.FC = () => {
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Eye className="mr-2 h-4 w-4" />
-                      <span>Detalhes</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Receipt className="mr-2 h-4 w-4" />
-                      <span>Recibo</span>
-                    </DropdownMenuItem>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuItem>
+                            <Eye className="mr-2 h-4 w-4" />
+                            <span>Detalhes</span>
+                          </DropdownMenuItem>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Visualizar detalhes completos do pagamento</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuItem>
+                            <Receipt className="mr-2 h-4 w-4" />
+                            <span>Recibo</span>
+                          </DropdownMenuItem>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Gerar recibo do pagamento</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     {payment.status === "failed" && (
-                      <DropdownMenuItem>
-                        <AlertTriangle className="mr-2 h-4 w-4" />
-                        <span>Tentar novamente</span>
-                      </DropdownMenuItem>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <DropdownMenuItem>
+                              <AlertTriangle className="mr-2 h-4 w-4" />
+                              <span>Tentar novamente</span>
+                            </DropdownMenuItem>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Tentar processar o pagamento novamente</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
