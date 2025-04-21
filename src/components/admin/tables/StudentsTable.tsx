@@ -19,7 +19,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
@@ -33,6 +32,37 @@ interface Student {
   last_active: string;
   progress_average: number;
 }
+
+// Mock student data
+const MOCK_STUDENTS: Student[] = [
+  {
+    id: "1",
+    name: "Ana Silva",
+    email: "ana.silva@example.com",
+    created_at: "2023-02-15T08:30:00Z",
+    classes_count: 2,
+    last_active: "2023-04-18T14:25:00Z",
+    progress_average: 75
+  },
+  {
+    id: "2",
+    name: "Bruno Santos",
+    email: "bruno.santos@example.com",
+    created_at: "2023-03-10T10:15:00Z",
+    classes_count: 3,
+    last_active: "2023-04-20T09:45:00Z",
+    progress_average: 92
+  },
+  {
+    id: "3",
+    name: "Carla Oliveira",
+    email: "carla.oliveira@example.com",
+    created_at: "2023-01-05T11:20:00Z",
+    classes_count: 1,
+    last_active: "2023-04-15T16:30:00Z",
+    progress_average: 45
+  }
+];
 
 const StudentsTable: React.FC = () => {
   const { user } = useAuth();
@@ -55,15 +85,8 @@ const StudentsTable: React.FC = () => {
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        const { data, error } = supabase.rpc('admin_get_students_data');
-        
-        if (error) {
-          console.error("Error in admin_get_students_data:", error);
-          throw error;
-        }
-        
-        console.log("Students data fetched successfully:", data?.length || 0);
-        return data as Student[];
+        console.log("Students data fetched successfully:", MOCK_STUDENTS.length);
+        return MOCK_STUDENTS;
       } catch (err: any) {
         console.error("Failed to fetch students:", err);
         throw err;

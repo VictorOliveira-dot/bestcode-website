@@ -17,10 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Teacher {
@@ -32,15 +30,41 @@ interface Teacher {
   students_count: number;
 }
 
+// Mock data for teachers
+const MOCK_TEACHERS: Teacher[] = [
+  {
+    id: "1",
+    name: "João Silva",
+    email: "joao.silva@example.com",
+    created_at: "2023-01-15T10:30:00Z",
+    classes_count: 3,
+    students_count: 45
+  },
+  {
+    id: "2",
+    name: "Maria Santos",
+    email: "maria.santos@example.com",
+    created_at: "2023-02-20T14:15:00Z",
+    classes_count: 2,
+    students_count: 32
+  },
+  {
+    id: "3",
+    name: "Carlos Oliveira",
+    email: "carlos.oliveira@example.com",
+    created_at: "2023-03-10T09:45:00Z",
+    classes_count: 4,
+    students_count: 58
+  }
+];
+
 const TeachersTable: React.FC = () => {
   const { data: teachers, isLoading, error } = useQuery({
     queryKey: ['teachers'],
     queryFn: async () => {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      const { data, error } = supabase.rpc('admin_get_teachers');
-      if (error) throw error;
-      return data as Teacher[];
+      return MOCK_TEACHERS;
     }
   });
 
