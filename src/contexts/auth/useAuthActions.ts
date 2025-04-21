@@ -13,18 +13,26 @@ export function useAuthActions(setUser: (user: User | null) => void) {
       
       console.log("Login attempt with email:", email);
       
-      // Limpar o email e converter para minúsculas
+      // Standardize email format
       const cleanEmail = email.trim().toLowerCase();
       
-      // Verificação para certificar de que não estamos enviando dados inválidos
       if (!cleanEmail || !password) {
-        throw new Error("E-mail e senha são obrigatórios");
+        throw new Error("Email and password are required");
       }
       
-      // Tentar autenticação no Supabase
+      // Clear any previous session state
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        console.warn("Error clearing previous session:", signOutError);
+      }
+      
+      // Try authentication with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password
+        password,
+        options: {
+          redirectTo: window.location.origin
+        }
       });
       
       if (error) {
@@ -32,9 +40,8 @@ export function useAuthActions(setUser: (user: User | null) => void) {
         throw error;
       }
       
-      // Verificação adicional para garantir que temos dados do usuário
       if (!data || !data.user) {
-        throw new Error("Autenticação realizada, mas dados do usuário não retornados");
+        throw new Error("Authentication succeeded but user data not returned");
       }
       
       console.log("Authentication successful, fetching user profile...");

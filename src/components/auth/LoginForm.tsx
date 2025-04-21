@@ -11,7 +11,7 @@ import PasswordField from "./PasswordField";
 import LoginFormActions from "./LoginFormActions";
 import { supabase } from "@/integrations/supabase/client";
 
-// Lista de usuários de teste - isso ajudará com a validação direta
+// Test users for direct validation
 const TEST_USERS = [
   { email: 'admin@bestcode.com', password: 'admin123', role: 'admin' },
   { email: 'professor@bestcode.com', password: 'teacher123', role: 'teacher' },
@@ -23,33 +23,43 @@ const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // Verificar se há uma sessão ativa ao carregar o componente
+  // Check for existing session on component load
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        console.log("Sessão já existe:", data.session.user.id);
+      try {
+        const { data, error } = await supabase.auth.getSession();
         
-        // Se já tiver uma sessão, redirecione com base no papel do usuário
-        const { data: userData } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', data.session.user.id)
-          .single();
-        
-        if (userData) {
-          redirectBasedOnRole(userData.role);
+        if (error) {
+          console.error("Error checking session:", error);
+          return;
         }
+        
+        if (data.session) {
+          console.log("Session exists:", data.session.user.id);
+          
+          const { data: userData } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', data.session.user.id)
+            .single();
+          
+          if (userData) {
+            redirectBasedOnRole(userData.role);
+          }
+        }
+      } catch (err) {
+        console.error("Session check error:", err);
       }
     };
     
     checkSession();
   }, [navigate]);
   
-  // Função para redirecionar com base no papel/role
+  // Function to redirect based on role
   const redirectBasedOnRole = (role: string) => {
     if (role === "teacher") {
       navigate("/teacher/dashboard");
@@ -60,7 +70,7 @@ const LoginForm = () => {
     }
   };
 
-  // Função para verificar se é um usuário de teste
+  // Function to check if this is a test user
   const isTestUser = (email: string, password: string) => {
     return TEST_USERS.some(user => 
       user.email.toLowerCase() === email.toLowerCase() && 
@@ -68,21 +78,33 @@ const LoginForm = () => {
     );
   };
 
-  // Função para tentar login diretamente com Supabase
+  // Function to attempt direct login with Supabase
   const tryDirectLogin = async (email: string, password: string) => {
-    console.log(`Tentando login direto com: ${email}`);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    
-    if (error) {
-      console.error("Erro no login direto:", error);
-      throw error;
+    try {
+      console.log(`Attempting direct login with: ${email}`);
+      
+      // Clear any previous auth state
+      await supabase.auth.signOut();
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      
+      if (error) {
+        console.error("Direct login error:", error);
+        throw error;
+      }
+      
+      console.log("Direct login successful:", data);
+      return data;
+    } catch (err) {
+      console.error("Error in direct login attempt:", err);
+      throw err;
     }
-    
-    console.log("Login direto bem-sucedido:", data);
-    return data;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,74 +112,97 @@ const LoginForm = () => {
     
     if (isLoading) return;
     
+    setErrorMessage(null);
+    setIsLoading(true);
+    
     try {
-      setIsLoading(true);
-      
       if (!email || !password) {
+        setErrorMessage("Please fill in all fields");
         toast({
           variant: "destructive",
-          title: "Campos obrigatórios",
-          description: "Por favor, preencha todos os campos.",
+          title: "Required fields",
+          description: "Please fill in all fields.",
         });
         return;
       }
       
-      // Limpa o email e converte para minúsculas para consistência
+      // Standardize email format
       const cleanEmail = email.trim().toLowerCase();
-      console.log(`Tentando login com email: ${cleanEmail}`);
+      console.log(`Login attempt with email: ${cleanEmail}`);
       
-      // Se for um usuário de teste, mostramos informações adicionais para ajudar no diagnóstico
+      // Log if this is a test user
       if (isTestUser(cleanEmail, password)) {
-        console.log("Detectado usuário de teste válido!");
+        console.log("Valid test user detected!");
       } else {
-        console.log("NÃO é um usuário de teste conhecido");
+        console.log("NOT a known test user");
       }
       
-      // Tentativa direta para diagnosticar problemas
+      // Try direct login first (bypassing hooks for debugging)
       try {
-        await tryDirectLogin(cleanEmail, password);
+        const directLoginData = await tryDirectLogin(cleanEmail, password);
         
-        // Se chegou aqui, o login direto funcionou
-        console.log("Login direto bem-sucedido, tentando com o hook de autenticação");
-        
-        // Se o login direto funcionou, tente com o hook de autenticação
-        const userData = await login(cleanEmail, password);
-        
-        if (userData) {
-          toast({
-            title: "Login realizado com sucesso",
-            description: `Bem-vindo(a), ${userData.name || userData.email}!`,
-          });
+        if (directLoginData) {
+          console.log("Direct login successful, attempting with auth hook");
           
-          redirectBasedOnRole(userData.role);
-        } else {
-          throw new Error("Login direto funcionou, mas o hook de autenticação falhou");
+          // If direct login worked, try with auth hook
+          try {
+            const userData = await login(cleanEmail, password);
+            
+            if (userData) {
+              toast({
+                title: "Login successful",
+                description: `Welcome, ${userData.name || userData.email}!`,
+              });
+              
+              redirectBasedOnRole(userData.role);
+              return;
+            }
+          } catch (hookError: any) {
+            console.error("Hook login error after successful direct login:", hookError);
+            setErrorMessage(`Authentication succeeded but profile retrieval failed: ${hookError.message}`);
+            
+            // Still redirect based on user role from direct login
+            if (directLoginData.user) {
+              const { data: roleData } = await supabase
+                .from('users')
+                .select('role')
+                .eq('id', directLoginData.user.id)
+                .single();
+                
+              if (roleData) {
+                redirectBasedOnRole(roleData.role);
+                return;
+              }
+            }
+          }
         }
       } catch (directError: any) {
-        console.error("Erro no login direto:", directError);
+        console.error("Direct login error:", directError);
         
-        // Se for um usuário de teste e o login falhou, temos um problema mais profundo
         if (isTestUser(cleanEmail, password)) {
+          setErrorMessage("Test account credentials are valid but authentication failed. This might be a server issue.");
           toast({
             variant: "destructive",
-            title: "Erro de autenticação",
-            description: "Os dados de teste são válidos, mas a autenticação falhou. Entre em contato com o suporte técnico.",
+            title: "Authentication error",
+            description: "Test credentials are valid but authentication failed. Please contact technical support.",
           });
         } else {
+          setErrorMessage("Invalid credentials. Please check your email and password.");
           toast({
             variant: "destructive",
-            title: "Credenciais inválidas",
-            description: "E-mail ou senha incorretos. Por favor, verifique e tente novamente.",
+            title: "Invalid credentials",
+            description: "Email or password is incorrect. Please verify and try again.",
           });
         }
       }
     } catch (error: any) {
-      console.error("Erro de login:", error);
+      console.error("Login error:", error);
       
+      setErrorMessage(error.message || "Login failed. Please try again.");
       toast({
         variant: "destructive",
-        title: "Erro ao fazer login",
-        description: error.message || "Credenciais inválidas. Verifique seu email e senha e tente novamente.",
+        title: "Login error",
+        description: error.message || "Invalid credentials. Check your email and password and try again.",
       });
     } finally {
       setIsLoading(false);
@@ -183,16 +228,23 @@ const LoginForm = () => {
               disabled={isLoading}
             />
             
+            {errorMessage && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
+                <p className="font-medium">Error: {errorMessage}</p>
+                <p className="mt-1 text-xs">If using a test account, make sure to type the credentials exactly as shown below.</p>
+              </div>
+            )}
+            
             <LoginFormActions isLoading={isLoading} />
             
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-              <h3 className="text-sm font-bold text-yellow-800">Contas de teste:</h3>
+              <h3 className="text-sm font-bold text-yellow-800">Test accounts:</h3>
               <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5">
                 <li><strong>Admin:</strong> admin@bestcode.com / admin123</li>
                 <li><strong>Professor:</strong> professor@bestcode.com / teacher123</li>
                 <li><strong>Aluno:</strong> aluno@bestcode.com / student123</li>
               </ul>
-              <p className="mt-2 text-xs text-yellow-600 italic">Certifique-se de digitar as credenciais exatamente como mostradas acima.</p>
+              <p className="mt-2 text-xs text-yellow-600 italic">Make sure to type the credentials exactly as shown above.</p>
             </div>
           </form>
         </CardContent>

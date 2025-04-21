@@ -12,32 +12,40 @@ export const useSupabaseAuth = () => {
     
     try {
       const cleanEmail = email.trim().toLowerCase();
-      console.log(`Tentando login via hook com email: ${cleanEmail}, senha: ${'*'.repeat(password.length)}`);
+      console.log(`Authentication attempt with: ${cleanEmail}`);
       
-      // Verificação extra antes da tentativa de autenticação
       if (!cleanEmail || !password) {
-        throw new Error("E-mail e senha são obrigatórios");
+        throw new Error("Email and password are required");
       }
       
+      // Clear any previous auth state to prevent conflicts
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        console.warn("Error clearing previous session:", signOutError);
+      }
+      
+      // Try authentication with explicit options
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password // Use password exactly as provided
+        password,
+        options: {
+          redirectTo: window.location.origin
+        }
       });
       
       if (error) {
-        console.error("Error in useSupabaseAuth:", error);
+        console.error("Authentication error in useSupabaseAuth:", error);
         throw error;
       }
       
-      // Verificação para certificar que temos dados do usuário retornados
       if (!data || !data.user) {
-        throw new Error("Autenticação realizada, mas dados do usuário não retornados");
+        throw new Error("Authentication succeeded but user data not returned");
       }
       
-      console.log("Login successful via hook:", data);
+      console.log("Login successful in useSupabaseAuth:", data);
       return data;
     } catch (err: any) {
-      console.error("Login error in hook:", err);
+      console.error("Login error in useSupabaseAuth:", err);
       setError(err.message);
       return null;
     } finally {
