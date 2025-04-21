@@ -11,11 +11,11 @@ export const useAuthState = (): AuthState => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    console.log('Iniciando verificação de autenticação');
+    console.log('Starting authentication check');
     
     // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log('Evento de autenticação detectado:', event, newSession?.user?.id || 'No session');
+      console.log('Auth state change event detected:', event, newSession?.user?.id || 'No session');
       
       // Synchronous updates only within the callback
       setSession(newSession);
@@ -24,30 +24,30 @@ export const useAuthState = (): AuthState => {
         // Defer Supabase calls with setTimeout to prevent deadlocks
         setTimeout(async () => {
           try {
-            console.log('Buscando dados de usuário após evento de autenticação');
+            console.log('Fetching user data after auth event');
             const userData = await fetchUserData(newSession.user.id);
             
             if (userData) {
-              console.log('Dados do usuário atualizados:', userData);
+              console.log('User data updated:', userData);
               setUser(userData);
             } else {
-              console.log('Usando metadata como fallback para dados do usuário');
+              console.log('Using metadata as fallback for user data');
               const metadata = newSession.user.user_metadata || {};
               setUser({
                 id: newSession.user.id,
                 email: newSession.user.email || '',
-                name: metadata.name || '',
+                name: metadata.name || newSession.user.email?.split('@')[0] || 'User',
                 role: metadata.role || 'student'
               });
             }
           } catch (error) {
-            console.error('Erro ao buscar dados do usuário:', error);
+            console.error('Error fetching user data:', error);
           } finally {
             setLoading(false);
           }
         }, 0);
       } else if (event === 'SIGNED_OUT') {
-        console.log('Usuário desconectado');
+        console.log('User signed out');
         setUser(null);
         setLoading(false);
       }
@@ -56,14 +56,14 @@ export const useAuthState = (): AuthState => {
     // Then check for existing session
     const initializeSession = async () => {
       try {
-        console.log('Verificando sessão existente');
+        console.log('Checking for existing session');
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Erro ao obter sessão:', error);
+          console.error('Error getting session:', error);
         }
         
-        console.log('Sessão inicial:', initialSession?.user?.id || 'No initial session');
+        console.log('Initial session:', initialSession?.user?.id || 'No initial session');
         
         // Set session state synchronously
         setSession(initialSession);
@@ -75,30 +75,30 @@ export const useAuthState = (): AuthState => {
               const userData = await fetchUserData(initialSession.user.id);
               
               if (userData) {
-                console.log('Dados iniciais do usuário:', userData);
+                console.log('Initial user data:', userData);
                 setUser(userData);
               } else {
-                console.log('Usando metadata como fallback para dados do usuário');
+                console.log('Using metadata as fallback for user data');
                 const metadata = initialSession.user.user_metadata || {};
                 setUser({
                   id: initialSession.user.id,
                   email: initialSession.user.email || '',
-                  name: metadata.name || '',
+                  name: metadata.name || initialSession.user.email?.split('@')[0] || 'User',
                   role: metadata.role || 'student'
                 });
               }
             } catch (error) {
-              console.error('Erro ao carregar dados do usuário:', error);
+              console.error('Error loading user data:', error);
             } finally {
               setLoading(false);
             }
           }, 0);
         } else {
-          console.log('Nenhuma sessão inicial encontrada');
+          console.log('No initial session found');
           setLoading(false);
         }
       } catch (error) {
-        console.error('Erro ao verificar sessão:', error);
+        console.error('Error checking session:', error);
         setLoading(false);
       }
     };
@@ -106,7 +106,7 @@ export const useAuthState = (): AuthState => {
     initializeSession();
 
     return () => {
-      console.log('Limpando subscription de autenticação');
+      console.log('Cleaning up authentication subscription');
       subscription.unsubscribe();
     };
   }, []);

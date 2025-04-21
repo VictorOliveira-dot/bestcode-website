@@ -30,7 +30,7 @@ const LoginForm = () => {
   // Redirect authenticated user to their respective dashboard
   useEffect(() => {
     if (user) {
-      console.log("Usuário autenticado, redirecionando baseado no papel:", user.role);
+      console.log("User authenticated, redirecting based on role:", user.role);
       if (user.role === "admin") {
         navigate("/admin/dashboard");
       } else if (user.role === "teacher") {
@@ -53,68 +53,49 @@ const LoginForm = () => {
 
     try {
       // Log form submission
-      console.log("Submetendo formulário de login para:", email);
+      console.log("Submitting login form for:", email);
       
       // Basic validation
       if (!email.trim() || !password.trim()) {
-        setErrorMessage("Por favor, preencha todos os campos");
+        setErrorMessage("Please fill in all fields");
         toast({
           variant: "destructive",
-          title: "Campos obrigatórios",
-          description: "Por favor, preencha todos os campos.",
+          title: "Required fields",
+          description: "Please fill in all fields.",
         });
-        setIsLoading(false);
-        return;
-      }
-
-      // Specific credentials validation for test accounts
-      const testAccounts = [
-        { email: "admin@bestcode.com", password: "admin123" },
-        { email: "professor@bestcode.com", password: "teacher123" },
-        { email: "aluno@bestcode.com", password: "student123" }
-      ];
-      
-      const matchedAccount = testAccounts.find(account => account.email === email.trim());
-      if (matchedAccount && matchedAccount.password !== password) {
-        console.log("Senha incorreta para conta de teste");
-        toast({
-          variant: "destructive",
-          title: "Senha incorreta",
-          description: `A senha para ${email} está incorreta. Use '${matchedAccount.password}'`,
-        });
-        setErrorMessage(`Senha incorreta para ${email}. Use '${matchedAccount.password}'`);
         setIsLoading(false);
         return;
       }
 
       // Use real Supabase authentication via context
+      console.log("Attempting login with Supabase...");
       const result = await login(email, password);
       
-      console.log("Resultado do login:", result);
+      console.log("Login result:", result);
       
       if (result.success) {
         toast({
-          title: "Login realizado com sucesso!",
-          description: "Você foi autenticado.",
+          title: "Login successful!",
+          description: "You have been authenticated.",
           variant: "default",
         });
         // The effect above will redirect user to appropriate dashboard
       } else {
         // Display specific error message returned by login function
-        setErrorMessage(result.message || "Login inválido. Tente novamente.");
+        setErrorMessage(result.message || "Invalid login. Please try again.");
         toast({
           variant: "destructive",
-          title: "Não foi possível fazer login",
-          description: result.message || "Login inválido. Tente novamente.",
+          title: "Could not log in",
+          description: result.message || "Invalid login. Please try again.",
         });
       }
     } catch (error: any) {
-      console.error("Erro durante login:", error);
-      setErrorMessage(error.message || "Login falhou. Por favor, tente novamente.");
+      console.error("Error during login:", error);
+      setErrorMessage(error.message || "Login failed. Please try again.");
       toast({
         variant: "destructive",
-        title: "Erro de autenticação",
-        description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
+        title: "Authentication error",
+        description: error.message || "An error occurred during login. Try again.",
       });
     } finally {
       setIsLoading(false);
@@ -140,7 +121,7 @@ const LoginForm = () => {
             />
             {errorMessage && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
-                <p className="font-medium">Erro: {errorMessage}</p>
+                <p className="font-medium">Error: {errorMessage}</p>
               </div>
             )}
             <LoginFormActions isLoading={isLoading || loading} />

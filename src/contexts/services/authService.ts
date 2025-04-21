@@ -1,11 +1,10 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../types/auth';
 import { toast } from '@/hooks/use-toast';
 
 export const fetchUserData = async (userId: string): Promise<User | null> => {
   try {
-    console.log('Buscando dados do usuário:', userId);
+    console.log('Fetching user data for ID:', userId);
     const { data, error } = await supabase
       .from('users')
       .select('id, email, name, role')
@@ -13,25 +12,25 @@ export const fetchUserData = async (userId: string): Promise<User | null> => {
       .maybeSingle();
 
     if (error) {
-      console.error('Erro ao buscar dados do usuário:', error);
+      console.error('Error fetching user data:', error);
       return null;
     }
 
     if (!data) {
-      console.log('Nenhum dado de usuário encontrado');
+      console.log('No user data found in database');
       return null;
     }
 
-    console.log('Dados do usuário encontrados:', data);
+    console.log('User data found:', data);
     return data as User;
   } catch (error) {
-    console.error('Erro inesperado ao buscar dados do usuário:', error);
+    console.error('Unexpected error fetching user data:', error);
     return null;
   }
 };
 
 export const loginWithEmail = async (email: string, password: string) => {
-  console.log('Iniciando processo de login para:', email);
+  console.log('Starting login process for:', email);
 
   try {
     // Make sure email and password are trimmed
@@ -41,13 +40,14 @@ export const loginWithEmail = async (email: string, password: string) => {
     if (!trimmedEmail || !trimmedPassword) {
       return { 
         success: false, 
-        message: 'Email e senha são obrigatórios.' 
+        message: 'Email and password are required.' 
       };
     }
 
-    // Debug values before sending to Supabase
-    console.log('Tentando autenticar com email (mascarado):', trimmedEmail.split('@')[0] + '@***');
-    console.log('Comprimento da senha:', trimmedPassword.length);
+    console.log('Attempting Supabase authentication...');
+    
+    // Log auth attempt (masking sensitive data)
+    console.log(`Auth attempt for: ${trimmedEmail.substring(0, 3)}...@${trimmedEmail.split('@')[1] || ''}`);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: trimmedEmail,
@@ -55,7 +55,7 @@ export const loginWithEmail = async (email: string, password: string) => {
     });
 
     if (error) {
-      console.error('Erro de autenticação detalhado:', {
+      console.error('Authentication error details:', {
         message: error.message,
         status: error.status,
         name: error.name
@@ -65,33 +65,35 @@ export const loginWithEmail = async (email: string, password: string) => {
       if (error.message?.includes('Invalid login credentials')) {
         return { 
           success: false, 
-          message: 'Email ou senha incorretos. Verifique suas credenciais e tente novamente.' 
+          message: 'Email or password incorrect. Please check your credentials and try again.' 
         };
       }
       
       return { 
         success: false, 
-        message: error.message || 'Credenciais inválidas. Verifique seu email e senha.' 
+        message: error.message || 'Invalid credentials. Please check your email and password.' 
       };
     }
 
     if (!data?.user) {
-      console.error('Login falhou: Nenhum usuário retornado');
+      console.error('Login failed: No user returned');
       return { 
         success: false, 
-        message: 'Falha ao autenticar. Por favor, tente novamente.' 
+        message: 'Authentication failed. Please try again.' 
       };
     }
 
-    console.log('Login bem-sucedido para:', data.user.email);
-    console.log('Sessão válida:', !!data.session);
+    console.log('Login successful for user ID:', data.user.id);
+    console.log('Valid session:', !!data.session);
+    console.log('User metadata:', data.user.user_metadata);
+    
     return { success: true };
 
   } catch (error: any) {
-    console.error('Erro inesperado durante login:', error);
+    console.error('Unexpected error during login:', error);
     return { 
       success: false, 
-      message: error.message || 'Ocorreu um erro ao fazer login' 
+      message: error.message || 'An error occurred during login' 
     };
   }
 };
