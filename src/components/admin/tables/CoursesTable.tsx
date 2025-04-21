@@ -33,38 +33,21 @@ interface Class {
   is_active: boolean;
 }
 
-// Update the interface to properly match the response structure
-interface TeacherResponse {
-  name: string;
-}
-
 const CoursesTable: React.FC = () => {
   const { data: courses, isLoading, error } = useQuery({
     queryKey: ['courses'],
     queryFn: async () => {
-      const { data: classes, error } = await supabase
-        .from('classes')
-        .select(`
-          id,
-          name,
-          description,
-          start_date,
-          is_active,
-          teacher:users!classes_teacher_id_fkey(name),
-          students:enrollments(student_id)
-        `);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock data instead of Supabase query
+      const mockCourses = [
+        { id: '1', name: 'Web Development', description: 'Learn full-stack web development', start_date: '2023-04-01', teacher_name: 'Professor Silva', students_count: 18, is_active: true },
+        { id: '2', name: 'QA Testing', description: 'Quality assurance and testing methodologies', start_date: '2023-05-15', teacher_name: 'Professor Santos', students_count: 12, is_active: true },
+        { id: '3', name: 'DevOps Basics', description: 'CI/CD and cloud infrastructure', start_date: '2023-06-10', teacher_name: 'Professora Oliveira', students_count: 8, is_active: false }
+      ];
 
-      if (error) throw error;
-
-      return classes.map(c => ({
-        ...c,
-        // Access the first item in the array or provide a default
-        teacher_name: c.teacher && Array.isArray(c.teacher) && c.teacher.length > 0 
-          ? c.teacher[0]?.name || 'Sem professor' 
-          : 'Sem professor',
-        // Safely get the length of the students array
-        students_count: c.students && Array.isArray(c.students) ? c.students.length : 0
-      })) as Class[];
+      return mockCourses as Class[];
     }
   });
 

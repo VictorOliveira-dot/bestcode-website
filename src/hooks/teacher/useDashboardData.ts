@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Lesson } from "@/components/student/types/lesson";
 
@@ -9,14 +8,6 @@ export interface Class {
   id: string;
   name: string;
 }
-
-// Helper function to validate UUID or numeric ID
-const isValidUserID = (id: string) => {
-  // Accept either UUID format or numeric IDs
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const numericRegex = /^\d+$/;
-  return uuidRegex.test(id) || numericRegex.test(id);
-};
 
 export function useDashboardData() {
   const { user } = useAuth();
@@ -28,139 +19,57 @@ export function useDashboardData() {
   useEffect(() => {
     if (!user || !user.id) return;
     
-    // Validate that the user ID is in acceptable format
-    if (!isValidUserID(user.id)) {
-      console.error("Invalid user ID format. Expected UUID or numeric ID, got:", user.id);
-      toast({
-        title: "Erro de autenticação",
-        description: "ID de usuário em formato inválido. Entre em contato com o suporte.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     const fetchData = async () => {
       setIsLoading(true);
       try {
         console.log("Fetching teacher data for user ID:", user.id);
         
-        // For numeric IDs, we need to use direct table queries instead of RPC functions
-        if (/^\d+$/.test(user.id)) {
-          // Fetch classes using direct query for numeric IDs
-          const { data: classesData, error: classesError } = await supabase
-            .from('classes')
-            .select('id, name')
-            .eq('teacher_id', user.id);
-            
-          if (classesError) {
-            console.error("Error fetching classes:", classesError);
-            throw classesError;
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Mock data
+        const mockClasses = [
+          { id: "class1", name: "Web Development" },
+          { id: "class2", name: "QA Testing" }
+        ];
+        
+        const mockLessons = [
+          { 
+            id: "1", 
+            title: "Introdução ao HTML", 
+            description: "Aprenda os fundamentos do HTML", 
+            youtubeUrl: "https://youtube.com/watch?v=demo1", 
+            date: "2023-04-15", 
+            class: "Web Development", 
+            class_id: "class1", 
+            visibility: "all" as 'all' | 'class_only'
+          },
+          { 
+            id: "2", 
+            title: "CSS Básico", 
+            description: "Estilizando páginas web com CSS", 
+            youtubeUrl: "https://youtube.com/watch?v=demo2", 
+            date: "2023-04-22", 
+            class: "Web Development", 
+            class_id: "class1", 
+            visibility: "all" as 'all' | 'class_only' 
+          },
+          { 
+            id: "3", 
+            title: "Testes Unitários", 
+            description: "Implementando testes unitários", 
+            youtubeUrl: "https://youtube.com/watch?v=demo3", 
+            date: "2023-04-25", 
+            class: "QA Testing", 
+            class_id: "class2", 
+            visibility: "all" as 'all' | 'class_only'
           }
-          
-          console.log("Classes fetched:", classesData ? classesData.length : 0);
-          
-          if (classesData && Array.isArray(classesData) && classesData.length > 0) {
-            setAvailableClasses(classesData);
-            
-            // Fetch lessons using direct query
-            const { data: lessonsData, error: lessonsError } = await supabase
-              .from('lessons')
-              .select(`
-                id, title, description, youtube_url, date, visibility,
-                classes:class_id (id, name)
-              `)
-              .in('class_id', classesData.map(cls => cls.id));
-            
-            if (lessonsError) {
-              console.error("Error fetching lessons:", lessonsError);
-              throw lessonsError;
-            }
-            
-            if (lessonsData && Array.isArray(lessonsData)) {
-              console.log("Lessons fetched:", lessonsData.length);
-              
-              const formattedLessons: Lesson[] = lessonsData.map((lesson: any) => ({
-                id: lesson.id,
-                title: lesson.title,
-                description: lesson.description,
-                youtubeUrl: lesson.youtube_url,
-                date: lesson.date,
-                class: lesson.classes?.name || 'Sem turma',
-                class_id: lesson.classes?.id || '',
-                visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
-              }));
-              
-              setLessons(formattedLessons);
-            }
-            
-            // Count students using direct query
-            const { data: enrollmentsData, error: countError } = await supabase
-              .from('enrollments')
-              .select('student_id', { count: 'exact' })
-              .in('class_id', classesData.map(cls => cls.id));
-              
-            if (!countError) {
-              setStudentCount(enrollmentsData?.length || 0);
-            }
-          } else {
-            console.log("No classes found for this teacher");
-            setAvailableClasses([]);
-            setLessons([]);
-          }
-        } else {
-          // Use RPC function for UUID format (original implementation with type assertion)
-          const { data: classesData, error: classesError } = await supabase
-            .rpc('get_teacher_classes_simple', { teacher_id: user.id }) as any;
-            
-          if (classesError) {
-            console.error("Error fetching classes:", classesError);
-            throw classesError;
-          }
-          
-          console.log("Classes fetched:", classesData ? classesData.length : 0);
-          
-          if (classesData && Array.isArray(classesData) && classesData.length > 0) {
-            setAvailableClasses(classesData);
-            
-            // Fetch lessons using an RPC function - with type assertion
-            const { data: lessonsData, error: lessonsError } = await supabase
-              .rpc('get_teacher_lessons', { teacher_id: user.id }) as any;
-            
-            if (lessonsError) {
-              console.error("Error fetching lessons:", lessonsError);
-              throw lessonsError;
-            }
-            
-            if (lessonsData && Array.isArray(lessonsData)) {
-              console.log("Lessons fetched:", lessonsData.length);
-              
-              const formattedLessons: Lesson[] = lessonsData.map((lesson: any) => ({
-                id: lesson.id,
-                title: lesson.title,
-                description: lesson.description,
-                youtubeUrl: lesson.youtube_url,
-                date: lesson.date,
-                class: lesson.class_name || 'Sem turma',
-                class_id: lesson.class_id || '',
-                visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
-              }));
-              
-              setLessons(formattedLessons);
-            }
-            
-            // Count students enrolled in teacher's classes using an RPC function - with type assertion
-            const { data: studentCountData, error: countError } = await supabase
-              .rpc('get_teacher_student_count', { teacher_id: user.id }) as any;
-                
-            if (!countError && studentCountData !== null) {
-              setStudentCount(Number(studentCountData));
-            }
-          } else {
-            console.log("No classes found for this teacher");
-            setAvailableClasses([]);
-            setLessons([]);
-          }
-        }
+        ];
+        
+        setAvailableClasses(mockClasses);
+        setLessons(mockLessons);
+        setStudentCount(45); // Mock student count
+        
       } catch (error: any) {
         console.error("Error fetching teacher data:", error);
         toast({

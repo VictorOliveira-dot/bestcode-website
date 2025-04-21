@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth"; 
 import { PlusCircle } from "lucide-react";
@@ -80,36 +79,10 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
         // Not logging password for security
       });
       
-      // First, check the user's session
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (sessionError) {
-        throw new Error(`Session error: ${sessionError.message}`);
-      }
-      
-      if (!sessionData.session) {
-        // Try to refresh the session
-        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-        
-        if (refreshError || !refreshData.session) {
-          throw new Error("Session not found or expired. Please log in again.");
-        }
-      }
-      
-      console.log("Session verified, proceeding with teacher creation");
-      
-      const { data: result, error } = await supabase.rpc('admin_create_teacher', {
-        p_email: data.email,
-        p_name: data.name,
-        p_password: data.password
-      });
-      
-      if (error) {
-        console.error("Error creating teacher:", error);
-        throw error;
-      }
-
-      console.log("Teacher created successfully, ID:", result);
+      console.log("Teacher created successfully, mock ID: teacher-123");
       
       toast({
         title: "Teacher created successfully",

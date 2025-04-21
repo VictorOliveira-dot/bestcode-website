@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import AdminDashboardHeader from "@/components/admin/DashboardHeader";
 import AdminDashboardCards from "@/components/admin/DashboardCards";
 import DashboardContent from "@/components/admin/DashboardContent";
@@ -10,6 +10,14 @@ import DashboardActions from "@/components/admin/DashboardActions";
 import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
+
+// Mock data
+const ADMIN_STATS = {
+  studentsCount: 35,
+  teachersCount: 8,
+  coursesCount: 5,
+  revenueAmount: "R$ 34.895,00"
+};
 
 const AdminDashboardComponent = () => {
   const { user } = useAuth();
@@ -29,38 +37,9 @@ const AdminDashboardComponent = () => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      try {
-        console.log("Fetching admin stats...");
-        const [studentsData, teachersData, coursesData] = await Promise.all([
-          supabase.rpc('admin_get_students_data'),
-          supabase.rpc('admin_get_teachers'),
-          supabase.from('classes').select('id', { count: 'exact' })
-        ]);
-
-        console.log("Students data:", studentsData);
-        console.log("Teachers data:", teachersData);
-        console.log("Courses data:", coursesData);
-
-        if (studentsData.error) throw studentsData.error;
-        if (teachersData.error) throw teachersData.error;
-        if (coursesData.error) throw coursesData.error;
-
-        const revenue = await supabase
-          .from('enrollments')
-          .select('id', { count: 'exact' });
-
-        const revenueAmount = revenue.count ? revenue.count * 997 : 0;
-
-        return {
-          studentsCount: studentsData.data?.length || 0,
-          teachersCount: teachersData.data?.length || 0,
-          coursesCount: coursesData.count || 0,
-          revenueAmount: `R$ ${revenueAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-        };
-      } catch (error) {
-        console.error("Error fetching admin stats:", error);
-        throw error;
-      }
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return ADMIN_STATS;
     }
   });
 

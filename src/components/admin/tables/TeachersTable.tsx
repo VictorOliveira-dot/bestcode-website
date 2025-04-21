@@ -36,7 +36,9 @@ const TeachersTable: React.FC = () => {
   const { data: teachers, isLoading, error } = useQuery({
     queryKey: ['teachers'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_get_teachers');
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const { data, error } = supabase.rpc('admin_get_teachers');
       if (error) throw error;
       return data as Teacher[];
     }

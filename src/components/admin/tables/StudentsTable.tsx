@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   Table,
@@ -51,28 +52,10 @@ const StudentsTable: React.FC = () => {
       try {
         console.log("Fetching students data...");
         
-        // First ensure we have a valid session
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          throw new Error(`Authentication error: ${sessionError.message}`);
-        }
-        
-        if (!sessionData.session) {
-          // Try to refresh the session
-          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-          
-          if (refreshError || !refreshData.session) {
-            console.error("No active session found and refresh failed");
-            throw new Error("No active session found. Please log in again.");
-          }
-          
-          console.log("Session refreshed successfully");
-        }
-        
-        // Now fetch student data with the verified session
-        const { data, error } = await supabase.rpc('admin_get_students_data');
+        const { data, error } = supabase.rpc('admin_get_students_data');
         
         if (error) {
           console.error("Error in admin_get_students_data:", error);
@@ -80,17 +63,13 @@ const StudentsTable: React.FC = () => {
         }
         
         console.log("Students data fetched successfully:", data?.length || 0);
-        if (data && data.length > 0) {
-          console.log("Sample student data:", data[0]);
-        }
-        
         return data as Student[];
       } catch (err: any) {
         console.error("Failed to fetch students:", err);
         throw err;
       }
     },
-    enabled: !!user?.id && user?.role === 'admin' && isSessionChecked // Only execute the query if the user is logged in and is admin
+    enabled: !!user?.id && user?.role === 'admin' && isSessionChecked
   });
 
   if (isLoading) {
