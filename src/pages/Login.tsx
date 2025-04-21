@@ -1,11 +1,25 @@
 
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
+import { useAuth } from "@/contexts/auth";
 
 const Login = () => {
+  const { user, loading } = useAuth();
+
+  // Se o usuário já estiver autenticado, redireciona para a dashboard correspondente
+  if (!loading && user) {
+    if (user.role === "admin") {
+      return <Navigate to="/admin/dashboard" />;
+    } else if (user.role === "teacher") {
+      return <Navigate to="/teacher/dashboard" />;
+    } else if (user.role === "student") {
+      return <Navigate to="/student/dashboard" />;
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -21,7 +35,13 @@ const Login = () => {
             </p>
           </div>
           
-          <LoginForm />
+          {loading ? (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bestcode-600"></div>
+            </div>
+          ) : (
+            <LoginForm />
+          )}
         </div>
       </main>
       <Footer />
