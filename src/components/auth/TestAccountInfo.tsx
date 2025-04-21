@@ -1,27 +1,18 @@
 
-import React from 'react';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import React from "react";
 
-const TestAccountInfo = () => {
-  return (
-    <div className="mt-4">
-      <Alert className="bg-blue-50 border-blue-200 text-blue-800">
-        <Info className="h-4 w-4 mr-2" />
-        <AlertDescription className="text-xs">
-          <strong>Informações de Registro:</strong>
-          <div className="mt-1">
-            Você pode criar uma nova conta selecionando um dos seguintes tipos:
-            <ul className="list-disc pl-5 mt-1">
-              <li><strong>Estudante:</strong> Acesso a dashboard de aluno, cursos e materiais.</li>
-              <li><strong>Professor:</strong> Acesso a criação de aulas e gerenciamento de alunos.</li>
-              <li><strong>Administrador:</strong> Acesso completo ao sistema, incluindo gerenciamento de professores.</li>
-            </ul>
-          </div>
-        </AlertDescription>
-      </Alert>
-    </div>
-  );
-};
+const TestAccountInfo = () => (
+  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+    <h3 className="text-sm font-bold text-yellow-800">Test accounts:</h3>
+    <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5">
+      <li><strong>Admin:</strong> admin@bestcode.com / admin123</li>
+      <li><strong>Professor:</strong> professor@bestcode.com / teacher123</li>
+      <li><strong>Aluno:</strong> aluno@bestcode.com / student123</li>
+    </ul>
+    <p className="mt-2 text-xs text-yellow-600 italic">
+      Make sure to type the credentials exactly as shown above.
+    </p>
+  </div>
+);
 
 export default TestAccountInfo;
