@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
 import { StudentActions } from "./StudentActions";
 import { useStudentsTable } from "@/hooks/admin/useStudentsTable";
+import StudentProgress from "./StudentProgress";
 
 const StudentsTable: React.FC = () => {
   const { user } = useAuth();
@@ -92,13 +93,11 @@ const StudentsTable: React.FC = () => {
                 {student.last_active ? new Date(student.last_active).toLocaleDateString('pt-BR') : 'Nunca'}
               </TableCell>
               <TableCell>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="bg-bestcode-600 h-2.5 rounded-full"
-                    style={{ width: `${student.progress_average}%` }}
-                  ></div>
-                </div>
-                <span className="text-xs text-gray-500">{Math.round(student.progress_average)}%</span>
+                <StudentProgress
+                  completedLessons={Math.round((student.progress_average / 100) * student.classes_count)}
+                  totalLessons={student.classes_count}
+                  progress={student.progress_average}
+                />
               </TableCell>
               <TableCell className="text-right">
                 <StudentActions
