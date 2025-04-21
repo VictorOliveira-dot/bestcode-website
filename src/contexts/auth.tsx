@@ -38,6 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Função para buscar dados completos do usuário, incluindo o role
   const fetchUserData = async (userId: string): Promise<User | null> => {
     try {
+      console.log('Buscando dados do usuário:', userId);
       const { data, error } = await supabase
         .from('users')
         .select('id, email, name, role')
@@ -49,8 +50,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
-      if (!data) return null;
+      if (!data) {
+        console.log('Nenhum dado de usuário encontrado');
+        return null;
+      }
 
+      console.log('Dados do usuário encontrados:', data);
       return data as User;
     } catch (error) {
       console.error('Erro inesperado ao buscar dados do usuário:', error);
@@ -60,66 +65,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Verificar sessão atual e configurar auth state listener
   useEffect(() => {
-    // Configurar listener de mudanças de auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log('Auth state changed:', event, newSession?.user?.id);
-        
-        if (newSession) {
-          setSession(newSession);
-          
-          // Importante: Usar setTimeout para evitar deadlocks com Supabase
-          setTimeout(async () => {
-            if (newSession.user) {
-              const userData = await fetchUserData(newSession.user.id);
-              if (userData) {
-                console.log('User data fetched:', userData);
-                setUser(userData);
-              } else {
-                const metadata = newSession.user.user_metadata || {};
-                setUser({
-                  id: newSession.user.id,
-                  email: newSession.user.email || '',
-                  name: metadata.name || '',
-                  role: metadata.role || 'student'
-                });
-              }
-            }
-            setLoading(false);
-          }, 0);
-        } else {
-          setUser(null);
-          setSession(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Verificar sessão existente ao carregar
+    console.log('Iniciando verificação de autenticação');
+    
+    // Primeiro, verificamos a sessão existente
     const getInitialSession = async () => {
       try {
-        setLoading(true);
+        console.log('Verificando sessão inicial');
         const { data: { session: initialSession } } = await supabase.auth.getSession();
-
-        console.log('Initial session check:', initialSession?.user?.id);
+        
+        console.log('Sessão inicial:', initialSession?.user?.id);
         
         if (initialSession) {
           setSession(initialSession);
-
+          
           if (initialSession.user) {
-            const userData = await fetchUserData(initialSession.user.id);
-            if (userData) {
-              console.log('Initial user data:', userData);
-              setUser(userData);
-            } else {
-              const metadata = initialSession.user.user_metadata || {};
-              setUser({
-                id: initialSession.user.id,
-                email: initialSession.user.email || '',
-                name: metadata.name || '',
-                role: metadata.role || 'student'
-              });
-            }
+            // Importante: usar setTimeout para evitar deadlocks
+            setTimeout(async () => {
+              const userData = await fetchUserData(initialSession.user.id);
+              
+              if (userData) {
+                console.log('Dados iniciais do usuário:', userData);
+                setUser(userData);
+              } else {
+                const metadata = initialSession.user.user_metadata || {};
+                const newUser = {
+                  id: initialSession.user.id,
+                  email: initialSession.user.email || '',
+                  name: metadata.name || '',
+                  role: metadata.role || 'student'
+                };
+                console.log('Criando user state a partir de metadata:', newUser);
+                setUser(newUser);
+              }
+            }, 0);
           }
         }
       } catch (error) {
@@ -128,65 +106,113 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       }
     };
+    
+    // Configurar listener de mudanças de auth state
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log('Evento de autenticação detectado:', event, newSession?.user?.id);
+      
+      if (newSession) {
+        setSession(newSession);
+        
+        // Sem código assíncrono no callback principal
+        // Em vez disso, usamos setTimeout
+        if (newSession.user) {
+          setTimeout(async () => {
+            const userData = await fetchUserData(newSession.user.id);
+            
+            if (userData) {
+              console.log('Dados do usuário atualizados:', userData);
+              setUser(userData);
+            } else {
+              const metadata = newSession.user.user_metadata || {};
+              setUser({
+                id: newSession.user.id,
+                email: newSession.user.email || '',
+                name: metadata.name || '',
+                role: metadata.role || 'student'
+              });
+            }
+            setLoading(false);
+          }, 0);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('Usuário desconectado');
+        setUser(null);
+        setSession(null);
+        setLoading(false);
+      }
+    });
 
+    // Executar a verificação inicial
     getInitialSession();
 
     // Limpar subscription quando o componente for desmontado
     return () => {
+      console.log('Limpando subscription de autenticação');
       subscription.unsubscribe();
     };
   }, []);
 
-  // Login com Supabase
+  // Login com Supabase - corrigido para evitar problemas de sincronização
   const login = async (email: string, password: string) => {
+    console.log('Iniciando processo de login para:', email);
     setLoading(true);
 
     try {
-      console.log('Tentando login com:', email);
-      
+      // Chamada de login do Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
+      // Se houver erro, retornamos imediatamente
       if (error) {
-        console.error('Erro de login:', error.message);
-        return { success: false, message: error.message };
+        console.error('Erro de autenticação:', error);
+        setLoading(false);
+        return { 
+          success: false, 
+          message: error.message || 'Credenciais inválidas. Verifique seu email e senha.' 
+        };
       }
 
-      if (data?.user) {
-        console.log('Login bem-sucedido:', data.user.id);
-        
-        // Usar setTimeout para evitar problemas com eventos de autenticação
-        setTimeout(async () => {
-          const userData = await fetchUserData(data.user.id);
-          
-          if (userData) {
-            console.log('Dados do usuário após login:', userData);
-            setUser(userData);
-          }
-        }, 0);
-        
-        return { success: true };
+      // Se não houver usuário nos dados retornados
+      if (!data?.user) {
+        console.error('Login falhou: Nenhum usuário retornado');
+        setLoading(false);
+        return { 
+          success: false, 
+          message: 'Falha ao autenticar. Por favor, tente novamente.' 
+        };
       }
 
-      return { success: false, message: 'Não foi possível autenticar o usuário.' };
-    } catch (error: any) {
-      console.error('Erro inesperado no login:', error);
-      return { success: false, message: error.message || 'Ocorreu um erro ao fazer login' };
-    } finally {
+      console.log('Login bem-sucedido para:', data.user.email);
+      
+      // Não fazemos o fetchUserData aqui - o onAuthStateChange vai lidar com isso
+      // para evitar problemas de sincronização
+      
       setLoading(false);
+      return { success: true };
+
+    } catch (error: any) {
+      console.error('Erro inesperado durante login:', error);
+      setLoading(false);
+      return { 
+        success: false, 
+        message: error.message || 'Ocorreu um erro ao fazer login' 
+      };
     }
   };
 
   // Logout com Supabase
   const logout = async () => {
+    console.log('Iniciando processo de logout');
     setLoading(true);
 
     try {
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      console.log('Logout realizado com sucesso');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       toast({
@@ -201,6 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Registro com Supabase e criação na tabela pública
   const register = async (data: { email: string; password: string; name: string; role: string }) => {
+    console.log('Iniciando registro de novo usuário:', data.email);
     setLoading(true);
 
     try {
@@ -217,11 +244,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (authError) {
-        console.error('Erro no registro:', authError.message);
+        console.error('Erro no registro:', authError);
+        setLoading(false);
         return { success: false, message: authError.message };
       }
 
       if (!authData?.user) {
+        console.error('Registro falhou: Nenhum usuário criado');
+        setLoading(false);
         return { success: false, message: 'Não foi possível criar a conta.' };
       }
 
@@ -239,15 +269,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (userError) {
         console.error('Erro ao criar perfil de usuário:', userError);
+        setLoading(false);
         return { success: false, message: 'Erro ao criar perfil. Por favor, contate o suporte.' };
       }
 
+      console.log('Usuário registrado com sucesso:', data.email);
+      setLoading(false);
       return { success: true, message: 'Conta criada com sucesso!' };
     } catch (error: any) {
       console.error('Erro no processo de registro:', error);
-      return { success: false, message: error.message || 'Erro ao registrar' };
-    } finally {
       setLoading(false);
+      return { success: false, message: error.message || 'Erro ao registrar' };
     }
   };
 

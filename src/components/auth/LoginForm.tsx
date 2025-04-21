@@ -21,15 +21,16 @@ const LoginForm = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Reset form and error states on component mount
     setEmail("");
     setPassword("");
     setErrorMessage(null);
   }, []);
 
-  // Redireciona usuário já logado para sua respectiva dashboard
+  // Redirecionar usuário já logado para sua respectiva dashboard
   useEffect(() => {
     if (user) {
-      console.log("User authenticated, redirecting based on role:", user.role);
+      console.log("Usuário autenticado, redirecionando baseado no papel:", user.role);
       if (user.role === "admin") {
         navigate("/admin/dashboard");
       } else if (user.role === "teacher") {
@@ -42,12 +43,16 @@ const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Evitar submissão dupla
     if (isLoading || loading) return;
 
+    // Limpar erro anterior
     setErrorMessage(null);
     setIsLoading(true);
 
     try {
+      // Validação básica
       if (!email || !password) {
         setErrorMessage("Por favor, preencha todos os campos");
         toast({
@@ -59,7 +64,7 @@ const LoginForm = () => {
         return;
       }
 
-      console.log("Submetendo formulário de login:", { email });
+      console.log("Submetendo formulário de login para:", email);
 
       // Utiliza autenticação real do Supabase via contexto
       const result = await login(email, password);
@@ -74,6 +79,7 @@ const LoginForm = () => {
         });
         // O efeito acima já redireciona o usuário para a dashboard apropriada
       } else {
+        // Exibe mensagem de erro específica retornada pela função de login
         setErrorMessage(result.message || "Login inválido. Tente novamente.");
         toast({
           title: "Não foi possível fazer login",
