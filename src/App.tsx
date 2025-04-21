@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,7 @@ import StudentProgressDetails from "./pages/student/ProgressDetails";
 import TeacherDashboard from "./pages/teacher/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 // Novas páginas importadas
 import TermsOfService from "./pages/TermsOfService";
@@ -36,27 +38,10 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Rotas públicas */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/enrollment" element={<Enrollment />} />
-            <Route path="/student/dashboard" element={<StudentDashboard />} />
-            <Route path="/student/courses" element={<StudentCourseList />} />
-            <Route path="/student/schedule" element={<StudentSchedule />} />
-            <Route path="/student/progress" element={<StudentProgressDetails />} />
-            <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-            
-            {/* Admin Routes */}
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/students" element={<AdminDashboard />} />
-            <Route path="/admin/teachers" element={<AdminDashboard />} />
-            <Route path="/admin/courses" element={<AdminDashboard />} />
-            <Route path="/admin/payments" element={<AdminDashboard />} />
-            <Route path="/admin/reports" element={<AdminDashboard />} />
-            <Route path="/admin/enrollments" element={<AdminDashboard />} />
-            
-            {/* Novas rotas */}
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/courses/qa-training" element={<QATraining />} />
@@ -64,9 +49,85 @@ const App = () => {
             <Route path="/courses" element={<AllCourses />} />
             <Route path="/about" element={<About />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/faq" element={<Index />} /> {/* Usando a página Index que já contém o componente FAQ */}
+            <Route path="/faq" element={<Index />} />
             
-            {/* ADICIONE TODAS AS ROTAS PERSONALIZADAS ACIMA DA ROTA CATCH-ALL "*" */}
+            {/* Rotas protegidas para estudantes */}
+            <Route path="/checkout" element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <Checkout />
+              </ProtectedRoute>
+            } />
+            <Route path="/enrollment" element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <Enrollment />
+              </ProtectedRoute>
+            } />
+            <Route path="/student/dashboard" element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/student/courses" element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentCourseList />
+              </ProtectedRoute>
+            } />
+            <Route path="/student/schedule" element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentSchedule />
+              </ProtectedRoute>
+            } />
+            <Route path="/student/progress" element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentProgressDetails />
+              </ProtectedRoute>
+            } />
+            
+            {/* Rotas protegidas para professores */}
+            <Route path="/teacher/dashboard" element={
+              <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                <TeacherDashboard />
+              </ProtectedRoute>
+            } />
+            
+            {/* Rotas protegidas para administradores */}
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/students" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/teachers" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/courses" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/payments" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/enrollments" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            
+            {/* Rota de fallback para páginas não encontradas */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

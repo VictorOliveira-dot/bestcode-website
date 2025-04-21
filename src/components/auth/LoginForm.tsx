@@ -11,8 +11,6 @@ import TestAccountInfo from "./TestAccountInfo";
 import { useAuth } from "@/contexts/auth";
 import { useNavigate } from "react-router-dom";
 
-// Remove constantes de teste relacionadas à Supabase
-
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +25,6 @@ const LoginForm = () => {
     setEmail("");
     setPassword("");
     setErrorMessage(null);
-    // Nenhuma sessão a limpar pois não há backend configurado
   }, []);
 
   // Redireciona usuário já logado para sua respectiva dashboard
@@ -62,7 +59,7 @@ const LoginForm = () => {
         return;
       }
 
-      // Utiliza autenticação mockada do contexto
+      // Utiliza autenticação real do Supabase via contexto
       const result = await login(email, password);
       if (result.success) {
         toast({
@@ -81,6 +78,11 @@ const LoginForm = () => {
       }
     } catch (error: any) {
       setErrorMessage(error.message || "Login falhou. Por favor, tente novamente.");
+      toast({
+        title: "Erro de autenticação",
+        description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

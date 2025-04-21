@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import EmailField from './EmailField';
 import PasswordField from './PasswordField';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/auth';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -29,6 +31,7 @@ const formSchema = z.object({
 const RegisterForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { register: registerUser } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,9 +46,33 @@ const RegisterForm = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
+      
+      // Usar a função de registro do contexto Auth que usa o Supabase
+      const result = await registerUser(values);
+      
+      if (result.success) {
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Você será redirecionado para a página de pagamento.",
+          variant: "default"
+        });
+        
+        // Redirecionar para checkout após registro bem-sucedido
+        setTimeout(() => {
+          navigate('/checkout');
+        }, 1500);
+      } else {
+        toast({
+          title: "Erro no cadastro",
+          description: result.message || "Não foi possível criar sua conta. Por favor, tente novamente.",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error('Erro no registro:', error);
       toast({
-        title: "Cadastro desabilitado",
-        description: "O cadastro está desativado. Integre um backend para habilitar a criação de contas.",
+        title: "Erro no cadastro",
+        description: error.message || "Ocorreu um erro ao processar seu cadastro. Por favor, tente novamente.",
         variant: "destructive"
       });
     } finally {
