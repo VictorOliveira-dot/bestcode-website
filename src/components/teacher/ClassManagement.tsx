@@ -83,7 +83,7 @@ const ClassManagement = () => {
         isLoading={isLoading}
       />
 
-      <div className="overflow-x-hidden w-full">
+      <div className="bg-white rounded-lg overflow-hidden">
         <ClassTable 
           classes={classes}
           openEditDialog={openEditDialog}
