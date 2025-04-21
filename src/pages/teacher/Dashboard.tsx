@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -11,7 +10,7 @@ import AddLessonForm from "@/components/teacher/AddLessonForm";
 
 // Custom hooks and utilities
 import { useDashboardData } from "@/hooks/teacher/useDashboardData";
-import { addLesson, deleteLesson } from "@/utils/teacher/lessonManager";
+import { addLesson, deleteLesson, editLesson } from "@/utils/teacher/lessonManager";
 
 // Types
 import { NewLesson } from "@/components/student/types/lesson";
@@ -59,6 +58,21 @@ const TeacherDashboard = () => {
     setLessons(updatedLessons);
   };
 
+  const handleEditLesson = async (id: string, updatedLesson: NewLesson) => {
+    if (!user) return;
+    
+    console.log("Editing lesson:", id, updatedLesson);
+    
+    const updatedLessons = await editLesson(
+      id,
+      updatedLesson,
+      availableClasses,
+      lessons
+    );
+    
+    setLessons(updatedLessons);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <DashboardHeader userName={user.name} />
@@ -76,9 +90,10 @@ const TeacherDashboard = () => {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           lessons={lessons}
-          availableClasses={availableClasses.map(c => c.name)}
+          availableClasses={availableClasses}
           setIsAddLessonOpen={setIsAddLessonOpen}
           handleDeleteLesson={handleDeleteLesson}
+          handleEditLesson={handleEditLesson}
           isLoading={isLoading}
         />
       </main>

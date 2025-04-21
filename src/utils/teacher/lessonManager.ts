@@ -1,4 +1,3 @@
-
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Lesson, NewLesson } from "@/components/student/types/lesson";
@@ -74,6 +73,50 @@ export const deleteLesson = async (
     toast({
       title: "Erro ao remover aula",
       description: error.message || "Ocorreu um erro ao remover a aula.",
+      variant: "destructive",
+    });
+    throw error;
+  }
+};
+
+export const editLesson = async (
+  id: string,
+  updatedLesson: NewLesson,
+  availableClasses: Class[],
+  currentLessons: Lesson[]
+): Promise<Lesson[]> => {
+  try {
+    // Find the class name from the class ID
+    const classInfo = availableClasses.find(c => c.id === updatedLesson.classId);
+    
+    // Find and update the lesson
+    const updatedLessons = currentLessons.map(lesson => {
+      if (lesson.id === id) {
+        return {
+          ...lesson,
+          title: updatedLesson.title,
+          description: updatedLesson.description,
+          youtubeUrl: updatedLesson.youtubeUrl,
+          class: classInfo?.name || lesson.class,
+          class_id: updatedLesson.classId,
+          visibility: updatedLesson.visibility
+        };
+      }
+      return lesson;
+    });
+    
+    // Show a success message
+    toast({
+      title: "Aula atualizada",
+      description: "A aula foi atualizada com sucesso.",
+    });
+    
+    return updatedLessons;
+  } catch (error: any) {
+    console.error("Error editing lesson:", error);
+    toast({
+      title: "Erro ao atualizar aula",
+      description: error.message || "Ocorreu um erro ao atualizar a aula.",
       variant: "destructive",
     });
     throw error;

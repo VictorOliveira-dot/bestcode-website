@@ -15,14 +15,16 @@ interface Lesson {
 
 interface LessonsPanelProps {
   lessons: Lesson[];
-  availableClasses: string[];
+  availableClasses: any[];
   onDeleteLesson: (id: string) => void;
+  onEditLesson: (id: string, updatedLesson: any) => void;
 }
 
 const LessonsPanel: React.FC<LessonsPanelProps> = ({ 
   lessons, 
   availableClasses, 
-  onDeleteLesson 
+  onDeleteLesson,
+  onEditLesson
 }) => {
   // Sort lessons by date (more recent first)
   const sortedLessons = [...lessons].sort((a, b) => 
@@ -53,7 +55,9 @@ const LessonsPanel: React.FC<LessonsPanelProps> = ({
               <LessonItem 
                 key={lesson.id} 
                 lesson={lesson} 
-                onDelete={onDeleteLesson} 
+                onDelete={onDeleteLesson}
+                onEdit={onEditLesson}
+                availableClasses={availableClasses}
               />
             ))
           ) : (
@@ -74,7 +78,9 @@ const LessonsPanel: React.FC<LessonsPanelProps> = ({
                   <LessonItem 
                     key={lesson.id} 
                     lesson={lesson} 
-                    onDelete={onDeleteLesson} 
+                    onDelete={onDeleteLesson}
+                    onEdit={onEditLesson}
+                    availableClasses={availableClasses}
                   />
                 ))
             ) : (
