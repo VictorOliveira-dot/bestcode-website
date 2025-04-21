@@ -25,7 +25,10 @@ const Login = () => {
           
           <div className="mt-8 text-center text-sm text-gray-500">
             <p>Use your Supabase registered credentials</p>
-            <p className="mt-2 text-xs">If you're experiencing login issues, please contact support</p>
+            <p className="mt-2">Don't have an account yet? <Link to="/register" className="text-bestcode-600 hover:underline font-medium">Register here</Link></p>
+            <p className="mt-4 text-xs bg-blue-50 p-3 rounded-lg">
+              <strong>Test Users:</strong> If you want to try the system with test users, you'll need to populate your Supabase database with users first.
+            </p>
           </div>
         </div>
       </main>

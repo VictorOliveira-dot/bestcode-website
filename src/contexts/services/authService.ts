@@ -64,12 +64,6 @@ export const loginWithEmail = async (email: string, password: string) => {
 
     console.log('[Auth Service] Attempting Supabase authentication...');
     
-    // Log auth attempt (masking sensitive data)
-    console.log(`[Auth Service] Auth attempt for: ${trimmedEmail}`);
-
-    // Clear any previous sessions to avoid conflicts
-    await supabase.auth.signOut();
-    
     // Attempt to sign in with provided credentials
     const { data, error } = await supabase.auth.signInWithPassword({
       email: trimmedEmail,
@@ -83,9 +77,17 @@ export const loginWithEmail = async (email: string, password: string) => {
         name: error.name
       });
       
+      // Return more descriptive error messages
+      if (error.message.includes("Invalid login credentials")) {
+        return { 
+          success: false, 
+          message: 'Email or password incorrect. Please check your credentials and try again.' 
+        };
+      }
+      
       return { 
         success: false, 
-        message: 'Email or password incorrect. Please check your credentials and try again.' 
+        message: error.message || 'Authentication failed. Please try again.' 
       };
     }
 

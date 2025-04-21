@@ -8,6 +8,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Debug Supabase connection
 console.log('[Supabase] Initializing client with URL:', SUPABASE_URL);
 
+// Create the Supabase client with explicit auth configuration for reliable sessions
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: localStorage,
