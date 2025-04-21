@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth";
@@ -11,6 +11,13 @@ import PasswordField from "./PasswordField";
 import LoginFormActions from "./LoginFormActions";
 import { supabase } from "@/integrations/supabase/client";
 
+// Lista de usuários de teste - isso ajudará com a validação direta
+const TEST_USERS = [
+  { email: 'admin@bestcode.com', password: 'admin123', role: 'admin' },
+  { email: 'professor@bestcode.com', password: 'teacher123', role: 'teacher' },
+  { email: 'aluno@bestcode.com', password: 'student123', role: 'student' }
+];
+
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +25,65 @@ const LoginForm = () => {
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Verificar se há uma sessão ativa ao carregar o componente
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        console.log("Sessão já existe:", data.session.user.id);
+        
+        // Se já tiver uma sessão, redirecione com base no papel do usuário
+        const { data: userData } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', data.session.user.id)
+          .single();
+        
+        if (userData) {
+          redirectBasedOnRole(userData.role);
+        }
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
+  
+  // Função para redirecionar com base no papel/role
+  const redirectBasedOnRole = (role: string) => {
+    if (role === "teacher") {
+      navigate("/teacher/dashboard");
+    } else if (role === "admin") {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/student/dashboard");
+    }
+  };
+
+  // Função para verificar se é um usuário de teste
+  const isTestUser = (email: string, password: string) => {
+    return TEST_USERS.some(user => 
+      user.email.toLowerCase() === email.toLowerCase() && 
+      user.password === password
+    );
+  };
+
+  // Função para tentar login diretamente com Supabase
+  const tryDirectLogin = async (email: string, password: string) => {
+    console.log(`Tentando login direto com: ${email}`);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    if (error) {
+      console.error("Erro no login direto:", error);
+      throw error;
+    }
+    
+    console.log("Login direto bem-sucedido:", data);
+    return data;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,64 +104,60 @@ const LoginForm = () => {
       
       // Limpa o email e converte para minúsculas para consistência
       const cleanEmail = email.trim().toLowerCase();
-      console.log("Tentando login com email:", cleanEmail);
+      console.log(`Tentando login com email: ${cleanEmail}`);
       
-      // ABORDAGEM DE DIAGNÓSTICO DIRETO
-      // Isto é uma tentativa direta de login que nos ajudará a identificar problemas
-      console.log("Tentando login direto via Supabase (diagnóstico)...");
-      const directResult = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password
-      });
-      
-      if (directResult.error) {
-        console.error("Erro direto do Supabase:", directResult.error);
-        throw new Error(`Erro de autenticação: ${directResult.error.message}`);
+      // Se for um usuário de teste, mostramos informações adicionais para ajudar no diagnóstico
+      if (isTestUser(cleanEmail, password)) {
+        console.log("Detectado usuário de teste válido!");
+      } else {
+        console.log("NÃO é um usuário de teste conhecido");
       }
       
-      console.log("Auth direta bem-sucedida:", directResult.data);
-      
-      // Se o login direto funcionou, o hook de auth deve conseguir recuperar o usuário
-      const userData = await login(cleanEmail, password);
-      
-      if (userData) {
-        toast({
-          title: "Login realizado com sucesso",
-          description: `Bem-vindo de volta, ${userData.name || userData.email}!`,
-        });
+      // Tentativa direta para diagnosticar problemas
+      try {
+        await tryDirectLogin(cleanEmail, password);
         
-        console.log("Login bem-sucedido, redirecionando para:", userData.role);
+        // Se chegou aqui, o login direto funcionou
+        console.log("Login direto bem-sucedido, tentando com o hook de autenticação");
         
-        // Pequeno delay para melhorar UX
-        setTimeout(() => {
-          if (userData.role === "teacher") {
-            navigate("/teacher/dashboard");
-          } else if (userData.role === "admin") {
-            navigate("/admin/dashboard");
-          } else {
-            navigate("/student/dashboard");
-          }
-        }, 300);
+        // Se o login direto funcionou, tente com o hook de autenticação
+        const userData = await login(cleanEmail, password);
+        
+        if (userData) {
+          toast({
+            title: "Login realizado com sucesso",
+            description: `Bem-vindo(a), ${userData.name || userData.email}!`,
+          });
+          
+          redirectBasedOnRole(userData.role);
+        } else {
+          throw new Error("Login direto funcionou, mas o hook de autenticação falhou");
+        }
+      } catch (directError: any) {
+        console.error("Erro no login direto:", directError);
+        
+        // Se for um usuário de teste e o login falhou, temos um problema mais profundo
+        if (isTestUser(cleanEmail, password)) {
+          toast({
+            variant: "destructive",
+            title: "Erro de autenticação",
+            description: "Os dados de teste são válidos, mas a autenticação falhou. Entre em contato com o suporte técnico.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Credenciais inválidas",
+            description: "E-mail ou senha incorretos. Por favor, verifique e tente novamente.",
+          });
+        }
       }
     } catch (error: any) {
       console.error("Erro de login:", error);
       
-      let errorMessage = "Email ou senha inválidos. Verifique suas credenciais e tente novamente.";
-      
-      if (error?.message) {
-        console.log("Erro específico:", error.message);
-        
-        if (error.message.includes("Invalid login credentials")) {
-          errorMessage = "Credenciais inválidas. Verifique seu email e senha e tente novamente.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
       toast({
         variant: "destructive",
         title: "Erro ao fazer login",
-        description: errorMessage,
+        description: error.message || "Credenciais inválidas. Verifique seu email e senha e tente novamente.",
       });
     } finally {
       setIsLoading(false);

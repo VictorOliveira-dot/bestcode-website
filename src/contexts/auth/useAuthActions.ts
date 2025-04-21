@@ -16,49 +16,60 @@ export function useAuthActions(setUser: (user: User | null) => void) {
       // Limpar o email e converter para minúsculas
       const cleanEmail = email.trim().toLowerCase();
       
+      // Verificação para certificar de que não estamos enviando dados inválidos
+      if (!cleanEmail || !password) {
+        throw new Error("E-mail e senha são obrigatórios");
+      }
+      
+      // Tentar autenticação no Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password: password
+        password
       });
       
       if (error) {
-        console.error("Authentication error:", error.message);
+        console.error("Authentication error:", error);
         throw error;
       }
       
-      if (data && data.user) {
-        console.log("Authentication successful, fetching user profile...");
-        
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-        
-        if (userError) {
-          console.error('User authenticated but not found in users table:', userError);
-          throw new Error('User profile not found. Please contact support.');
-        }
-        
-        const userInfo: User = {
-          id: userData.id,
-          name: userData.name || userData.email,
-          email: userData.email,
-          role: userData.role as 'student' | 'teacher' | 'admin',
-          avatar_url: userData.avatar_url
-        };
-        
-        console.log("Login successful for:", userInfo.email, "with role:", userInfo.role);
-        
-        setUser(userInfo);
-        localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
-        
-        return userInfo;
+      // Verificação adicional para garantir que temos dados do usuário
+      if (!data || !data.user) {
+        throw new Error("Autenticação realizada, mas dados do usuário não retornados");
       }
       
-      throw new Error("Authentication succeeded but user data is missing");
+      console.log("Authentication successful, fetching user profile...");
+      
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (userError) {
+        console.error('User authenticated but not found in users table:', userError);
+        throw new Error('User profile not found. Please contact support.');
+      }
+      
+      if (!userData) {
+        throw new Error("User authenticated but profile data is empty");
+      }
+      
+      const userInfo: User = {
+        id: userData.id,
+        name: userData.name || userData.email,
+        email: userData.email,
+        role: userData.role as 'student' | 'teacher' | 'admin',
+        avatar_url: userData.avatar_url
+      };
+      
+      console.log("Login successful for:", userInfo.email, "with role:", userInfo.role);
+      
+      setUser(userInfo);
+      localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+      
+      return userInfo;
     } catch (err: any) {
-      console.error("Login error:", err.message);
+      console.error("Login error:", err);
       throw err;
     } finally {
       setIsLoading(false);

@@ -11,8 +11,13 @@ export const useSupabaseAuth = () => {
     setError(null);
     
     try {
-      const cleanEmail = email.trim().toLowerCase(); // Garante email em minúsculas
-      console.log(`Attempting login via hook with email: ${cleanEmail}`);
+      const cleanEmail = email.trim().toLowerCase();
+      console.log(`Tentando login via hook com email: ${cleanEmail}, senha: ${'*'.repeat(password.length)}`);
+      
+      // Verificação extra antes da tentativa de autenticação
+      if (!cleanEmail || !password) {
+        throw new Error("E-mail e senha são obrigatórios");
+      }
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
@@ -20,14 +25,19 @@ export const useSupabaseAuth = () => {
       });
       
       if (error) {
-        console.error("Error in useSupabaseAuth:", error.message);
+        console.error("Error in useSupabaseAuth:", error);
         throw error;
+      }
+      
+      // Verificação para certificar que temos dados do usuário retornados
+      if (!data || !data.user) {
+        throw new Error("Autenticação realizada, mas dados do usuário não retornados");
       }
       
       console.log("Login successful via hook:", data);
       return data;
     } catch (err: any) {
-      console.error("Login error in hook:", err.message);
+      console.error("Login error in hook:", err);
       setError(err.message);
       return null;
     } finally {
@@ -89,7 +99,12 @@ export const useSupabaseAuth = () => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       
-      if (!sessionData.session) return null;
+      if (!sessionData.session) {
+        console.log("No active session found in getCurrentUser");
+        return null;
+      }
+      
+      console.log("Session found in getCurrentUser:", sessionData.session.user.id);
       
       const { data, error } = await supabase
         .from('users')
@@ -97,7 +112,17 @@ export const useSupabaseAuth = () => {
         .eq('id', sessionData.session.user.id)
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching user data:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.log("No user data found for ID:", sessionData.session.user.id);
+        return null;
+      }
+      
+      console.log("User data retrieved successfully:", data);
       return data;
     } catch (err: any) {
       console.error('Error fetching user:', err.message);
