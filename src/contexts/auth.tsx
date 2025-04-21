@@ -14,6 +14,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<{ success: boolean }>;
+  register: (data: { email: string; password: string; name: string; role: string }) => Promise<{ success: boolean; message?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: false,
   login: async () => ({ success: false }),
   logout: async () => ({ success: false }),
+  register: async () => ({ success: false }),
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -52,8 +54,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return result;
   };
 
+  const register = async (data: { email: string; password: string; name: string; role: string }) => {
+    // With mock service, just return a success message
+    // In a real app, this would call an API
+    return {
+      success: true,
+      message: "Registration successful! This is a mock implementation."
+    };
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

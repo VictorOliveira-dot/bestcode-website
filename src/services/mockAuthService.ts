@@ -57,5 +57,14 @@ export const mockAuthService = {
       return JSON.parse(stored) as MockUser;
     }
     return null;
+  },
+
+  register: async (data: { email: string; password: string; name: string; role: string }) => {
+    // In a mock implementation, we'll just return success
+    // In a real app, this would create a new user
+    return { 
+      success: true,
+      message: 'Mock registration successful'
+    };
   }
 };
