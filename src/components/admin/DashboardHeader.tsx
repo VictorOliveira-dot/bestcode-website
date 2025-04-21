@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,13 +50,6 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
                 </div>
                 <nav className="space-y-1">
                   <Link
-                    to="/admin/dashboard"
-                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                    onClick={() => setIsSheetOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
                     to="/admin/students"
                     className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
                     onClick={() => setIsSheetOpen(false)}
@@ -101,7 +95,7 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
               </div>
             </SheetContent>
           </Sheet>
-          <Link to="/admin/dashboard" className="flex items-center space-x-2">
+          <Link to="/admin/students" className="flex items-center space-x-2">
             <img 
               src="/img/logotipo/logotipoBestCode.png" 
               alt="Code Academy" 
@@ -114,12 +108,6 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
         </div>
 
         <nav className="hidden md:flex items-center space-x-6">
-          <Link
-            to="/admin/dashboard"
-            className="text-gray-700 hover:text-bestcode-600"
-          >
-            Dashboard
-          </Link>
           <Link
             to="/admin/students"
             className="text-gray-700 hover:text-bestcode-600"
@@ -194,3 +182,4 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
 };
 
 export default AdminDashboardHeader;
+

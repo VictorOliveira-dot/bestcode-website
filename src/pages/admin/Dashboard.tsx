@@ -46,11 +46,9 @@ const AdminDashboardComponent = () => {
   useEffect(() => {
     const path = location.pathname.split('/').pop();
     
-    if (path === "dashboard" || path === "admin") {
-      setActiveTab("students");
-    } else if (path === "students" || path === "teachers" || 
-               path === "courses" || path === "payments" || 
-               path === "reports" || path === "enrollments") {
+    if (path === "students" || path === "teachers" || 
+        path === "courses" || path === "payments" || 
+        path === "enrollments" || path === "reports") {
       setActiveTab(path);
     }
   }, [location.pathname]);
@@ -58,8 +56,8 @@ const AdminDashboardComponent = () => {
   useEffect(() => {
     if (user) {
       toast({
-        title: "Welcome to the admin panel",
-        description: `Hello, ${user.name}!`,
+        title: "Bem-vindo ao painel de administração",
+        description: `Olá, ${user.name}!`,
       });
     }
   }, [user]);
@@ -111,3 +109,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
