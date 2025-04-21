@@ -1,9 +1,26 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth';
-import { supabase } from '@/integrations/supabase/client';
 import { ClassInfo } from '@/components/teacher/ClassItem';
 import { toast } from '@/hooks/use-toast';
+
+// Mock data for classes
+const MOCK_CLASSES: ClassInfo[] = [
+  {
+    id: "class1",
+    name: "Desenvolvimento Web Full Stack",
+    description: "Aprenda desenvolvimento web do zero ao avançado",
+    startDate: "2023-06-01",
+    studentsCount: 15
+  },
+  {
+    id: "class2",
+    name: "QA e Testes Automáticos",
+    description: "Curso completo sobre testes e automação",
+    startDate: "2023-07-15",
+    studentsCount: 8
+  }
+];
 
 export const useClassManagement = () => {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
@@ -12,25 +29,16 @@ export const useClassManagement = () => {
   const { user } = useAuth();
 
   const fetchClasses = async () => {
-    if (!user) return;
-    
     setIsLoading(true);
-    setError(null);
-    
     try {
-      const { data, error } = await supabase.rpc('get_teacher_classes', {
-        teacher_id: user.id
-      });
-      
-      if (error) throw error;
-      
-      setClasses(data || []);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setClasses(MOCK_CLASSES);
     } catch (err: any) {
-      console.error('Error fetching classes:', err);
-      setError(err.message || 'Failed to load classes');
+      setError('Failed to load classes');
       toast({
         title: 'Error loading classes',
-        description: err.message || 'There was a problem loading your classes',
+        description: 'There was a problem loading your classes',
         variant: 'destructive'
       });
     } finally {
@@ -45,22 +53,20 @@ export const useClassManagement = () => {
   }, [user]);
 
   const handleAddClass = async (classData: { name: string; description: string; startDate: string }) => {
-    if (!user) return false;
-    
     setIsLoading(true);
-    
     try {
-      const result = await supabase.rpc('create_class', {
-        p_name: classData.name,
-        p_description: classData.description,
-        p_start_date: classData.startDate,
-        p_teacher_id: user.id
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (result.error) throw result.error;
+      const newClass: ClassInfo = {
+        id: Date.now().toString(),
+        name: classData.name,
+        description: classData.description,
+        startDate: classData.startDate,
+        studentsCount: 0
+      };
       
-      // Refresh classes list
-      await fetchClasses();
+      setClasses(prev => [...prev, newClass]);
       
       toast({
         title: 'Class added',
@@ -69,10 +75,9 @@ export const useClassManagement = () => {
       
       return true;
     } catch (err: any) {
-      console.error('Error adding class:', err);
       toast({
         title: 'Error adding class',
-        description: err.message || 'There was a problem creating the class',
+        description: 'There was a problem creating the class',
         variant: 'destructive'
       });
       return false;
@@ -82,25 +87,14 @@ export const useClassManagement = () => {
   };
 
   const handleEditClass = async (classData: ClassInfo) => {
-    if (!user) return false;
-    
     setIsLoading(true);
-    
     try {
-      const result = await supabase.rpc('update_class', {
-        p_class_id: classData.id,
-        p_name: classData.name,
-        p_description: classData.description,
-        p_start_date: classData.startDate,
-        p_teacher_id: user.id
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (result.error) throw result.error;
-      
-      // Update local state
-      setClasses(classes.map(c => 
-        c.id === classData.id ? classData : c
-      ));
+      setClasses(prev => 
+        prev.map(c => c.id === classData.id ? classData : c)
+      );
       
       toast({
         title: 'Class updated',
@@ -109,10 +103,9 @@ export const useClassManagement = () => {
       
       return true;
     } catch (err: any) {
-      console.error('Error updating class:', err);
       toast({
         title: 'Error updating class',
-        description: err.message || 'There was a problem updating the class',
+        description: 'There was a problem updating the class',
         variant: 'destructive'
       });
       return false;
@@ -122,22 +115,16 @@ export const useClassManagement = () => {
   };
 
   const handleDeleteClass = async (classId: string) => {
-    if (!user || !window.confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
+    if (!window.confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
       return false;
     }
     
     setIsLoading(true);
-    
     try {
-      const result = await supabase.rpc('delete_class', {
-        p_class_id: classId,
-        p_teacher_id: user.id
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (result.error) throw result.error;
-      
-      // Update local state
-      setClasses(classes.filter(c => c.id !== classId));
+      setClasses(prev => prev.filter(c => c.id !== classId));
       
       toast({
         title: 'Class deleted',
@@ -146,10 +133,9 @@ export const useClassManagement = () => {
       
       return true;
     } catch (err: any) {
-      console.error('Error deleting class:', err);
       toast({
         title: 'Error deleting class',
-        description: err.message || 'There was a problem deleting the class',
+        description: 'There was a problem deleting the class',
         variant: 'destructive'
       });
       return false;

@@ -1,34 +1,30 @@
+// Mock client implementation - keeping the file for future reference
+console.log('[Mock] Using mock data instead of Supabase');
 
-import { createClient } from "@supabase/supabase-js";
-
-// Replace with your project's actual URL and anon key
-const SUPABASE_URL = "https://jqnarznabyiyngcdqcff.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxbmFyem5hYnlpeW5nY2RxY2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4OTk5OTAsImV4cCI6MjA1OTQ3NTk5MH0.g_Cq1x29MLlq46SaszcCL65FwVJQd7Qyv4MPIy1HwQg";
-
-// Debug Supabase connection
-console.log('[Supabase] Initializing client with URL:', SUPABASE_URL);
-
-// Create the Supabase client with explicit auth configuration for reliable sessions
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase = {
   auth: {
-    storage: localStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce'
-  }
-});
-
-// Test the connection and log the result for debugging purposes
-supabase.auth.getSession().then(({ data, error }) => {
-  if (error) {
-    console.error('[Supabase] Error checking session:', error);
-  } else {
-    console.log('[Supabase] Connection successful. Session exists:', !!data.session);
-    if (data.session) {
-      console.log('[Supabase] User ID:', data.session.user.id);
-    }
-  }
-});
-
-console.log('[Supabase] Client initialized');
+    signInWithPassword: async () => {
+      return { data: null, error: null };
+    },
+    signOut: async () => {
+      return { error: null };
+    },
+    getSession: async () => {
+      return { data: { session: null }, error: null };
+    },
+    onAuthStateChange: () => {
+      return {
+        data: { subscription: { unsubscribe: () => {} } },
+        error: null,
+      };
+    },
+  },
+  from: () => ({
+    select: () => ({
+      eq: () => ({
+        single: async () => ({ data: null, error: null }),
+      }),
+    }),
+  }),
+  rpc: () => ({ data: null, error: null }),
+};

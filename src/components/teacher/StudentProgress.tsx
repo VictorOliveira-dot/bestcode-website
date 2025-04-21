@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
@@ -8,146 +8,42 @@ import StudentProgressTable from "./student/StudentProgressTable";
 import StudentDetailsModal from "./student/StudentDetailsModal";
 import { generateStudentLessons } from "./utils/student-data-utils";
 import { StudentProgress, LessonStatus } from "./types/student";
-import { supabase } from "@/integrations/supabase/client";
 
-// Update interfaces to match actual response structure from Supabase
-interface EnrollmentResponseItem {
-  student_id: string;
-  classes: { name: string }[] | null;
-  users: { name: string; email: string }[] | null;
-}
-
-interface ProgressData {
-  progress: number;
-  status: string;
-  last_watched: string | null;
-  lessons: { id: string } | null;
-}
+// Mock student data
+const MOCK_STUDENTS: StudentProgress[] = [
+  {
+    id: "1",
+    name: "João Silva",
+    email: "joao@example.com",
+    className: "Web Development",
+    lastActivity: new Date().toISOString(),
+    completedLessons: 8,
+    totalLessons: 12,
+    progress: 67
+  },
+  {
+    id: "2",
+    name: "Maria Santos",
+    email: "maria@example.com",
+    className: "QA Testing",
+    lastActivity: new Date().toISOString(),
+    completedLessons: 5,
+    totalLessons: 10,
+    progress: 50
+  }
+];
 
 const StudentProgressTracker = () => {
-  const [students, setStudents] = useState<StudentProgress[]>([]);
+  const [students] = useState<StudentProgress[]>(MOCK_STUDENTS);
   const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [studentLessons, setStudentLessons] = useState<LessonStatus[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
-  const [availableClasses, setAvailableClasses] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [availableClasses] = useState<string[]>(["Web Development", "QA Testing"]);
+  const [isLoading] = useState(false);
   const isMobile = useIsMobile();
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (!user) return;
-    
-    const fetchStudentProgress = async () => {
-      setIsLoading(true);
-      try {
-        const { data: classesData, error: classesError } = await supabase
-          .from('classes')
-          .select('id, name')
-          .eq('teacher_id', user.id);
-        
-        if (classesError) throw classesError;
-        
-        if (classesData && classesData.length > 0) {
-          const classes = classesData.map(c => c.name);
-          setAvailableClasses(classes);
-          
-          const { data: enrollmentsData, error: enrollmentsError } = await supabase
-            .from('enrollments')
-            .select(`
-              student_id,
-              classes(name),
-              users:student_id(name, email)
-            `)
-            .in('class_id', classesData.map(c => c.id));
-          
-          if (enrollmentsError) throw enrollmentsError;
-          
-          if (enrollmentsData && enrollmentsData.length > 0) {
-            const studentProgressData: StudentProgress[] = [];
-            
-            for (const enrollment of enrollmentsData as unknown as EnrollmentResponseItem[]) {
-              // Check if classes and users arrays exist and have at least one item
-              if (!enrollment.users?.length || !enrollment.classes?.length) continue;
-              
-              const className = enrollment.classes[0]?.name;
-              const studentName = enrollment.users[0]?.name;
-              const studentEmail = enrollment.users[0]?.email;
-              
-              if (!className || !studentName || !studentEmail) continue;
-              
-              const { data: progressData, error: progressError } = await supabase
-                .from('lesson_progress')
-                .select(`
-                  progress,
-                  status,
-                  last_watched,
-                  lessons(id)
-                `)
-                .eq('student_id', enrollment.student_id);
-              
-              if (progressError) {
-                console.error(`Error fetching progress for student ${enrollment.student_id}:`, progressError);
-                continue;
-              }
-              
-              const { count: totalLessons, error: countError } = await supabase
-                .from('lessons')
-                .select('id', { count: 'exact' })
-                .eq('class_id', classesData.find(c => c.name === className)?.id);
-                
-              if (countError) {
-                console.error(`Error counting lessons for class:`, countError);
-                continue;
-              }
-              
-              const completedLessons = progressData?.filter(p => p.status === 'completed').length || 0;
-              
-              const progress = totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0;
-              
-              let lastActivity = null;
-              if (progressData && progressData.length > 0) {
-                const sortedProgress = [...progressData].sort((a, b) => {
-                  if (!a.last_watched) return 1;
-                  if (!b.last_watched) return -1;
-                  return new Date(b.last_watched).getTime() - new Date(a.last_watched).getTime();
-                });
-                
-                if (sortedProgress[0]?.last_watched) {
-                  lastActivity = sortedProgress[0].last_watched;
-                }
-              }
-              
-              studentProgressData.push({
-                id: enrollment.student_id,
-                name: studentName,
-                email: studentEmail,
-                className: className,
-                lastActivity: lastActivity || new Date().toISOString(),
-                completedLessons,
-                totalLessons: totalLessons || 0,
-                progress
-              });
-            }
-            
-            setStudents(studentProgressData);
-          }
-        }
-      } catch (error: any) {
-        console.error("Error fetching student progress:", error);
-        toast({
-          title: "Erro ao carregar dados dos alunos",
-          description: error.message || "Ocorreu um erro ao buscar os dados dos alunos.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchStudentProgress();
-  }, [user]);
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
