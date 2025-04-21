@@ -33,7 +33,8 @@ interface Class {
   is_active: boolean;
 }
 
-interface TeacherData {
+// Update the interface to properly match the response structure
+interface TeacherResponse {
   name: string;
 }
 
@@ -57,8 +58,12 @@ const CoursesTable: React.FC = () => {
 
       return classes.map(c => ({
         ...c,
-        teacher_name: c.teacher ? (c.teacher as TeacherData).name || 'Sem professor' : 'Sem professor',
-        students_count: c.students ? (c.students as any[]).length || 0 : 0
+        // Access the first item in the array or provide a default
+        teacher_name: c.teacher && Array.isArray(c.teacher) && c.teacher.length > 0 
+          ? c.teacher[0]?.name || 'Sem professor' 
+          : 'Sem professor',
+        // Safely get the length of the students array
+        students_count: c.students && Array.isArray(c.students) ? c.students.length : 0
       })) as Class[];
     }
   });

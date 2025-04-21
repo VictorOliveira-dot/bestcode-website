@@ -10,10 +10,11 @@ import { generateStudentLessons } from "./utils/student-data-utils";
 import { StudentProgress, LessonStatus } from "./types/student";
 import { supabase } from "@/integrations/supabase/client";
 
-interface EnrollmentData {
+// Update interfaces to match actual response structure from Supabase
+interface EnrollmentResponseItem {
   student_id: string;
-  classes: { name: string } | null;
-  users: { name: string; email: string } | null;
+  classes: { name: string }[] | null;
+  users: { name: string; email: string }[] | null;
 }
 
 interface ProgressData {
@@ -66,8 +67,15 @@ const StudentProgressTracker = () => {
           if (enrollmentsData && enrollmentsData.length > 0) {
             const studentProgressData: StudentProgress[] = [];
             
-            for (const enrollment of enrollmentsData as EnrollmentData[]) {
-              if (!enrollment.users || !enrollment.classes) continue;
+            for (const enrollment of enrollmentsData as unknown as EnrollmentResponseItem[]) {
+              // Check if classes and users arrays exist and have at least one item
+              if (!enrollment.users?.length || !enrollment.classes?.length) continue;
+              
+              const className = enrollment.classes[0]?.name;
+              const studentName = enrollment.users[0]?.name;
+              const studentEmail = enrollment.users[0]?.email;
+              
+              if (!className || !studentName || !studentEmail) continue;
               
               const { data: progressData, error: progressError } = await supabase
                 .from('lesson_progress')
@@ -87,7 +95,7 @@ const StudentProgressTracker = () => {
               const { count: totalLessons, error: countError } = await supabase
                 .from('lessons')
                 .select('id', { count: 'exact' })
-                .eq('class_id', classesData.find(c => c.name === enrollment.classes?.name)?.id);
+                .eq('class_id', classesData.find(c => c.name === className)?.id);
                 
               if (countError) {
                 console.error(`Error counting lessons for class:`, countError);
@@ -113,9 +121,9 @@ const StudentProgressTracker = () => {
               
               studentProgressData.push({
                 id: enrollment.student_id,
-                name: enrollment.users.name,
-                email: enrollment.users.email,
-                className: enrollment.classes.name,
+                name: studentName,
+                email: studentEmail,
+                className: className,
                 lastActivity: lastActivity || new Date().toISOString(),
                 completedLessons,
                 totalLessons: totalLessons || 0,
