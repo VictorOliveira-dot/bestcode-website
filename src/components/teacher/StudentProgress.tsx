@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/auth";
@@ -72,7 +73,7 @@ const StudentProgressTracker = () => {
               
               const { count: totalLessons, error: countError } = await supabase
                 .from('lessons')
-                .select('id', { count: 'exact', head: true })
+                .select('id', { count: 'exact' })
                 .eq('class_id', classesData.find(c => c.name === enrollment.classes?.name)?.id);
                 
               if (countError) {

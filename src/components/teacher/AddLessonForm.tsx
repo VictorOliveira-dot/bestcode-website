@@ -39,7 +39,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
     description: "",
     youtubeUrl: "",
     date: new Date().toISOString().split("T")[0],
-    class_id: "",
+    classId: "",
     visibility: "class_only",
   });
 
@@ -51,7 +51,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
         description: "",
         youtubeUrl: "",
         date: new Date().toISOString().split("T")[0],
-        class_id: availableClasses.length > 0 ? availableClasses[0].id : "",
+        classId: availableClasses.length > 0 ? availableClasses[0].id : "",
         visibility: "class_only",
       });
     }
@@ -113,8 +113,8 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
             <div className="grid gap-2">
               <Label htmlFor="class">Turma</Label>
               <Select
-                value={newLesson.class_id}
-                onValueChange={(value) => setNewLesson({ ...newLesson, class_id: value })}
+                value={newLesson.classId}
+                onValueChange={(value) => setNewLesson({ ...newLesson, classId: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma turma" />

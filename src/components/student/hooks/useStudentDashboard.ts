@@ -3,35 +3,39 @@ import { useState, useEffect } from "react";
 import { User } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Lesson, LessonProgress } from "../types/lesson";
 
 // Mock data
-const MOCK_LESSONS = [
+const MOCK_LESSONS: Lesson[] = [
   {
     id: "lesson1",
     title: "Introdução ao QA",
     description: "Fundamentos de testes e qualidade de software",
+    youtubeUrl: "https://www.youtube.com/watch?v=example1",
     date: "2023-09-10",
-    completed: false,
-    progress: 0,
-    classId: "class1",
+    class: "QA-01",
+    class_id: "class1",
+    visibility: "class_only"
   },
   {
     id: "lesson2",
     title: "Testes Automatizados com Cypress",
     description: "Aprenda a criar testes end-to-end com Cypress",
+    youtubeUrl: "https://www.youtube.com/watch?v=example2",
     date: "2023-09-15",
-    completed: false,
-    progress: 25,
-    classId: "class1",
+    class: "QA-01",
+    class_id: "class1",
+    visibility: "class_only"
   },
   {
     id: "lesson3",
     title: "Testes de API com Postman",
     description: "Testando APIs REST com Postman",
+    youtubeUrl: "https://www.youtube.com/watch?v=example3",
     date: "2023-09-20",
-    completed: true,
-    progress: 100,
-    classId: "class1",
+    class: "QA-01",
+    class_id: "class1",
+    visibility: "class_only"
   }
 ];
 
@@ -52,44 +56,60 @@ const MOCK_NOTIFICATIONS = [
   }
 ];
 
+const MOCK_LESSON_PROGRESS: LessonProgress[] = [
+  {
+    lessonId: "lesson1",
+    watchTimeMinutes: 0,
+    lastWatched: null,
+    progress: 0,
+    status: "not_started"
+  },
+  {
+    lessonId: "lesson2",
+    watchTimeMinutes: 12,
+    lastWatched: "2023-09-16T14:00:00Z",
+    progress: 25,
+    status: "in_progress"
+  },
+  {
+    lessonId: "lesson3",
+    watchTimeMinutes: 45,
+    lastWatched: "2023-09-20T16:30:00Z",
+    progress: 100,
+    status: "completed"
+  }
+];
+
 export const useStudentDashboard = () => {
-  const [lessons, setLessons] = useState(MOCK_LESSONS);
+  const [lessons, setLessons] = useState<Lesson[]>(MOCK_LESSONS);
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [studentClass, setStudentClass] = useState("QA-01");
-  const [lessonProgress, setLessonProgress] = useState<Record<string, number>>({
-    lesson1: 0,
-    lesson2: 25,
-    lesson3: 100,
-  });
+  const [lessonProgress, setLessonProgress] = useState<LessonProgress[]>(MOCK_LESSON_PROGRESS);
 
   const stats = {
-    inProgressLessons: lessons.filter(l => l.progress > 0 && l.progress < 100).length,
-    completedLessons: lessons.filter(l => l.progress === 100).length,
+    inProgressLessons: lessonProgress.filter(l => l.status === "in_progress").length,
+    completedLessons: lessonProgress.filter(l => l.status === "completed").length,
     overallProgress: Math.round(
-      (lessons.reduce((acc, lesson) => acc + lesson.progress, 0) / 
-      (lessons.length * 100)) * 100
+      (lessonProgress.reduce((acc, lesson) => acc + lesson.progress, 0) / 
+      (lessonProgress.length * 100)) * 100
     ),
     availableLessons: lessons.length,
   };
 
-  const updateLessonProgress = (lessonId: string, progress: number) => {
-    setLessonProgress(prev => ({
-      ...prev,
-      [lessonId]: progress
+  const updateLessonProgress = (lessonId: string, watchTimeMinutes: number, progress: number) => {
+    setLessonProgress(prev => prev.map(item => {
+      if (item.lessonId === lessonId) {
+        const newStatus = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
+        return {
+          ...item,
+          watchTimeMinutes,
+          progress,
+          status: newStatus,
+          lastWatched: new Date().toISOString()
+        };
+      }
+      return item;
     }));
-
-    // Update lessons array too
-    setLessons(prev => 
-      prev.map(lesson => 
-        lesson.id === lessonId 
-          ? { 
-              ...lesson, 
-              progress, 
-              completed: progress === 100 
-            } 
-          : lesson
-      )
-    );
 
     toast({
       title: "Progresso atualizado",

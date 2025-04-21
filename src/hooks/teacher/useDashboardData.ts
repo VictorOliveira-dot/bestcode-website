@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,7 +96,7 @@ export function useDashboardData() {
             // Count students using direct query
             const { data: enrollmentsData, error: countError } = await supabase
               .from('enrollments')
-              .select('student_id', { count: 'exact', head: true })
+              .select('student_id', { count: 'exact' })
               .in('class_id', classesData.map(cls => cls.id));
               
             if (!countError) {
