@@ -1,14 +1,7 @@
 
 import React from "react";
-import { 
-  Table, 
-  TableHeader, 
-  TableRow, 
-  TableHead, 
-  TableBody
-} from "@/components/ui/table";
+import { Table, TableBody } from "@/components/ui/table";
 import ClassItem from "./ClassItem";
-import { ClassInfo } from "./ClassItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import MobileClassCard from "./MobileClassCard";
 import { useClassTable, ClassTableProps } from "@/hooks/teacher/useClassTable";
@@ -77,15 +70,6 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
   return (
     <div className="overflow-x-auto">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Data de Início</TableHead>
-            <TableHead>Alunos</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
         <TableBody>
           {classes.map((classInfo) => (
             <ClassItem 
@@ -102,3 +86,4 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
 };
 
 export default ClassTable;
+
