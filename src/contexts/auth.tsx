@@ -62,14 +62,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Configurar listener de mudanças de auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
+      async (event, newSession) => {
+        console.log('Auth state changed:', event, newSession?.user?.id);
+        
         if (newSession) {
-          setSession(newSession as Session);
-
+          setSession(newSession);
+          
+          // Importante: Usar setTimeout para evitar deadlocks com Supabase
           setTimeout(async () => {
             if (newSession.user) {
               const userData = await fetchUserData(newSession.user.id);
               if (userData) {
+                console.log('User data fetched:', userData);
                 setUser(userData);
               } else {
                 const metadata = newSession.user.user_metadata || {};
@@ -88,25 +92,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(null);
           setLoading(false);
         }
-
-        if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setSession(null);
-        }
       }
     );
 
     // Verificar sessão existente ao carregar
     const getInitialSession = async () => {
       try {
+        setLoading(true);
         const { data: { session: initialSession } } = await supabase.auth.getSession();
 
+        console.log('Initial session check:', initialSession?.user?.id);
+        
         if (initialSession) {
-          setSession(initialSession as Session);
+          setSession(initialSession);
 
           if (initialSession.user) {
             const userData = await fetchUserData(initialSession.user.id);
             if (userData) {
+              console.log('Initial user data:', userData);
               setUser(userData);
             } else {
               const metadata = initialSession.user.user_metadata || {};
@@ -139,6 +142,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
 
     try {
+      console.log('Tentando login com:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -150,24 +155,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data?.user) {
-        const userData = await fetchUserData(data.user.id);
-
-        if (userData) {
-          setUser(userData);
-          return { success: true };
-        } else {
-          const metadata = data.user.user_metadata || {};
-          if (metadata.name && metadata.role) {
-            setUser({
-              id: data.user.id,
-              email: data.user.email || '',
-              name: metadata.name,
-              role: metadata.role as 'admin' | 'teacher' | 'student'
-            });
-            return { success: true };
+        console.log('Login bem-sucedido:', data.user.id);
+        
+        // Usar setTimeout para evitar problemas com eventos de autenticação
+        setTimeout(async () => {
+          const userData = await fetchUserData(data.user.id);
+          
+          if (userData) {
+            console.log('Dados do usuário após login:', userData);
+            setUser(userData);
           }
-          return { success: false, message: 'Conta de usuário incompleta. Por favor, contate o suporte.' };
-        }
+        }, 0);
+        
+        return { success: true };
       }
 
       return { success: false, message: 'Não foi possível autenticar o usuário.' };
@@ -204,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
 
     try {
-      // Registrar usuário no Auth do Supabase (permite futura autorização de teacher/admin via backend)
+      // Registrar usuário no Auth do Supabase
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -259,4 +259,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export default AuthProvider;
-

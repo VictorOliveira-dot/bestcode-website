@@ -29,6 +29,7 @@ const LoginForm = () => {
   // Redireciona usuário já logado para sua respectiva dashboard
   useEffect(() => {
     if (user) {
+      console.log("User authenticated, redirecting based on role:", user.role);
       if (user.role === "admin") {
         navigate("/admin/dashboard");
       } else if (user.role === "teacher") {
@@ -58,8 +59,13 @@ const LoginForm = () => {
         return;
       }
 
+      console.log("Submetendo formulário de login:", { email });
+
       // Utiliza autenticação real do Supabase via contexto
       const result = await login(email, password);
+      
+      console.log("Resultado do login:", result);
+      
       if (result.success) {
         toast({
           title: "Login realizado com sucesso!",
@@ -76,6 +82,7 @@ const LoginForm = () => {
         });
       }
     } catch (error: any) {
+      console.error("Erro durante login:", error);
       setErrorMessage(error.message || "Login falhou. Por favor, tente novamente.");
       toast({
         title: "Erro de autenticação",
@@ -123,4 +130,3 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
-
