@@ -7,7 +7,6 @@ import LoginFormHeader from "./LoginFormHeader";
 import EmailField from "./EmailField";
 import PasswordField from "./PasswordField";
 import LoginFormActions from "./LoginFormActions";
-import TestAccountInfo from "./TestAccountInfo";
 import { useAuth } from "@/contexts/auth";
 import { useNavigate } from "react-router-dom";
 
@@ -111,7 +110,6 @@ const LoginForm = () => {
               </div>
             )}
             <LoginFormActions isLoading={isLoading || loading} />
-            <TestAccountInfo />
           </form>
         </CardContent>
       </Card>
@@ -125,3 +123,4 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
+
