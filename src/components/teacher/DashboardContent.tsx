@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -109,9 +110,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                   </TabsContent>
                   
                   <TabsContent value="classes" className="mt-0">
-                    <div className="bg-white rounded-lg">
-                      <ClassManagement />
-                    </div>
+                    <ClassManagement />
                   </TabsContent>
                   
                   <TabsContent value="students" className="mt-0">

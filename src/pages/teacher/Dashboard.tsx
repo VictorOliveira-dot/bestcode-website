@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -7,7 +8,6 @@ import DashboardHeader from "@/components/teacher/DashboardHeader";
 import DashboardCards from "@/components/teacher/DashboardCards";
 import DashboardContent from "@/components/teacher/DashboardContent";
 import AddLessonForm from "@/components/teacher/AddLessonForm";
-import ClassManagement from "@/components/teacher/ClassManagement";
 
 // Custom hooks and utilities
 import { useDashboardData } from "@/hooks/teacher/useDashboardData";
@@ -59,28 +59,6 @@ const TeacherDashboard = () => {
     setLessons(updatedLessons);
   };
 
-  const renderTabContent = () => {
-    if (activeTab === "classes") {
-      return (
-        <div className="mt-6">
-          <ClassManagement />
-        </div>
-      );
-    }
-    
-    return (
-      <DashboardContent 
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        lessons={lessons}
-        availableClasses={availableClasses.map(c => c.name)}
-        setIsAddLessonOpen={setIsAddLessonOpen}
-        handleDeleteLesson={handleDeleteLesson}
-        isLoading={isLoading}
-      />
-    );
-  };
-
   return (
     <div className="min-h-screen bg-slate-50">
       <DashboardHeader userName={user.name} />
@@ -94,7 +72,15 @@ const TeacherDashboard = () => {
           onChangeTab={setActiveTab}
         />
 
-        {renderTabContent()}
+        <DashboardContent 
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          lessons={lessons}
+          availableClasses={availableClasses.map(c => c.name)}
+          setIsAddLessonOpen={setIsAddLessonOpen}
+          handleDeleteLesson={handleDeleteLesson}
+          isLoading={isLoading}
+        />
       </main>
 
       <AddLessonForm 
