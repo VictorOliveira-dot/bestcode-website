@@ -18,21 +18,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { user, loading, session } = useAuthState();
 
   const login = async (email: string, password: string) => {
+    console.log('[Auth Provider] Login attempt for:', email);
     return loginWithEmail(email, password);
   };
 
   const logout = async () => {
+    console.log('[Auth Provider] Logout initiated');
     await logoutUser();
   };
 
   const register = async (data: { email: string; password: string; name: string; role: string }) => {
+    console.log('[Auth Provider] Register attempt for:', data.email);
     return registerUser(data);
   };
 
-  console.log('Auth Provider state:', { 
+  console.log('[Auth Provider] State:', { 
     userExists: !!user, 
     loading, 
-    sessionExists: !!session 
+    sessionExists: !!session,
+    userRole: user?.role
   });
 
   return (

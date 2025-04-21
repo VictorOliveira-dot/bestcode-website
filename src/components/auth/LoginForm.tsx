@@ -30,13 +30,17 @@ const LoginForm = () => {
   // Redirect authenticated user to their respective dashboard
   useEffect(() => {
     if (user) {
-      console.log("User authenticated, redirecting based on role:", user.role);
+      console.log("[Login Form] User authenticated, redirecting based on role:", user.role);
       if (user.role === "admin") {
         navigate("/admin/dashboard");
       } else if (user.role === "teacher") {
         navigate("/teacher/dashboard");
       } else if (user.role === "student") {
         navigate("/student/dashboard");
+      } else {
+        // Default fallback
+        navigate("/");
+        console.log("[Login Form] No specific redirect for role:", user.role);
       }
     }
   }, [user, navigate]);
@@ -53,7 +57,7 @@ const LoginForm = () => {
 
     try {
       // Log form submission
-      console.log("Submitting login form for:", email);
+      console.log("[Login Form] Submitting login form for:", email);
       
       // Basic validation
       if (!email.trim() || !password.trim()) {
@@ -67,11 +71,11 @@ const LoginForm = () => {
         return;
       }
 
-      // Use real Supabase authentication via context
-      console.log("Attempting login with Supabase...");
+      // Use Supabase authentication via context
+      console.log("[Login Form] Attempting login with Supabase...");
       const result = await login(email, password);
       
-      console.log("Login result:", result);
+      console.log("[Login Form] Login result:", result);
       
       if (result.success) {
         toast({
@@ -90,7 +94,7 @@ const LoginForm = () => {
         });
       }
     } catch (error: any) {
-      console.error("Error during login:", error);
+      console.error("[Login Form] Error during login:", error);
       setErrorMessage(error.message || "Login failed. Please try again.");
       toast({
         variant: "destructive",
@@ -122,6 +126,7 @@ const LoginForm = () => {
             {errorMessage && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
                 <p className="font-medium">Error: {errorMessage}</p>
+                <p className="text-xs mt-1">Make sure the email and password match an existing account.</p>
               </div>
             )}
             <LoginFormActions isLoading={isLoading || loading} />

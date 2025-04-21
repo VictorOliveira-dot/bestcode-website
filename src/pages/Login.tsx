@@ -24,7 +24,8 @@ const Login = () => {
           <LoginForm />
           
           <div className="mt-8 text-center text-sm text-gray-500">
-            <p>Use the credentials provided by your administrator</p>
+            <p>Use your Supabase registered credentials</p>
+            <p className="mt-2 text-xs">If you're experiencing login issues, please contact support</p>
           </div>
         </div>
       </main>

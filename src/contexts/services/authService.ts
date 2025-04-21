@@ -5,7 +5,9 @@ import { toast } from '@/hooks/use-toast';
 
 export const fetchUserData = async (userId: string): Promise<User | null> => {
   try {
-    console.log('Fetching user data for ID:', userId);
+    console.log('[Auth Service] Fetching user data for ID:', userId);
+    
+    // First try to fetch from public.users table
     const { data, error } = await supabase
       .from('users')
       .select('id, email, name, role')
@@ -13,25 +15,40 @@ export const fetchUserData = async (userId: string): Promise<User | null> => {
       .maybeSingle();
 
     if (error) {
-      console.error('Error fetching user data:', error);
+      console.error('[Auth Service] Error fetching user data:', error);
       return null;
     }
 
     if (!data) {
-      console.log('No user data found in database');
+      console.log('[Auth Service] No user data found in database');
+      
+      // If no user data in users table, fetch from auth metadata
+      const { data: { user } } = await supabase.auth.getUser(userId);
+      
+      if (user) {
+        console.log('[Auth Service] Using auth metadata for user data');
+        const metadata = user.user_metadata || {};
+        return {
+          id: user.id,
+          email: user.email || '',
+          name: metadata.name || user.email?.split('@')[0] || 'User',
+          role: metadata.role || 'student'
+        };
+      }
+      
       return null;
     }
 
-    console.log('User data found:', data);
+    console.log('[Auth Service] User data found:', data);
     return data as User;
   } catch (error) {
-    console.error('Unexpected error fetching user data:', error);
+    console.error('[Auth Service] Unexpected error fetching user data:', error);
     return null;
   }
 };
 
 export const loginWithEmail = async (email: string, password: string) => {
-  console.log('Starting login process for:', email);
+  console.log('[Auth Service] Starting login process for:', email);
 
   try {
     // Make sure email and password are trimmed
@@ -45,55 +62,80 @@ export const loginWithEmail = async (email: string, password: string) => {
       };
     }
 
-    console.log('Attempting Supabase authentication...');
+    console.log('[Auth Service] Attempting Supabase authentication...');
     
     // Log auth attempt (masking sensitive data)
-    console.log(`Auth attempt for: ${trimmedEmail}`);
+    console.log(`[Auth Service] Auth attempt for: ${trimmedEmail}`);
 
+    // Clear any previous sessions to avoid conflicts
+    await supabase.auth.signOut();
+    
+    // Attempt to sign in with provided credentials
     const { data, error } = await supabase.auth.signInWithPassword({
       email: trimmedEmail,
       password: trimmedPassword
     });
 
     if (error) {
-      console.error('Authentication error details:', {
+      console.error('[Auth Service] Authentication error details:', {
         message: error.message,
         status: error.status,
         name: error.name
       });
       
-      if (error.message) {
-        return { 
-          success: false, 
-          message: 'Email or password incorrect. Please check your credentials and try again.' 
-        };
-      }
-      
       return { 
         success: false, 
-        message: 'Invalid credentials. Please check your email and password.' 
+        message: 'Email or password incorrect. Please check your credentials and try again.' 
       };
     }
 
     if (!data?.user) {
-      console.error('Login failed: No user returned');
+      console.error('[Auth Service] Login failed: No user returned');
       return { 
         success: false, 
         message: 'Authentication failed. Please try again.' 
       };
     }
 
-    console.log('Login successful for user ID:', data.user.id);
-    console.log('Valid session:', !!data.session);
+    console.log('[Auth Service] Login successful for user ID:', data.user.id);
+    console.log('[Auth Service] Valid session:', !!data.session);
     
     return { success: true };
 
   } catch (error: any) {
-    console.error('Unexpected error during login:', error);
+    console.error('[Auth Service] Unexpected error during login:', error);
     return { 
       success: false, 
       message: error.message || 'An error occurred during login' 
     };
+  }
+};
+
+export const logoutUser = async () => {
+  console.log('[Auth Service] Starting logout process');
+  try {
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error('[Auth Service] Error during logout:', error);
+      toast({
+        variant: "destructive",
+        title: "Error logging out",
+        description: "Could not logout. Please try again."
+      });
+      return { success: false };
+    }
+    
+    console.log('[Auth Service] Logout successful');
+    return { success: true };
+  } catch (error) {
+    console.error('[Auth Service] Error during logout:', error);
+    toast({
+      variant: "destructive",
+      title: "Error logging out",
+      description: "Could not logout. Please try again."
+    });
+    return { success: false };
   }
 };
 
@@ -125,12 +167,12 @@ export const registerUser = async (data: {
     });
 
     if (authError) {
-      console.error('Registration error:', authError);
+      console.error('[Auth Service] Registration error:', authError);
       return { success: false, message: authError.message };
     }
 
     if (!authData?.user) {
-      console.error('Registration failed: No user created');
+      console.error('[Auth Service] Registration failed: No user created');
       return { success: false, message: 'Could not create account.' };
     }
 
@@ -146,42 +188,14 @@ export const registerUser = async (data: {
       ]);
 
     if (userError) {
-      console.error('Error creating user profile:', userError);
+      console.error('[Auth Service] Error creating user profile:', userError);
       return { success: false, message: 'Error creating profile. Please contact support.' };
     }
 
-    console.log('User registered successfully:', email);
+    console.log('[Auth Service] User registered successfully:', email);
     return { success: true, message: 'Account created successfully!' };
   } catch (error: any) {
-    console.error('Error during registration process:', error);
+    console.error('[Auth Service] Error during registration process:', error);
     return { success: false, message: error.message || 'Error registering' };
-  }
-};
-
-export const logoutUser = async () => {
-  console.log('Starting logout process');
-  try {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      console.error('Error during logout:', error);
-      toast({
-        variant: "destructive",
-        title: "Error logging out",
-        description: "Could not logout. Please try again."
-      });
-      return { success: false };
-    }
-    
-    console.log('Logout successful');
-    return { success: true };
-  } catch (error) {
-    console.error('Error during logout:', error);
-    toast({
-      variant: "destructive",
-      title: "Error logging out",
-      description: "Could not logout. Please try again."
-    });
-    return { success: false };
   }
 };
