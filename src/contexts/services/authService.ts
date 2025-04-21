@@ -23,7 +23,7 @@ export const fetchUserData = async (userId: string): Promise<User | null> => {
       console.log('[Auth Service] No user data found in database');
       
       // If no user data in users table, fetch from auth metadata
-      const { data: { user } } = await supabase.auth.getUser(userId);
+      const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
         console.log('[Auth Service] Using auth metadata for user data');

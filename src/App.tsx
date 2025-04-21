@@ -17,6 +17,7 @@ import TeacherDashboard from "./pages/teacher/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import CreateTestUsers from "./pages/CreateTestUsers";
 
 // Novas páginas importadas
 import TermsOfService from "./pages/TermsOfService";
@@ -50,6 +51,7 @@ const App = () => {
             <Route path="/about" element={<About />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/faq" element={<Index />} />
+            <Route path="/create-test-users" element={<CreateTestUsers />} />
             
             {/* Rotas protegidas para estudantes */}
             <Route path="/checkout" element={
