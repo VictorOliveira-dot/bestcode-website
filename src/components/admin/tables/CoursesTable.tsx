@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Table,
@@ -22,6 +23,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 interface Class {
   id: string;
@@ -34,6 +37,8 @@ interface Class {
 }
 
 const CoursesTable: React.FC = () => {
+  const navigate = useNavigate();
+
   const { data: courses, isLoading, error } = useQuery({
     queryKey: ['courses'],
     queryFn: async () => {
@@ -50,6 +55,33 @@ const CoursesTable: React.FC = () => {
       return mockCourses as Class[];
     }
   });
+
+  const handleViewDetails = (courseId: string) => {
+    toast({
+      title: "Visualizando detalhes do curso",
+      description: `Redirecionando para a página de detalhes do curso #${courseId}`,
+    });
+    // In a real app, this would navigate to a course details page
+    // navigate(`/admin/courses/${courseId}`);
+  };
+
+  const handleEdit = (courseId: string) => {
+    toast({
+      title: "Editando curso",
+      description: `Redirecionando para a página de edição do curso #${courseId}`,
+    });
+    // In a real app, this would navigate to a course edit page
+    // navigate(`/admin/courses/${courseId}/edit`);
+  };
+
+  const handleDelete = (courseId: string) => {
+    toast({
+      title: "Excluir curso",
+      description: `Confirmação para excluir o curso #${courseId}`,
+      variant: "destructive",
+    });
+    // In a real app, this would show a confirmation dialog and then delete the course
+  };
 
   if (isLoading) {
     return (
@@ -120,7 +152,7 @@ const CoursesTable: React.FC = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewDetails(course.id)}>
                             <Eye className="mr-2 h-4 w-4" />
                             <span>Detalhes</span>
                           </DropdownMenuItem>
@@ -133,7 +165,7 @@ const CoursesTable: React.FC = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(course.id)}>
                             <Edit className="mr-2 h-4 w-4" />
                             <span>Editar</span>
                           </DropdownMenuItem>
@@ -146,7 +178,10 @@ const CoursesTable: React.FC = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(course.id)}
+                            className="text-red-600"
+                          >
                             <Trash className="mr-2 h-4 w-4" />
                             <span>Excluir</span>
                           </DropdownMenuItem>

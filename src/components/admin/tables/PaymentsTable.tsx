@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Table,
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Eye, Receipt, AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "@/hooks/use-toast";
 
 const mockPayments = [
   {
@@ -74,6 +76,31 @@ const mockPayments = [
 ];
 
 const AdminPaymentsTable: React.FC = () => {
+  const handleViewDetails = (paymentId: string) => {
+    toast({
+      title: "Visualizando detalhes do pagamento",
+      description: `Redirecionando para a página de detalhes do pagamento #${paymentId}`,
+    });
+    // In a real app, this would navigate to a payment details page
+    // navigate(`/admin/payments/${paymentId}`);
+  };
+
+  const handleReceipt = (paymentId: string) => {
+    toast({
+      title: "Gerando recibo",
+      description: `Gerando recibo do pagamento #${paymentId}`,
+    });
+    // In a real app, this would generate and download a receipt or open it in a new tab
+  };
+
+  const handleRetry = (paymentId: string) => {
+    toast({
+      title: "Tentando novamente o pagamento",
+      description: `Iniciando tentativa de processamento do pagamento #${paymentId}`,
+    });
+    // In a real app, this would initiate a payment retry process
+  };
+
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -146,7 +173,7 @@ const AdminPaymentsTable: React.FC = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewDetails(payment.id)}>
                             <Eye className="mr-2 h-4 w-4" />
                             <span>Detalhes</span>
                           </DropdownMenuItem>
@@ -159,7 +186,7 @@ const AdminPaymentsTable: React.FC = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleReceipt(payment.id)}>
                             <Receipt className="mr-2 h-4 w-4" />
                             <span>Recibo</span>
                           </DropdownMenuItem>
@@ -173,7 +200,7 @@ const AdminPaymentsTable: React.FC = () => {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleRetry(payment.id)}>
                               <AlertTriangle className="mr-2 h-4 w-4" />
                               <span>Tentar novamente</span>
                             </DropdownMenuItem>

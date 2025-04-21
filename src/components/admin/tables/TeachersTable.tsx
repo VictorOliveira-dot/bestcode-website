@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Table,
@@ -20,6 +21,8 @@ import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 interface Teacher {
   id: string;
@@ -59,6 +62,8 @@ const MOCK_TEACHERS: Teacher[] = [
 ];
 
 const TeachersTable: React.FC = () => {
+  const navigate = useNavigate();
+
   const { data: teachers, isLoading, error } = useQuery({
     queryKey: ['teachers'],
     queryFn: async () => {
@@ -67,6 +72,33 @@ const TeachersTable: React.FC = () => {
       return MOCK_TEACHERS;
     }
   });
+
+  const handleViewDetails = (teacherId: string) => {
+    toast({
+      title: "Visualizando detalhes",
+      description: `Redirecionando para a página de detalhes do professor #${teacherId}`,
+    });
+    // In a real app, this would navigate to a teacher details page
+    // navigate(`/admin/teachers/${teacherId}`);
+  };
+
+  const handleEdit = (teacherId: string) => {
+    toast({
+      title: "Editando professor",
+      description: `Redirecionando para a página de edição do professor #${teacherId}`,
+    });
+    // In a real app, this would navigate to a teacher edit page
+    // navigate(`/admin/teachers/${teacherId}/edit`);
+  };
+
+  const handleDelete = (teacherId: string) => {
+    toast({
+      title: "Excluir professor",
+      description: `Confirmação para excluir o professor #${teacherId}`,
+      variant: "destructive",
+    });
+    // In a real app, this would show a confirmation dialog and then delete the teacher
+  };
 
   if (isLoading) {
     return (
@@ -121,7 +153,7 @@ const TeachersTable: React.FC = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewDetails(teacher.id)}>
                             <Eye className="mr-2 h-4 w-4" />
                             <span>Detalhes</span>
                           </DropdownMenuItem>
@@ -134,7 +166,7 @@ const TeachersTable: React.FC = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(teacher.id)}>
                             <Edit className="mr-2 h-4 w-4" />
                             <span>Editar</span>
                           </DropdownMenuItem>
@@ -147,7 +179,10 @@ const TeachersTable: React.FC = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(teacher.id)}
+                            className="text-red-600"
+                          >
                             <Trash className="mr-2 h-4 w-4" />
                             <span>Excluir</span>
                           </DropdownMenuItem>
