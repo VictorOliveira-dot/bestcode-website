@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session } from '@supabase/supabase-js';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
 
 // User type com os dados essenciais incluindo o papel
@@ -42,13 +42,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('users')
         .select('id, email, name, role')
         .eq('id', userId)
-        .single();
-      
+        .maybeSingle();
+
       if (error) {
         console.error('Erro ao buscar dados do usuário:', error);
         return null;
       }
-      
+
+      if (!data) return null;
+
       return data as User;
     } catch (error) {
       console.error('Erro inesperado ao buscar dados do usuário:', error);
@@ -60,21 +62,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Configurar listener de mudanças de auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         if (newSession) {
           setSession(newSession as Session);
-          
-          // Usar setTimeout para evitar deadlock no Supabase
+
           setTimeout(async () => {
-            // Aqui estamos usando a sessão do Supabase para buscar os dados do usuário
-            // Em uma implementação real, buscaríamos da tabela 'users'
-            // No mock, vamos criar um objeto User a partir dos metadados
             if (newSession.user) {
               const userData = await fetchUserData(newSession.user.id);
               if (userData) {
                 setUser(userData);
               } else {
-                // Se não encontrar dados, podemos tentar criar um objeto User a partir dos metadados
                 const metadata = newSession.user.user_metadata || {};
                 setUser({
                   id: newSession.user.id,
@@ -103,16 +100,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getInitialSession = async () => {
       try {
         const { data: { session: initialSession } } = await supabase.auth.getSession();
-        
+
         if (initialSession) {
           setSession(initialSession as Session);
-          
+
           if (initialSession.user) {
             const userData = await fetchUserData(initialSession.user.id);
             if (userData) {
               setUser(userData);
             } else {
-              // Se não encontrar dados, criar um objeto User a partir dos metadados
               const metadata = initialSession.user.user_metadata || {};
               setUser({
                 id: initialSession.user.id,
@@ -131,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     getInitialSession();
-    
+
     // Limpar subscription quando o componente for desmontado
     return () => {
       subscription.unsubscribe();
@@ -141,28 +137,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Login com Supabase
   const login = async (email: string, password: string) => {
     setLoading(true);
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      
+
       if (error) {
         console.error('Erro de login:', error.message);
         return { success: false, message: error.message };
       }
-      
+
       if (data?.user) {
-        // O usuário está autenticado, agora buscamos os dados completos
         const userData = await fetchUserData(data.user.id);
-        
+
         if (userData) {
-          // Atualizar estado de usuário no contexto
           setUser(userData);
           return { success: true };
         } else {
-          // Caso não encontre dados do usuário na tabela pública, mas temos metadados
           const metadata = data.user.user_metadata || {};
           if (metadata.name && metadata.role) {
             setUser({
@@ -173,12 +166,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             return { success: true };
           }
-          
-          // Dados do usuário não encontrados na tabela pública
           return { success: false, message: 'Conta de usuário incompleta. Por favor, contate o suporte.' };
         }
       }
-      
+
       return { success: false, message: 'Não foi possível autenticar o usuário.' };
     } catch (error: any) {
       console.error('Erro inesperado no login:', error);
@@ -191,7 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout com Supabase
   const logout = async () => {
     setLoading(true);
-    
+
     try {
       await supabase.auth.signOut();
       setUser(null);
@@ -211,14 +202,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Registro com Supabase e criação na tabela pública
   const register = async (data: { email: string; password: string; name: string; role: string }) => {
     setLoading(true);
-    
+
     try {
-      // Verificar se o papel solicitado é válido (apenas estudantes podem se registrar diretamente)
-      if (data.role !== 'student') {
-        return { success: false, message: 'Apenas contas de estudantes podem ser criadas por autoregistro.' };
-      }
-      
-      // Registrar usuário no Auth do Supabase
+      // Registrar usuário no Auth do Supabase (permite futura autorização de teacher/admin via backend)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -229,7 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       });
-      
+
       if (authError) {
         console.error('Erro no registro:', authError.message);
         return { success: false, message: authError.message };
@@ -238,7 +224,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!authData?.user) {
         return { success: false, message: 'Não foi possível criar a conta.' };
       }
-      
+
       // Inserir dados na tabela pública 'users'
       const { error: userError } = await supabase
         .from('users')
@@ -250,24 +236,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: data.role
           }
         ]);
-        
+
       if (userError) {
         console.error('Erro ao criar perfil de usuário:', userError);
-        
-        // Tentar reverter o cadastro em auth (embora seja difícil em prática)
-        try {
-          // Esta operação não é possível diretamente pelo cliente
-          // Seria necessário uma função no servidor ou edge function
-          console.warn('Não foi possível reverter o cadastro no auth. O usuário pode precisar ser removido manualmente.');
-        } catch (e) {
-          console.error('Erro ao tentar reverter cadastro:', e);
-        }
-        
         return { success: false, message: 'Erro ao criar perfil. Por favor, contate o suporte.' };
       }
-      
-      // Sucesso no cadastro - em produção, você pode querer esperar a verificação de email
-      // ou redirecionar para um processo de pagamento
+
       return { success: true, message: 'Conta criada com sucesso!' };
     } catch (error: any) {
       console.error('Erro no processo de registro:', error);
@@ -285,3 +259,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export default AuthProvider;
+
