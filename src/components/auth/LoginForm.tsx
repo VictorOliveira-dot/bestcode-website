@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
@@ -7,13 +8,10 @@ import EmailField from "./EmailField";
 import PasswordField from "./PasswordField";
 import LoginFormActions from "./LoginFormActions";
 import TestAccountInfo from "./TestAccountInfo";
+import { useAuth } from "@/contexts/auth";
+import { useNavigate } from "react-router-dom";
 
 // Remove constantes de teste relacionadas à Supabase
-const TEST_USERS = [
-  { email: 'admin@bestcode.com', password: 'admin123', role: 'admin' },
-  { email: 'professor@bestcode.com', password: 'teacher123', role: 'teacher' },
-  { email: 'aluno@bestcode.com', password: 'student123', role: 'student' }
-];
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -22,6 +20,9 @@ const LoginForm = () => {
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const { login, loading, user } = useAuth();
+  const navigate = useNavigate();
+
   useEffect(() => {
     setEmail("");
     setPassword("");
@@ -29,10 +30,22 @@ const LoginForm = () => {
     // Nenhuma sessão a limpar pois não há backend configurado
   }, []);
 
-  // Desabilitamos a autenticação real, agora só valida email/senha em branco.
+  // Redireciona usuário já logado para sua respectiva dashboard
+  useEffect(() => {
+    if (user) {
+      if (user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (user.role === "teacher") {
+        navigate("/teacher/dashboard");
+      } else if (user.role === "student") {
+        navigate("/student/dashboard");
+      }
+    }
+  }, [user, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading) return;
+    if (isLoading || loading) return;
 
     setErrorMessage(null);
     setIsLoading(true);
@@ -49,13 +62,23 @@ const LoginForm = () => {
         return;
       }
 
-      // Apenas fluxo fictício
-      toast({
-        title: "Login desabilitado",
-        description: "A autenticação está desativada. Integre um backend para login real.",
-        variant: "destructive"
-      });
-      setErrorMessage("Login desabilitado. Backend não configurado.");
+      // Utiliza autenticação mockada do contexto
+      const result = await login(email, password);
+      if (result.success) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Você foi autenticado.",
+          variant: "default",
+        });
+        // O efeito acima já redireciona o usuário para a dashboard apropriada
+      } else {
+        setErrorMessage(result.message || "Login inválido. Tente novamente.");
+        toast({
+          title: "Não foi possível fazer login",
+          description: result.message || "Login inválido. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     } catch (error: any) {
       setErrorMessage(error.message || "Login falhou. Por favor, tente novamente.");
     } finally {
@@ -72,20 +95,20 @@ const LoginForm = () => {
             <EmailField
               email={email}
               setEmail={setEmail}
-              disabled={isLoading}
+              disabled={isLoading || loading}
             />
             <PasswordField
               password={password}
               setPassword={setPassword}
               onForgotPassword={() => setIsForgotPasswordOpen(true)}
-              disabled={isLoading}
+              disabled={isLoading || loading}
             />
             {errorMessage && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
                 <p className="font-medium">Erro: {errorMessage}</p>
               </div>
             )}
-            <LoginFormActions isLoading={isLoading} />
+            <LoginFormActions isLoading={isLoading || loading} />
             <TestAccountInfo />
           </form>
         </CardContent>
