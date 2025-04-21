@@ -79,7 +79,7 @@ const TeachersTable: React.FC = () => {
   }
 
   if (error) {
-    return <div className="text-red-500">Error loading teachers: {error.message}</div>;
+    return <div className="text-red-500">Error loading teachers: {(error as Error).message}</div>;
   }
 
   return (
