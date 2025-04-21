@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,9 +22,10 @@ interface DashboardContentProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   lessons: Lesson[];
-  availableClasses: string[];
+  availableClasses: any[];
   setIsAddLessonOpen: (isOpen: boolean) => void;
   handleDeleteLesson: (id: string) => void;
+  handleEditLesson: (id: string, updatedLesson: any) => void;
   isLoading?: boolean;
 }
 
@@ -36,6 +36,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   availableClasses,
   setIsAddLessonOpen,
   handleDeleteLesson,
+  handleEditLesson,
   isLoading = false
 }) => {
   return (
@@ -106,6 +107,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                       lessons={lessons} 
                       availableClasses={availableClasses} 
                       onDeleteLesson={handleDeleteLesson} 
+                      onEditLesson={handleEditLesson}
                     />
                   </TabsContent>
                   

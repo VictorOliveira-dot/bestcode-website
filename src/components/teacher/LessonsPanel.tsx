@@ -2,6 +2,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LessonItem from "./LessonItem";
+import { Class } from "@/hooks/teacher/useDashboardData";
 
 interface Lesson {
   id: string;
@@ -15,7 +16,7 @@ interface Lesson {
 
 interface LessonsPanelProps {
   lessons: Lesson[];
-  availableClasses: any[];
+  availableClasses: Class[];
   onDeleteLesson: (id: string) => void;
   onEditLesson: (id: string, updatedLesson: any) => void;
 }
@@ -32,10 +33,10 @@ const LessonsPanel: React.FC<LessonsPanelProps> = ({
   );
 
   // Group lessons by class
-  const lessonsByClass = availableClasses.map(className => ({
-    className,
+  const lessonsByClass = availableClasses.map(classInfo => ({
+    className: classInfo.name,
     lessons: sortedLessons.filter(lesson => 
-      lesson.class === className || lesson.visibility === 'all'
+      lesson.class === classInfo.name || lesson.visibility === 'all'
     )
   }));
 
@@ -43,8 +44,8 @@ const LessonsPanel: React.FC<LessonsPanelProps> = ({
     <Tabs defaultValue="all">
       <TabsList className="mb-4">
         <TabsTrigger value="all">Todas as Aulas</TabsTrigger>
-        {availableClasses.map(className => (
-          <TabsTrigger key={className} value={className}>{className}</TabsTrigger>
+        {availableClasses.map(classInfo => (
+          <TabsTrigger key={classInfo.id} value={classInfo.name}>{classInfo.name}</TabsTrigger>
         ))}
       </TabsList>
       
@@ -68,12 +69,12 @@ const LessonsPanel: React.FC<LessonsPanelProps> = ({
         </div>
       </TabsContent>
       
-      {availableClasses.map(className => (
-        <TabsContent key={className} value={className}>
+      {availableClasses.map(classInfo => (
+        <TabsContent key={classInfo.id} value={classInfo.name}>
           <div className="space-y-4">
-            {lessonsByClass.find(c => c.className === className)?.lessons.length ? (
+            {lessonsByClass.find(c => c.className === classInfo.name)?.lessons.length ? (
               lessonsByClass
-                .find(c => c.className === className)
+                .find(c => c.className === classInfo.name)
                 ?.lessons.map(lesson => (
                   <LessonItem 
                     key={lesson.id} 
