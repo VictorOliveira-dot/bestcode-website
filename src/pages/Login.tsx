@@ -22,6 +22,10 @@ const Login = () => {
           </div>
           
           <LoginForm />
+          
+          <div className="mt-8 text-center text-sm text-gray-500">
+            <p>Use the credentials provided by your administrator</p>
+          </div>
         </div>
       </main>
       <Footer />

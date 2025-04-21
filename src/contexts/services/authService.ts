@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../types/auth';
 import { toast } from '@/hooks/use-toast';
@@ -47,7 +48,7 @@ export const loginWithEmail = async (email: string, password: string) => {
     console.log('Attempting Supabase authentication...');
     
     // Log auth attempt (masking sensitive data)
-    console.log(`Auth attempt for: ${trimmedEmail.substring(0, 3)}...@${trimmedEmail.split('@')[1] || ''}`);
+    console.log(`Auth attempt for: ${trimmedEmail}`);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: trimmedEmail,
@@ -61,8 +62,7 @@ export const loginWithEmail = async (email: string, password: string) => {
         name: error.name
       });
       
-      // More specific error messages
-      if (error.message?.includes('Invalid login credentials')) {
+      if (error.message) {
         return { 
           success: false, 
           message: 'Email or password incorrect. Please check your credentials and try again.' 
@@ -71,7 +71,7 @@ export const loginWithEmail = async (email: string, password: string) => {
       
       return { 
         success: false, 
-        message: error.message || 'Invalid credentials. Please check your email and password.' 
+        message: 'Invalid credentials. Please check your email and password.' 
       };
     }
 
@@ -85,7 +85,6 @@ export const loginWithEmail = async (email: string, password: string) => {
 
     console.log('Login successful for user ID:', data.user.id);
     console.log('Valid session:', !!data.session);
-    console.log('User metadata:', data.user.user_metadata);
     
     return { success: true };
 
@@ -111,7 +110,7 @@ export const registerUser = async (data: {
     const name = data.name.trim();
     
     if (!email || !password || !name) {
-      return { success: false, message: 'Todos os campos são obrigatórios.' };
+      return { success: false, message: 'All fields are required.' };
     }
     
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -126,13 +125,13 @@ export const registerUser = async (data: {
     });
 
     if (authError) {
-      console.error('Erro no registro:', authError);
+      console.error('Registration error:', authError);
       return { success: false, message: authError.message };
     }
 
     if (!authData?.user) {
-      console.error('Registro falhou: Nenhum usuário criado');
-      return { success: false, message: 'Não foi possível criar a conta.' };
+      console.error('Registration failed: No user created');
+      return { success: false, message: 'Could not create account.' };
     }
 
     const { error: userError } = await supabase
@@ -147,41 +146,41 @@ export const registerUser = async (data: {
       ]);
 
     if (userError) {
-      console.error('Erro ao criar perfil de usuário:', userError);
-      return { success: false, message: 'Erro ao criar perfil. Por favor, contate o suporte.' };
+      console.error('Error creating user profile:', userError);
+      return { success: false, message: 'Error creating profile. Please contact support.' };
     }
 
-    console.log('Usuário registrado com sucesso:', email);
-    return { success: true, message: 'Conta criada com sucesso!' };
+    console.log('User registered successfully:', email);
+    return { success: true, message: 'Account created successfully!' };
   } catch (error: any) {
-    console.error('Erro no processo de registro:', error);
-    return { success: false, message: error.message || 'Erro ao registrar' };
+    console.error('Error during registration process:', error);
+    return { success: false, message: error.message || 'Error registering' };
   }
 };
 
 export const logoutUser = async () => {
-  console.log('Iniciando processo de logout');
+  console.log('Starting logout process');
   try {
     const { error } = await supabase.auth.signOut();
     
     if (error) {
-      console.error('Erro ao fazer logout:', error);
+      console.error('Error during logout:', error);
       toast({
         variant: "destructive",
-        title: "Erro ao sair",
-        description: "Não foi possível realizar o logout. Por favor, tente novamente."
+        title: "Error logging out",
+        description: "Could not logout. Please try again."
       });
       return { success: false };
     }
     
-    console.log('Logout realizado com sucesso');
+    console.log('Logout successful');
     return { success: true };
   } catch (error) {
-    console.error('Erro ao fazer logout:', error);
+    console.error('Error during logout:', error);
     toast({
       variant: "destructive",
-      title: "Erro ao sair",
-      description: "Não foi possível realizar o logout. Por favor, tente novamente."
+      title: "Error logging out",
+      description: "Could not logout. Please try again."
     });
     return { success: false };
   }
