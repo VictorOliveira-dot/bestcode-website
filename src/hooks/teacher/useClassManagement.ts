@@ -1,178 +1,158 @@
-import { useState, useEffect } from "react";
-import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/auth";
-import { ClassInfo } from "@/components/teacher/ClassItem";
-import { 
-  fetchClassesForTeacher, 
-  addClass, 
-  updateClass, 
-  deleteClass 
-} from "@/services/teacher/classService";
-import { validateClassData } from "@/utils/teacher/classValidation";
 
-export function useClassManagement() {
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/auth';
+import { supabase } from '@/integrations/supabase/client';
+import { ClassInfo } from '@/components/teacher/ClassItem';
+import { toast } from '@/hooks/use-toast';
+
+export const useClassManagement = () => {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  // Fetch classes from Supabase
-  useEffect(() => {
-    if (user?.id) {
-      fetchClasses();
-    }
-  }, [user?.id]);
-
   const fetchClasses = async () => {
-    if (!user?.id) {
-      const authError = "Usuário não está autenticado. Faça login novamente.";
-      setError(authError);
-      toast({
-        title: "Erro de autenticação",
-        description: authError,
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!user) return;
     
     setIsLoading(true);
     setError(null);
+    
     try {
-      console.log("Fetching classes for user:", user.id);
-      const fetchedClasses = await fetchClassesForTeacher(user.id);
-      setClasses(fetchedClasses);
-    } catch (error: any) {
-      console.error("Error fetching classes:", error);
-      const errorMsg = error.message || "Ocorreu um erro ao buscar suas turmas.";
-      setError(errorMsg);
+      const { data, error } = await supabase.rpc('get_teacher_classes', {
+        teacher_id: user.id
+      });
+      
+      if (error) throw error;
+      
+      setClasses(data || []);
+    } catch (err: any) {
+      console.error('Error fetching classes:', err);
+      setError(err.message || 'Failed to load classes');
       toast({
-        title: "Erro ao carregar turmas",
-        description: errorMsg,
-        variant: "destructive",
+        title: 'Error loading classes',
+        description: err.message || 'There was a problem loading your classes',
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAddClass = async (newClass: {
-    name: string;
-    description: string;
-    startDate: string;
-  }) => {
-    if (!user?.id) {
-      toast({
-        title: "Erro de autenticação",
-        description: "Usuário não está autenticado. Faça login novamente.",
-        variant: "destructive",
-      });
-      return false;
+  useEffect(() => {
+    if (user?.role === 'teacher' || user?.role === 'admin') {
+      fetchClasses();
     }
-    
-    if (!validateClassData(newClass)) {
-      return false;
-    }
+  }, [user]);
 
+  const handleAddClass = async (classData: { name: string; description: string; startDate: string }) => {
+    if (!user) return false;
+    
     setIsLoading(true);
+    
     try {
-      console.log("Adding class for user:", user.id, "with data:", newClass);
-      const newClassWithId = await addClass(user.id, newClass);
+      const result = await supabase.rpc('create_class', {
+        p_name: classData.name,
+        p_description: classData.description,
+        p_start_date: classData.startDate,
+        p_teacher_id: user.id
+      });
       
-      // Add the new class to our local state
-      setClasses(prev => [...prev, newClassWithId]);
+      if (result.error) throw result.error;
+      
+      // Refresh classes list
+      await fetchClasses();
       
       toast({
-        title: "Turma adicionada",
-        description: "A turma foi adicionada com sucesso."
+        title: 'Class added',
+        description: 'New class was successfully created'
       });
+      
       return true;
-    } catch (error: any) {
-      console.error("Error adding class:", error);
+    } catch (err: any) {
+      console.error('Error adding class:', err);
       toast({
-        title: "Erro ao adicionar turma",
-        description: error.message || "Ocorreu um erro ao adicionar a turma.",
-        variant: "destructive",
+        title: 'Error adding class',
+        description: err.message || 'There was a problem creating the class',
+        variant: 'destructive'
       });
-      throw error; // Re-throw to handle in the component
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEditClass = async (selectedClass: ClassInfo) => {
-    if (!selectedClass || !user?.id) {
-      toast({
-        title: "Erro de dados",
-        description: "Dados inválidos ou usuário não autenticado.",
-        variant: "destructive",
-      });
-      return false;
-    }
+  const handleEditClass = async (classData: ClassInfo) => {
+    if (!user) return false;
     
-    if (!validateClassData(selectedClass)) {
-      return false;
-    }
-
     setIsLoading(true);
+    
     try {
-      await updateClass(user.id, selectedClass);
+      const result = await supabase.rpc('update_class', {
+        p_class_id: classData.id,
+        p_name: classData.name,
+        p_description: classData.description,
+        p_start_date: classData.startDate,
+        p_teacher_id: user.id
+      });
+      
+      if (result.error) throw result.error;
       
       // Update local state
-      const updatedClasses = classes.map(c => 
-        c.id === selectedClass.id ? selectedClass : c
-      );
-
-      setClasses(updatedClasses);
+      setClasses(classes.map(c => 
+        c.id === classData.id ? classData : c
+      ));
       
       toast({
-        title: "Turma atualizada",
-        description: "A turma foi atualizada com sucesso."
+        title: 'Class updated',
+        description: 'Class was successfully updated'
       });
+      
       return true;
-    } catch (error: any) {
-      console.error("Error updating class:", error);
+    } catch (err: any) {
+      console.error('Error updating class:', err);
       toast({
-        title: "Erro ao atualizar turma",
-        description: error.message || "Ocorreu um erro ao atualizar a turma.",
-        variant: "destructive",
+        title: 'Error updating class',
+        description: err.message || 'There was a problem updating the class',
+        variant: 'destructive'
       });
-      throw error; // Re-throw to handle in the component
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDeleteClass = async (id: string) => {
-    if (!user?.id) {
-      toast({
-        title: "Erro de autenticação",
-        description: "Usuário não está autenticado. Faça login novamente.",
-        variant: "destructive",
-      });
+  const handleDeleteClass = async (classId: string) => {
+    if (!user || !window.confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
       return false;
     }
     
     setIsLoading(true);
+    
     try {
-      await deleteClass(user.id, id);
+      const result = await supabase.rpc('delete_class', {
+        p_class_id: classId,
+        p_teacher_id: user.id
+      });
+      
+      if (result.error) throw result.error;
       
       // Update local state
-      const updatedClasses = classes.filter(c => c.id !== id);
-      setClasses(updatedClasses);
+      setClasses(classes.filter(c => c.id !== classId));
       
       toast({
-        title: "Turma removida",
-        description: "A turma foi removida com sucesso."
+        title: 'Class deleted',
+        description: 'Class was successfully deleted'
       });
+      
       return true;
-    } catch (error: any) {
-      console.error("Error deleting class:", error);
+    } catch (err: any) {
+      console.error('Error deleting class:', err);
       toast({
-        title: "Erro ao remover turma",
-        description: error.message || "Ocorreu um erro ao remover a turma.",
-        variant: "destructive",
+        title: 'Error deleting class',
+        description: err.message || 'There was a problem deleting the class',
+        variant: 'destructive'
       });
-      throw error; // Re-throw to handle in the component
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -187,4 +167,4 @@ export function useClassManagement() {
     handleEditClass,
     handleDeleteClass
   };
-}
+};

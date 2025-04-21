@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import StudentsTable from "./tables/StudentsTable";
@@ -20,79 +20,81 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   setActiveTab,
   isLoading = false
 }) => {
-  // Default to current month and year for the enrollment chart
-  const currentDate = new Date();
-  const currentMonth = String(currentDate.getMonth() + 1); // JavaScript months are 0-indexed
-  const currentYear = currentDate.getFullYear();
-  
   return (
-    <Card className="mt-8">
+    <Card className="mt-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsContent value="students">
+        <TabsContent value="students" className="p-4">
+          <h2 className="text-2xl font-bold mb-4">Students Management</h2>
           {isLoading ? (
-            <div className="p-6 space-y-4">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-80 w-full" />
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-72 w-full" />
             </div>
           ) : (
             <StudentsTable />
           )}
         </TabsContent>
         
-        <TabsContent value="teachers">
+        <TabsContent value="teachers" className="p-4">
+          <h2 className="text-2xl font-bold mb-4">Teachers Management</h2>
           {isLoading ? (
-            <div className="p-6 space-y-4">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-80 w-full" />
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-72 w-full" />
             </div>
           ) : (
             <TeachersTable />
           )}
         </TabsContent>
         
-        <TabsContent value="courses">
+        <TabsContent value="courses" className="p-4">
+          <h2 className="text-2xl font-bold mb-4">Courses Management</h2>
           {isLoading ? (
-            <div className="p-6 space-y-4">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-80 w-full" />
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-72 w-full" />
             </div>
           ) : (
             <CoursesTable />
           )}
         </TabsContent>
         
-        <TabsContent value="payments">
+        <TabsContent value="payments" className="p-4">
+          <h2 className="text-2xl font-bold mb-4">Payments Overview</h2>
           {isLoading ? (
-            <div className="p-6 space-y-4">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-80 w-full" />
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-72 w-full" />
             </div>
           ) : (
             <PaymentsTable />
           )}
         </TabsContent>
         
-        <TabsContent value="reports">
+        <TabsContent value="reports" className="p-4">
+          <h2 className="text-2xl font-bold mb-4">Reports and Analytics</h2>
           {isLoading ? (
-            <div className="p-6 space-y-4">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-80 w-full" />
-            </div>
+            <Skeleton className="h-80 w-full" />
           ) : (
-            <EnrollmentsChart month="all" year={currentYear} />
+            <div className="grid grid-cols-1">
+              <Card className="p-4">
+                <h3 className="text-lg font-medium mb-4">Enrollment Trends</h3>
+                <EnrollmentsChart />
+              </Card>
+            </div>
           )}
         </TabsContent>
-
-        <TabsContent value="enrollments">
+        
+        <TabsContent value="enrollments" className="p-4">
+          <h2 className="text-2xl font-bold mb-4">Enrollment Management</h2>
           {isLoading ? (
-            <div className="p-6 space-y-4">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-80 w-full" />
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-72 w-full" />
             </div>
           ) : (
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Matrículas</h2>
-              <p>Gerenciamento de matrículas de alunos.</p>
+            <div className="text-center py-12 text-gray-500">
+              Enrollment management coming soon.
             </div>
           )}
         </TabsContent>

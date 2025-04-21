@@ -84,7 +84,7 @@ const LoginForm = () => {
             {errorMessage && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
                 <p className="font-medium">Error: {errorMessage}</p>
-                <p className="text-xs mt-1">Make sure the email and password match the test credentials below.</p>
+                <p className="text-xs mt-1">Make sure the email and password are correct.</p>
               </div>
             )}
             <LoginFormActions isLoading={isLoading} />
