@@ -13,9 +13,12 @@ export function useAuthActions(setUser: (user: User | null) => void) {
       
       console.log("Login attempt with email:", email);
       
+      // Limpar o email para evitar problemas com espaços
+      const cleanEmail = email.trim();
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password // Não modifica a senha
+        email: cleanEmail,
+        password: password
       });
       
       if (error) {

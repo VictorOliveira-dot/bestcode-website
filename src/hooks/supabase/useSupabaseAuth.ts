@@ -11,10 +11,11 @@ export const useSupabaseAuth = () => {
     setError(null);
     
     try {
-      console.log(`Attempting login via hook with email: ${email.trim()}`);
+      const cleanEmail = email.trim();
+      console.log(`Attempting login via hook with email: ${cleanEmail}`);
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: cleanEmail,
         password // Use password exactly as provided
       });
       

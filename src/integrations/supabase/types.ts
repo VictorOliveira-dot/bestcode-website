@@ -446,6 +446,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: string
       }
+      reset_test_users: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_class: {
         Args: {
           p_class_id: string
