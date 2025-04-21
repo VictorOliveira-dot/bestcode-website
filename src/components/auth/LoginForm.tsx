@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import ForgotPasswordModal from "./ForgotPasswordModal";
 import LoginFormHeader from "./LoginFormHeader";
 import EmailField from "./EmailField";
 import PasswordField from "./PasswordField";
@@ -14,33 +13,19 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { login, loading, user } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Reset form and error states on component mount
-    setEmail("");
-    setPassword("");
-    setErrorMessage(null);
-  }, []);
-
-  // Redirect authenticated user to their respective dashboard
-  useEffect(() => {
     if (user) {
-      console.log("[Login Form] User authenticated, redirecting based on role:", user.role);
       if (user.role === "admin") {
         navigate("/admin/dashboard");
       } else if (user.role === "teacher") {
         navigate("/teacher/dashboard");
       } else if (user.role === "student") {
         navigate("/student/dashboard");
-      } else {
-        // Default fallback
-        navigate("/");
-        console.log("[Login Form] No specific redirect for role:", user.role);
       }
     }
   }, [user, navigate]);
@@ -48,44 +33,18 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Avoid double submission
-    if (isLoading || loading) return;
-
-    // Clear previous error
-    setErrorMessage(null);
     setIsLoading(true);
+    setErrorMessage(null);
 
     try {
-      // Log form submission
-      console.log("[Login Form] Submitting login form for:", email);
-      
-      // Basic validation
-      if (!email.trim() || !password.trim()) {
-        setErrorMessage("Please fill in all fields");
-        toast({
-          variant: "destructive",
-          title: "Required fields",
-          description: "Please fill in all fields.",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Use Supabase authentication via context
-      console.log("[Login Form] Attempting login with Supabase...");
       const result = await login(email, password);
-      
-      console.log("[Login Form] Login result:", result);
       
       if (result.success) {
         toast({
           title: "Login successful!",
           description: "You have been authenticated.",
-          variant: "default",
         });
-        // The effect above will redirect user to appropriate dashboard
       } else {
-        // Display specific error message returned by login function
         setErrorMessage(result.message || "Invalid login. Please try again.");
         toast({
           variant: "destructive",
@@ -94,8 +53,8 @@ const LoginForm = () => {
         });
       }
     } catch (error: any) {
-      console.error("[Login Form] Error during login:", error);
-      setErrorMessage(error.message || "Login failed. Please try again.");
+      console.error("Login error:", error);
+      setErrorMessage(error.message || "An error occurred during login. Try again.");
       toast({
         variant: "destructive",
         title: "Authentication error",
@@ -115,29 +74,34 @@ const LoginForm = () => {
             <EmailField
               email={email}
               setEmail={setEmail}
-              disabled={isLoading || loading}
+              disabled={isLoading}
             />
             <PasswordField
               password={password}
               setPassword={setPassword}
-              onForgotPassword={() => setIsForgotPasswordOpen(true)}
-              disabled={isLoading || loading}
+              disabled={isLoading}
             />
             {errorMessage && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
                 <p className="font-medium">Error: {errorMessage}</p>
-                <p className="text-xs mt-1">Make sure the email and password match an existing account.</p>
+                <p className="text-xs mt-1">Make sure the email and password match the test credentials below.</p>
               </div>
             )}
-            <LoginFormActions isLoading={isLoading || loading} />
+            <LoginFormActions isLoading={isLoading} />
           </form>
+          
+          <div className="mt-8 text-center text-sm text-gray-500">
+            <div className="mt-4 text-xs bg-blue-50 p-3 rounded-lg">
+              <p><strong>Test Credentials:</strong></p>
+              <ul className="mt-1 list-disc list-inside text-left">
+                <li>Admin: <code>admin@bestcode.com</code> / <code>Senha123!</code></li>
+                <li>Teacher: <code>professor@bestcode.com</code> / <code>Senha123!</code></li>
+                <li>Student: <code>aluno@bestcode.com</code> / <code>Senha123!</code></li>
+              </ul>
+            </div>
+          </div>
         </CardContent>
       </Card>
-
-      <ForgotPasswordModal
-        isOpen={isForgotPasswordOpen}
-        onClose={() => setIsForgotPasswordOpen(false)}
-      />
     </>
   );
 };

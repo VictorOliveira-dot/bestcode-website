@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,7 +18,6 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import CreateTestUsers from "./pages/CreateTestUsers";
 
-// Novas páginas importadas
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import QATraining from "./pages/courses/QATraining";
@@ -29,7 +27,6 @@ import About from "./pages/About";
 import HowItWorks from "./pages/HowItWorks";
 
 const App = () => {
-  // Instancia o QueryClient dentro do componente
   const queryClient = new QueryClient();
   
   return (
@@ -39,7 +36,6 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Rotas públicas */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -51,9 +47,7 @@ const App = () => {
             <Route path="/about" element={<About />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/faq" element={<Index />} />
-            <Route path="/create-test-users" element={<CreateTestUsers />} />
             
-            {/* Rotas protegidas para estudantes */}
             <Route path="/checkout" element={
               <ProtectedRoute allowedRoles={['student']}>
                 <Checkout />
@@ -85,14 +79,12 @@ const App = () => {
               </ProtectedRoute>
             } />
             
-            {/* Rotas protegidas para professores */}
             <Route path="/teacher/dashboard" element={
               <ProtectedRoute allowedRoles={['teacher', 'admin']}>
                 <TeacherDashboard />
               </ProtectedRoute>
             } />
             
-            {/* Rotas protegidas para administradores */}
             <Route path="/admin/dashboard" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
@@ -129,7 +121,6 @@ const App = () => {
               </ProtectedRoute>
             } />
             
-            {/* Rota de fallback para páginas não encontradas */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

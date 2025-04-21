@@ -1,46 +1,59 @@
 
-import React, { createContext, useContext } from 'react';
-import { AuthContextType } from './types/auth';
-import { useAuthState } from './hooks/useAuthState';
-import { loginWithEmail, logoutUser, registerUser } from './services/authService';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { mockAuthService } from '../services/mockAuthService';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'teacher' | 'student';
+}
+
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => Promise<{ success: boolean }>;
+}
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: false,
   login: async () => ({ success: false }),
-  logout: () => {},
-  register: async () => ({ success: false }),
+  logout: async () => ({ success: false }),
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading, session } = useAuthState();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check for stored user on mount
+    const storedUser = mockAuthService.getCurrentUser();
+    setUser(storedUser);
+    setLoading(false);
+  }, []);
 
   const login = async (email: string, password: string) => {
-    console.log('[Auth Provider] Login attempt for:', email);
-    return loginWithEmail(email, password);
+    const result = await mockAuthService.login(email, password);
+    if (result.success && result.user) {
+      setUser(result.user);
+    }
+    return result;
   };
 
   const logout = async () => {
-    console.log('[Auth Provider] Logout initiated');
-    await logoutUser();
+    const result = await mockAuthService.logout();
+    if (result.success) {
+      setUser(null);
+    }
+    return result;
   };
-
-  const register = async (data: { email: string; password: string; name: string; role: string }) => {
-    console.log('[Auth Provider] Register attempt for:', data.email);
-    return registerUser(data);
-  };
-
-  console.log('[Auth Provider] State:', { 
-    userExists: !!user, 
-    loading, 
-    sessionExists: !!session,
-    userRole: user?.role
-  });
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
