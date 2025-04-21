@@ -15,7 +15,6 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import EmailField from './EmailField';
 import PasswordField from './PasswordField';
-import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
@@ -29,7 +28,6 @@ const formSchema = z.object({
 
 const RegisterForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -45,48 +43,10 @@ const RegisterForm = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
-      
-      console.log('Registrando com os dados:', { 
-        name: values.name, 
-        email: values.email,
-        role: values.role
-        // Senha não logada por segurança
-      });
-      
-      const result = await register(values.email, values.password, { 
-        name: values.name,
-        role: values.role
-      });
-      
-      if (result) {
-        console.log('Registro bem-sucedido, redirecionando...');
-        toast({
-          title: 'Registro bem-sucedido',
-          description: 'Sua conta foi criada. Você será redirecionado para o dashboard.',
-        });
-        
-        // Dar tempo para o toast ser visto
-        setTimeout(() => {
-          // Redirecionar baseado no papel do usuário
-          switch(values.role) {
-            case 'admin':
-              navigate('/admin/dashboard');
-              break;
-            case 'teacher':
-              navigate('/teacher/dashboard');
-              break;
-            default:
-              navigate('/student/dashboard');
-              break;
-          }
-        }, 1500);
-      }
-    } catch (error: any) {
-      console.error('Falha no registro:', error);
       toast({
-        variant: 'destructive',
-        title: 'Falha no registro',
-        description: error.message || 'Ocorreu um erro durante o registro.',
+        title: "Cadastro desabilitado",
+        description: "O cadastro está desativado. Integre um backend para habilitar a criação de contas.",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
