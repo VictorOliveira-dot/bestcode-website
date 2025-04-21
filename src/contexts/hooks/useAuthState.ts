@@ -15,7 +15,7 @@ export const useAuthState = (): AuthState => {
     
     // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log('Evento de autenticação detectado:', event, newSession?.user?.id);
+      console.log('Evento de autenticação detectado:', event, newSession?.user?.id || 'No session');
       
       // Synchronous updates only within the callback
       setSession(newSession);
@@ -54,8 +54,9 @@ export const useAuthState = (): AuthState => {
     // Then check for existing session
     const initializeSession = async () => {
       try {
+        console.log('Verificando sessão existente');
         const { data: { session: initialSession } } = await supabase.auth.getSession();
-        console.log('Sessão inicial:', initialSession?.user?.id);
+        console.log('Sessão inicial:', initialSession?.user?.id || 'No initial session');
         
         // Set session state synchronously
         setSession(initialSession);

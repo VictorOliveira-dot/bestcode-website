@@ -52,6 +52,15 @@ export const loginWithEmail = async (email: string, password: string) => {
 
     if (error) {
       console.error('Erro de autenticação:', error);
+      
+      // More specific error messages
+      if (error.message?.includes('Invalid login credentials')) {
+        return { 
+          success: false, 
+          message: 'Email ou senha incorretos. Verifique suas credenciais e tente novamente.' 
+        };
+      }
+      
       return { 
         success: false, 
         message: error.message || 'Credenciais inválidas. Verifique seu email e senha.' 
