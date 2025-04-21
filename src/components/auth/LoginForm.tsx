@@ -9,6 +9,7 @@ import LoginFormHeader from "./LoginFormHeader";
 import EmailField from "./EmailField";
 import PasswordField from "./PasswordField";
 import LoginFormActions from "./LoginFormActions";
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -35,9 +36,26 @@ const LoginForm = () => {
         return;
       }
       
-      console.log("Tentando login com email:", email);
+      // Limpa o email e converte para minúsculas para consistência
+      const cleanEmail = email.trim().toLowerCase();
+      console.log("Tentando login com email:", cleanEmail);
       
-      const userData = await login(email, password);
+      // Tentar login diretamente via supabase primeiro para diagnóstico
+      console.log("Tentando login direto com Supabase...");
+      const directAuth = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: password
+      });
+      
+      if (directAuth.error) {
+        console.error("Erro direto do Supabase:", directAuth.error);
+        throw directAuth.error;
+      }
+      
+      console.log("Auth direta bem-sucedida:", directAuth.data);
+      
+      // Agora use o contexto de autenticação para completar o login
+      const userData = await login(cleanEmail, password);
       
       if (userData) {
         toast({

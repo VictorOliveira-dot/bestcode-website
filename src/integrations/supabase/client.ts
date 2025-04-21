@@ -9,12 +9,16 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// Configuração explícita para garantir autenticação consistente
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     autoRefreshToken: true,
-    persistSession: true,
+    persistSession: true, 
     storage: localStorage,
-    flowType: 'pkce',
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    flowType: 'pkce'
   }
 });
+
+// Log para verificar se o cliente foi inicializado corretamente
+console.log("Supabase client initialized with URL:", SUPABASE_URL);

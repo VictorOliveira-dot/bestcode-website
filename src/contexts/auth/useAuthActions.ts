@@ -13,8 +13,8 @@ export function useAuthActions(setUser: (user: User | null) => void) {
       
       console.log("Login attempt with email:", email);
       
-      // Limpar o email para evitar problemas com espaços
-      const cleanEmail = email.trim();
+      // Limpar o email e converter para minúsculas
+      const cleanEmail = email.trim().toLowerCase();
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
