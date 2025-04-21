@@ -6,27 +6,27 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://jqnarznabyiyngcdqcff.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxbmFyem5hYnlpeW5nY2RxY2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4OTk5OTAsImV4cCI6MjA1OTQ3NTk5MH0.g_Cq1x29MLlq46SaszcCL65FwVJQd7Qyv4MPIy1HwQg";
 
-// Create the Supabase client with explicit configuration
+// Criar o cliente Supabase com configuração explícita
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     storage: localStorage,
-    // Use pkce flow type which is more secure and recommended
+    // Usar fluxo pkce que é mais seguro e recomendado
     flowType: 'pkce'
   }
 });
 
-// Log for confirming initialization
-console.log("Supabase client initialized with URL:", SUPABASE_URL);
+// Log para confirmar inicialização
+console.log("Cliente Supabase inicializado com URL:", SUPABASE_URL);
 
-// Debug initialization by checking session
+// Debug de inicialização verificando sessão
 supabase.auth.getSession().then(({ data }) => {
   if (data.session) {
-    console.log("Active session detected:", data.session.user.id);
+    console.log("Sessão ativa detectada:", data.session.user.id);
   } else {
-    console.log("No active session detected");
+    console.log("Nenhuma sessão ativa detectada");
   }
 }).catch(error => {
-  console.error("Error checking session:", error);
+  console.error("Erro ao verificar sessão:", error);
 });

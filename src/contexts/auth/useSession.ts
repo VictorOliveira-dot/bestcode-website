@@ -8,70 +8,84 @@ export function useSession() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log("AuthProvider initialized, checking for existing session...");
+    console.log("AuthProvider inicializado, verificando sessão existente...");
     
+    // Configurar o listener de mudança de estado de autenticação PRIMEIRO
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Estado de autenticação alterado:", event);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log("Usuário autenticado:", session.user.id);
+        await fetchAndSetUser(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        console.log("Usuário deslogado");
+        setUser(null);
+        localStorage.removeItem('bestcode_user');
+      }
+    });
+    
+    // DEPOIS verificar sessão atual
     const checkAuthState = async () => {
       try {
         setIsLoading(true);
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          console.error("Error getting session:", sessionError);
+          console.error("Erro ao obter sessão:", sessionError);
+          setIsLoading(false);
           return;
         }
         
         if (session?.user) {
-          console.log("Found existing session for user:", session.user.id);
-          await fetchAndSetUser(session.user.id);
+          console.log("Sessão existente encontrada para usuário:", session.user.id);
+          setTimeout(() => {
+            fetchAndSetUser(session.user.id);
+          }, 0);
         } else {
-          console.log("No active session found");
+          console.log("Nenhuma sessão ativa encontrada");
           localStorage.removeItem('bestcode_user');
+          setIsLoading(false);
         }
       } catch (error) {
-        console.error("Authentication check error:", error);
-      } finally {
+        console.error("Erro na verificação de autenticação:", error);
         setIsLoading(false);
       }
     };
 
     const fetchAndSetUser = async (userId: string) => {
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
 
-      if (userError) {
-        console.error('Error fetching user details:', userError);
-        return;
-      }
+        if (userError) {
+          console.error('Erro ao buscar detalhes do usuário:', userError);
+          setIsLoading(false);
+          return;
+        }
 
-      if (userData) {
-        const userInfo: User = {
-          id: userData.id,
-          name: userData.name || userData.email,
-          email: userData.email,
-          role: userData.role as 'student' | 'teacher' | 'admin',
-          avatar_url: userData.avatar_url
-        };
-        setUser(userInfo);
-        localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+        if (userData) {
+          const userInfo: User = {
+            id: userData.id,
+            name: userData.name || userData.email,
+            email: userData.email,
+            role: userData.role as 'student' | 'teacher' | 'admin',
+            avatar_url: userData.avatar_url
+          };
+          
+          console.log("Dados do usuário definidos:", userInfo);
+          setUser(userInfo);
+          localStorage.setItem('bestcode_user', JSON.stringify(userInfo));
+        }
+        
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Erro ao buscar usuário:', error);
+        setIsLoading(false);
       }
     };
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log("User signed in:", session.user.id);
-        await fetchAndSetUser(session.user.id);
-      } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
-        setUser(null);
-        localStorage.removeItem('bestcode_user');
-      }
-    });
     
     checkAuthState();
     

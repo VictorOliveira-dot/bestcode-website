@@ -18,15 +18,12 @@ export const useSupabaseAuth = () => {
         throw new Error("Email and password are required");
       }
       
-      // Clear any previous auth state to prevent conflicts
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) {
-        console.warn("Error clearing previous session:", signOutError);
-      }
+      // Limpar sessão anterior - importante para evitar conflitos
+      await supabase.auth.signOut();
       
       console.log("Attempting sign in with email:", cleanEmail);
       
-      // Try authentication with explicit options
+      // Tentar autenticação com as credenciais fornecidas
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password
@@ -42,6 +39,14 @@ export const useSupabaseAuth = () => {
       }
       
       console.log("Login successful in useSupabaseAuth:", data);
+      
+      // Verificar os detalhes do usuário para diagnóstico
+      console.log("User details:", {
+        id: data.user.id,
+        email: data.user.email,
+        role: data.user.user_metadata?.role
+      });
+      
       return data;
     } catch (err: any) {
       console.error("Login error in useSupabaseAuth:", err);
@@ -58,7 +63,10 @@ export const useSupabaseAuth = () => {
     setError(null);
     
     try {
-      const cleanEmail = email.trim().toLowerCase(); // Consistência em email
+      const cleanEmail = email.trim().toLowerCase();
+      
+      // Limpar qualquer sessão existente
+      await supabase.auth.signOut();
       
       // First register the user in auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -75,6 +83,8 @@ export const useSupabaseAuth = () => {
       if (authError) throw authError;
       
       if (authData.user) {
+        console.log("User registered successfully:", authData.user.id);
+        
         // Then insert additional data in the users table
         const { error: profileError } = await supabase
           .from('users')
@@ -88,7 +98,10 @@ export const useSupabaseAuth = () => {
             }
           ]);
           
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error("Error creating user profile:", profileError);
+          throw profileError;
+        }
       }
       
       return authData;
@@ -117,7 +130,7 @@ export const useSupabaseAuth = () => {
         .from('users')
         .select('*')
         .eq('id', sessionData.session.user.id)
-        .single();
+        .maybeSingle();
         
       if (error) {
         console.error("Error fetching user data:", error);
@@ -143,8 +156,13 @@ export const useSupabaseAuth = () => {
     setError(null);
     
     try {
+      // Limpar dados da sessão local antes de chamar o signOut
+      localStorage.removeItem('bestcode_user');
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      console.log("Logout successful");
       return true;
     } catch (err: any) {
       console.error("Logout error:", err.message);
