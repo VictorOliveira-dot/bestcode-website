@@ -33,6 +33,10 @@ interface Class {
   is_active: boolean;
 }
 
+interface TeacherData {
+  name: string;
+}
+
 const CoursesTable: React.FC = () => {
   const { data: courses, isLoading, error } = useQuery({
     queryKey: ['courses'],
@@ -53,8 +57,8 @@ const CoursesTable: React.FC = () => {
 
       return classes.map(c => ({
         ...c,
-        teacher_name: c.teacher?.name || 'Sem professor',
-        students_count: c.students?.length || 0
+        teacher_name: c.teacher ? (c.teacher as TeacherData).name || 'Sem professor' : 'Sem professor',
+        students_count: c.students ? (c.students as any[]).length || 0 : 0
       })) as Class[];
     }
   });

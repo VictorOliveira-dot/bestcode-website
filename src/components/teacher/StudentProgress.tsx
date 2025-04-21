@@ -10,6 +10,19 @@ import { generateStudentLessons } from "./utils/student-data-utils";
 import { StudentProgress, LessonStatus } from "./types/student";
 import { supabase } from "@/integrations/supabase/client";
 
+interface EnrollmentData {
+  student_id: string;
+  classes: { name: string } | null;
+  users: { name: string; email: string } | null;
+}
+
+interface ProgressData {
+  progress: number;
+  status: string;
+  last_watched: string | null;
+  lessons: { id: string } | null;
+}
+
 const StudentProgressTracker = () => {
   const [students, setStudents] = useState<StudentProgress[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
@@ -53,7 +66,7 @@ const StudentProgressTracker = () => {
           if (enrollmentsData && enrollmentsData.length > 0) {
             const studentProgressData: StudentProgress[] = [];
             
-            for (const enrollment of enrollmentsData) {
+            for (const enrollment of enrollmentsData as EnrollmentData[]) {
               if (!enrollment.users || !enrollment.classes) continue;
               
               const { data: progressData, error: progressError } = await supabase
