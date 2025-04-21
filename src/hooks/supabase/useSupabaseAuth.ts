@@ -1,3 +1,4 @@
+
 import { useSupabaseBase } from './useSupabaseBase';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,7 +28,6 @@ export const useSupabaseAuth = () => {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password
-        // Removed redirectTo option as it's causing TypeScript error
       });
       
       if (error) {
