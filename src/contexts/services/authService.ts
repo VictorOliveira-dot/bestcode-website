@@ -45,13 +45,21 @@ export const loginWithEmail = async (email: string, password: string) => {
       };
     }
 
+    // Debug values before sending to Supabase
+    console.log('Tentando autenticar com email (mascarado):', trimmedEmail.split('@')[0] + '@***');
+    console.log('Comprimento da senha:', trimmedPassword.length);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: trimmedEmail,
       password: trimmedPassword
     });
 
     if (error) {
-      console.error('Erro de autenticação:', error);
+      console.error('Erro de autenticação detalhado:', {
+        message: error.message,
+        status: error.status,
+        name: error.name
+      });
       
       // More specific error messages
       if (error.message?.includes('Invalid login credentials')) {
@@ -76,6 +84,7 @@ export const loginWithEmail = async (email: string, password: string) => {
     }
 
     console.log('Login bem-sucedido para:', data.user.email);
+    console.log('Sessão válida:', !!data.session);
     return { success: true };
 
   } catch (error: any) {

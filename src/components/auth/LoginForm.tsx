@@ -52,6 +52,9 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
+      // Log form submission
+      console.log("Submetendo formulário de login para:", email);
+      
       // Basic validation
       if (!email.trim() || !password.trim()) {
         setErrorMessage("Por favor, preencha todos os campos");
@@ -64,7 +67,25 @@ const LoginForm = () => {
         return;
       }
 
-      console.log("Submetendo formulário de login para:", email);
+      // Specific credentials validation for test accounts
+      const testAccounts = [
+        { email: "admin@bestcode.com", password: "admin123" },
+        { email: "professor@bestcode.com", password: "teacher123" },
+        { email: "aluno@bestcode.com", password: "student123" }
+      ];
+      
+      const matchedAccount = testAccounts.find(account => account.email === email.trim());
+      if (matchedAccount && matchedAccount.password !== password) {
+        console.log("Senha incorreta para conta de teste");
+        toast({
+          variant: "destructive",
+          title: "Senha incorreta",
+          description: `A senha para ${email} está incorreta. Use '${matchedAccount.password}'`,
+        });
+        setErrorMessage(`Senha incorreta para ${email}. Use '${matchedAccount.password}'`);
+        setIsLoading(false);
+        return;
+      }
 
       // Use real Supabase authentication via context
       const result = await login(email, password);

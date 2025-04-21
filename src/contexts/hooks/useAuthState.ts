@@ -24,12 +24,14 @@ export const useAuthState = (): AuthState => {
         // Defer Supabase calls with setTimeout to prevent deadlocks
         setTimeout(async () => {
           try {
+            console.log('Buscando dados de usuário após evento de autenticação');
             const userData = await fetchUserData(newSession.user.id);
             
             if (userData) {
               console.log('Dados do usuário atualizados:', userData);
               setUser(userData);
             } else {
+              console.log('Usando metadata como fallback para dados do usuário');
               const metadata = newSession.user.user_metadata || {};
               setUser({
                 id: newSession.user.id,
@@ -55,7 +57,12 @@ export const useAuthState = (): AuthState => {
     const initializeSession = async () => {
       try {
         console.log('Verificando sessão existente');
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Erro ao obter sessão:', error);
+        }
+        
         console.log('Sessão inicial:', initialSession?.user?.id || 'No initial session');
         
         // Set session state synchronously
@@ -71,6 +78,7 @@ export const useAuthState = (): AuthState => {
                 console.log('Dados iniciais do usuário:', userData);
                 setUser(userData);
               } else {
+                console.log('Usando metadata como fallback para dados do usuário');
                 const metadata = initialSession.user.user_metadata || {};
                 setUser({
                   id: initialSession.user.id,
@@ -86,6 +94,7 @@ export const useAuthState = (): AuthState => {
             }
           }, 0);
         } else {
+          console.log('Nenhuma sessão inicial encontrada');
           setLoading(false);
         }
       } catch (error) {
