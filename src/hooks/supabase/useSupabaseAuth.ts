@@ -24,6 +24,8 @@ export const useSupabaseAuth = () => {
         console.warn("Error clearing previous session:", signOutError);
       }
       
+      console.log("Attempting sign in with email:", cleanEmail);
+      
       // Try authentication with explicit options
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
@@ -31,7 +33,7 @@ export const useSupabaseAuth = () => {
       });
       
       if (error) {
-        console.error("Authentication error in useSupabaseAuth:", error);
+        console.error("Authentication error details:", error.message, error.status);
         throw error;
       }
       
