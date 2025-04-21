@@ -1,8 +1,5 @@
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { Pencil, Trash2 } from "lucide-react";
+import React from 'react';
 
 export interface ClassInfo {
   id: string;
@@ -20,28 +17,32 @@ interface ClassItemProps {
 
 const ClassItem: React.FC<ClassItemProps> = ({ classInfo, onEdit, onDelete }) => {
   return (
-    <TableRow key={classInfo.id}>
-      <TableCell className="font-medium">{classInfo.name}</TableCell>
-      <TableCell>{classInfo.description}</TableCell>
-      <TableCell>{new Date(classInfo.startDate).toLocaleDateString('pt-BR')}</TableCell>
-      <TableCell>{classInfo.studentsCount} alunos</TableCell>
-      <TableCell className="text-right space-x-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => onEdit(classInfo)}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="destructive" 
-          size="sm"
-          onClick={() => onDelete(classInfo.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </TableCell>
-    </TableRow>
+    <div className="bg-white p-4 rounded-lg shadow mb-4 border border-gray-200">
+      <div className="flex flex-col md:flex-row justify-between">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold">{classInfo.name}</h3>
+          <p className="text-gray-600 mb-2">{classInfo.description}</p>
+          <div className="text-sm text-gray-500 flex flex-wrap gap-x-4">
+            <span>Data de Início: {new Date(classInfo.startDate).toLocaleDateString('pt-BR')}</span>
+            <span>Alunos: {classInfo.studentsCount}</span>
+          </div>
+        </div>
+        <div className="flex items-center mt-2 md:mt-0">
+          <button
+            onClick={() => onEdit(classInfo)}
+            className="bg-bestcode-100 text-bestcode-800 px-3 py-1 rounded mr-2 text-sm hover:bg-bestcode-200 transition-colors"
+          >
+            Editar
+          </button>
+          <button
+            onClick={() => onDelete(classInfo.id)}
+            className="bg-red-100 text-red-800 px-3 py-1 rounded text-sm hover:bg-red-200 transition-colors"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

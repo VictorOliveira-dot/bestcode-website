@@ -1,228 +1,110 @@
+
 import { useState, useEffect } from "react";
-import { toast } from "@/hooks/use-toast";
-import { Lesson, LessonProgress } from "../types/lesson";
-import { Notification } from "../types/notification";
-import { useAuth } from "@/contexts/auth";
+import { User } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
-export function useStudentDashboard() {
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [lessonProgress, setLessonProgress] = useState<LessonProgress[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [studentClass, setStudentClass] = useState("");
-  const { user } = useAuth();
-  
-  useEffect(() => {
-    if (!user) return;
-    
-    const fetchStudentData = async () => {
-      try {
-        console.log("Fetching student data with user ID:", user.id);
-        
-        const { data: enrollmentData, error: enrollmentError } = await supabase
-          .from('enrollments')
-          .select('class_id, classes(name)')
-          .eq('student_id', user.id)
-          .single();
-          
-        if (enrollmentError && enrollmentError.code !== 'PGRST116') {
-          console.error('Error fetching enrollment:', enrollmentError);
-          toast({
-            title: "Erro ao carregar dados da turma",
-            description: "Não foi possível obter dados da sua turma.",
-            variant: "destructive",
-          });
-        }
-        
-        let classId = null;
-        if (enrollmentData) {
-          classId = enrollmentData.class_id;
-          setStudentClass(enrollmentData.classes?.name || "Não definida");
-        } else {
-          setStudentClass("Não definida");
-        }
-        
-        const { data: lessonsData, error: lessonsError } = await supabase
-          .from('lessons')
-          .select('*');
-          
-        if (lessonsError) {
-          console.error('Error fetching lessons:', lessonsError);
-          toast({
-            title: "Erro ao carregar aulas",
-            description: "Não foi possível carregar as aulas disponíveis.",
-            variant: "destructive",
-          });
-        } else if (lessonsData) {
-          const formattedLessons: Lesson[] = lessonsData.map(lesson => ({
-            id: lesson.id,
-            title: lesson.title,
-            description: lesson.description,
-            date: lesson.date,
-            class: studentClass,
-            youtubeUrl: lesson.youtube_url,
-            visibility: lesson.visibility === 'all' ? 'all' : 'class_only'
-          }));
-          
-          setLessons(formattedLessons);
-        }
-        
-        const { data: progressData, error: progressError } = await supabase
-          .from('lesson_progress')
-          .select('*');
-          
-        if (progressError) {
-          console.error('Error fetching lesson progress:', progressError);
-        } else if (progressData) {
-          const formattedProgress: LessonProgress[] = progressData.map(progress => ({
-            lessonId: progress.lesson_id,
-            progress: progress.progress,
-            status: progress.status as 'completed' | 'in_progress' | 'not_started',
-            lastWatched: progress.last_watched,
-            watchTimeMinutes: progress.watch_time_minutes
-          }));
-          
-          setLessonProgress(formattedProgress);
-        }
-        
-        const { data: notificationsData, error: notificationsError } = await supabase
-          .from('notifications')
-          .select('*')
-          .order('date', { ascending: false });
-          
-        if (notificationsError) {
-          console.error('Error fetching notifications:', notificationsError);
-        } else if (notificationsData) {
-          const formattedNotifications: Notification[] = notificationsData.map(notification => ({
-            id: notification.id,
-            title: notification.title,
-            message: notification.message,
-            date: notification.date,
-            read: notification.read
-          }));
-          
-          setNotifications(formattedNotifications);
-        }
-      } catch (error: any) {
-        console.error("Error fetching student data:", error);
-        toast({
-          title: "Erro ao carregar dados",
-          description: error.message || "Ocorreu um erro ao carregar seus dados.",
-          variant: "destructive",
-        });
-      }
-    };
-    
-    fetchStudentData();
-  }, [user]);
+// Mock data
+const MOCK_LESSONS = [
+  {
+    id: "lesson1",
+    title: "Introdução ao QA",
+    description: "Fundamentos de testes e qualidade de software",
+    date: "2023-09-10",
+    completed: false,
+    progress: 0,
+    classId: "class1",
+  },
+  {
+    id: "lesson2",
+    title: "Testes Automatizados com Cypress",
+    description: "Aprenda a criar testes end-to-end com Cypress",
+    date: "2023-09-15",
+    completed: false,
+    progress: 25,
+    classId: "class1",
+  },
+  {
+    id: "lesson3",
+    title: "Testes de API com Postman",
+    description: "Testando APIs REST com Postman",
+    date: "2023-09-20",
+    completed: true,
+    progress: 100,
+    classId: "class1",
+  }
+];
 
-  const updateLessonProgress = async (lessonId: string, watchTimeMinutes: number, progress: number) => {
-    if (!user) return;
-    
-    try {
-      const status = progress >= 100 ? 'completed' : 'in_progress';
-      const now = new Date().toISOString();
-      
-      const existingIndex = lessonProgress.findIndex(p => p.lessonId === lessonId);
-      
-      if (existingIndex >= 0) {
-        const { error } = await supabase
-          .from('lesson_progress')
-          .update({
-            watch_time_minutes: watchTimeMinutes,
-            progress: progress,
-            status: status,
-            last_watched: now
-          })
-          .eq('student_id', user.id)
-          .eq('lesson_id', lessonId);
-          
-        if (error) throw error;
-        
-        const updatedProgress = [...lessonProgress];
-        updatedProgress[existingIndex] = {
-          ...updatedProgress[existingIndex],
-          watchTimeMinutes,
-          progress,
-          status,
-          lastWatched: now
-        };
-        
-        setLessonProgress(updatedProgress);
-      } else {
-        const { data, error } = await supabase
-          .from('lesson_progress')
-          .insert([{
-            student_id: user.id,
-            lesson_id: lessonId,
-            watch_time_minutes: watchTimeMinutes,
-            progress: progress,
-            status: status,
-            last_watched: now
-          }])
-          .select()
-          .single();
-          
-        if (error) throw error;
-        
-        if (data) {
-          setLessonProgress([...lessonProgress, {
-            lessonId: data.lesson_id,
-            watchTimeMinutes: data.watch_time_minutes,
-            progress: data.progress,
-            status: data.status as 'completed' | 'in_progress' | 'not_started',
-            lastWatched: data.last_watched
-          }]);
-        }
-      }
-    } catch (error: any) {
-      console.error("Error updating lesson progress:", error);
-      toast({
-        title: "Erro ao atualizar progresso",
-        description: error.message || "Não foi possível salvar seu progresso.",
-        variant: "destructive",
-      });
-    }
+const MOCK_NOTIFICATIONS = [
+  {
+    id: "notif1",
+    title: "Nova aula disponível",
+    message: "A aula de Testes de API com Postman já está disponível.",
+    date: "2023-09-19",
+    read: false,
+  },
+  {
+    id: "notif2",
+    title: "Feedback do professor",
+    message: "O professor adicionou feedback ao seu projeto de testes.",
+    date: "2023-09-16",
+    read: true,
+  }
+];
+
+export const useStudentDashboard = () => {
+  const [lessons, setLessons] = useState(MOCK_LESSONS);
+  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const [studentClass, setStudentClass] = useState("QA-01");
+  const [lessonProgress, setLessonProgress] = useState<Record<string, number>>({
+    lesson1: 0,
+    lesson2: 25,
+    lesson3: 100,
+  });
+
+  const stats = {
+    inProgressLessons: lessons.filter(l => l.progress > 0 && l.progress < 100).length,
+    completedLessons: lessons.filter(l => l.progress === 100).length,
+    overallProgress: Math.round(
+      (lessons.reduce((acc, lesson) => acc + lesson.progress, 0) / 
+      (lessons.length * 100)) * 100
+    ),
+    availableLessons: lessons.length,
   };
 
-  const handleMarkNotificationAsRead = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', id)
-        .eq('user_id', user?.id);
-        
-      if (error) throw error;
-      
-      setNotifications(notifications.map(notification =>
-        notification.id === id ? { ...notification, read: true } : notification
-      ));
-    } catch (error: any) {
-      console.error("Error marking notification as read:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível marcar a notificação como lida.",
-        variant: "destructive",
-      });
-    }
+  const updateLessonProgress = (lessonId: string, progress: number) => {
+    setLessonProgress(prev => ({
+      ...prev,
+      [lessonId]: progress
+    }));
+
+    // Update lessons array too
+    setLessons(prev => 
+      prev.map(lesson => 
+        lesson.id === lessonId 
+          ? { 
+              ...lesson, 
+              progress, 
+              completed: progress === 100 
+            } 
+          : lesson
+      )
+    );
+
+    toast({
+      title: "Progresso atualizado",
+      description: `Seu progresso na aula foi atualizado para ${progress}%.`,
+    });
   };
 
-  const getStudentStats = () => {
-    const completedLessons = lessonProgress.filter(progress => progress.status === 'completed').length;
-    const inProgressLessons = lessonProgress.filter(progress => progress.status === 'in_progress').length;
-    const availableLessons = lessons.length;
-    
-    const overallProgress = availableLessons > 0 
-      ? Math.round((completedLessons / availableLessons) * 100) 
-      : 0;
-
-    return {
-      completedLessons,
-      inProgressLessons,
-      availableLessons,
-      overallProgress
-    };
+  const handleMarkNotificationAsRead = (id: string) => {
+    setNotifications(prev => 
+      prev.map(notif => 
+        notif.id === id 
+          ? { ...notif, read: true } 
+          : notif
+      )
+    );
   };
 
   return {
@@ -232,6 +114,6 @@ export function useStudentDashboard() {
     studentClass,
     updateLessonProgress,
     handleMarkNotificationAsRead,
-    stats: getStudentStats()
+    stats
   };
-}
+};

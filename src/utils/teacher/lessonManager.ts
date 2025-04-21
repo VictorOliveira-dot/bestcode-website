@@ -1,87 +1,46 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Lesson, NewLesson } from "@/components/student/types/lesson";
 import { Class } from "@/hooks/teacher/useDashboardData";
 
-export async function addLesson(newLesson: NewLesson, userId: string, availableClasses: Class[], lessons: Lesson[]) {
+export const addLesson = async (
+  newLesson: NewLesson,
+  teacherId: string,
+  availableClasses: Class[],
+  currentLessons: Lesson[]
+): Promise<Lesson[]> => {
   try {
-    console.log("Adding lesson with data:", newLesson);
+    console.log("Adding lesson:", newLesson);
     
-    if (!userId) {
-      toast({
-        title: "Erro de autenticação",
-        description: "Usuário não está autenticado. Faça login novamente.",
-        variant: "destructive",
-      });
-      return lessons;
-    }
+    // Generate a mock ID for the new lesson
+    const mockId = Math.random().toString(36).substring(2, 11);
     
-    if (!newLesson.title || !newLesson.description || !newLesson.youtubeUrl || !newLesson.class_id) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive",
-      });
-      return lessons;
-    }
+    // Find the class name from the class ID
+    const classInfo = availableClasses.find(c => c.id === newLesson.classId);
     
-    // Find class name for display
-    const classObj = availableClasses.find(c => c.id === newLesson.class_id);
+    // Create the new lesson object
+    const lesson: Lesson = {
+      id: mockId,
+      title: newLesson.title,
+      description: newLesson.description,
+      youtubeUrl: newLesson.youtubeUrl,
+      date: newLesson.date,
+      class: classInfo?.name || "Unknown Class",
+      class_id: newLesson.classId,
+      visibility: newLesson.visibility || 'class_only'
+    };
     
-    if (!classObj) {
-      toast({
-        title: "Turma não encontrada",
-        description: "A turma selecionada não foi encontrada.",
-        variant: "destructive",
-      });
-      return lessons;
-    }
+    // Add the new lesson to the current lessons array
+    const updatedLessons = [...currentLessons, lesson];
     
-    console.log("Class found:", classObj.name, "userId:", userId);
+    // Show a success message
+    toast({
+      title: "Aula adicionada",
+      description: "A nova aula foi adicionada com sucesso.",
+    });
     
-    // Insert lesson into the database - RLS will ensure only teacher's classes
-    const { data, error } = await supabase
-      .from('lessons')
-      .insert([{
-        title: newLesson.title,
-        description: newLesson.description,
-        youtube_url: newLesson.youtubeUrl,
-        date: newLesson.date,
-        class_id: newLesson.class_id,
-        visibility: newLesson.visibility
-      }])
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error adding lesson:", error);
-      throw error;
-    }
-    
-    if (data) {
-      // Create the new lesson with ID
-      const newLessonWithId: Lesson = {
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        youtubeUrl: data.youtube_url,
-        date: data.date,
-        class: classObj?.name || 'Sem turma',
-        class_id: data.class_id,
-        visibility: data.visibility === 'all' ? 'all' : 'class_only'
-      };
-      
-      toast({
-        title: "Aula adicionada",
-        description: "Aula foi adicionada com sucesso."
-      });
-      
-      console.log("Lesson added successfully:", newLessonWithId);
-      return [...lessons, newLessonWithId];
-    }
-    
-    return lessons;
+    return updatedLessons;
   } catch (error: any) {
     console.error("Error adding lesson:", error);
     toast({
@@ -89,39 +48,24 @@ export async function addLesson(newLesson: NewLesson, userId: string, availableC
       description: error.message || "Ocorreu um erro ao adicionar a aula.",
       variant: "destructive",
     });
-    
-    return lessons;
+    throw error;
   }
-}
+};
 
-export async function deleteLesson(id: string, lessons: Lesson[]) {
+export const deleteLesson = async (
+  id: string,
+  currentLessons: Lesson[]
+): Promise<Lesson[]> => {
   try {
-    if (!id) {
-      toast({
-        title: "ID inválido",
-        description: "ID da aula inválido.",
-        variant: "destructive",
-      });
-      return lessons;
-    }
+    console.log("Deleting lesson:", id);
     
-    // Delete lesson from the database
-    const { error } = await supabase
-      .from('lessons')
-      .delete()
-      .eq('id', id);
+    // Remove the lesson from the current lessons array
+    const updatedLessons = currentLessons.filter(lesson => lesson.id !== id);
     
-    if (error) {
-      console.error("Error deleting lesson:", error);
-      throw error;
-    }
-    
-    // Remove lesson from local state
-    const updatedLessons = lessons.filter(lesson => lesson.id !== id);
-    
+    // Show a success message
     toast({
       title: "Aula removida",
-      description: "Aula foi removida com sucesso."
+      description: "A aula foi removida com sucesso.",
     });
     
     return updatedLessons;
@@ -132,7 +76,6 @@ export async function deleteLesson(id: string, lessons: Lesson[]) {
       description: error.message || "Ocorreu um erro ao remover a aula.",
       variant: "destructive",
     });
-    
-    return lessons;
+    throw error;
   }
-}
+};
