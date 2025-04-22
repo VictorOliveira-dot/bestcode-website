@@ -9,7 +9,7 @@ export interface Lesson {
   date: string;
   class: string;
   class_id: string;
-  visibility: 'all' | 'class_only';
+  visibility: 'all' | 'class_only' | string; // Added string to handle other possible values
 }
 
 export interface NewLesson {

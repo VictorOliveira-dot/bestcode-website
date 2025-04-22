@@ -7,6 +7,7 @@ import StudentNotifications from "@/components/student/StudentNotifications";
 import DashboardHeader from "@/components/student/DashboardHeader";
 import DashboardStatsCards from "@/components/student/DashboardStatsCards";
 import { useStudentData } from "@/hooks/student/useStudentData";
+import { Lesson } from "@/components/student/types/lesson";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -35,7 +36,7 @@ const StudentDashboard = () => {
     date: lesson.date,
     class: lesson.class,
     class_id: lesson.class_id,
-    visibility: lesson.visibility
+    visibility: lesson.visibility as 'all' | 'class_only' // Type cast to match our expected type
   })) : [];
 
   const formattedProgress = Array.isArray(progress) ? progress.map(p => ({
