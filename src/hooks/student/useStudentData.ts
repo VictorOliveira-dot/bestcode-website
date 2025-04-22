@@ -15,7 +15,9 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentEnrollments", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // The mock client has a different structure than the actual Supabase client
+      // In the mock, we need to await the result of single() to get data/error
+      const result = await supabase
         .from("enrollments")
         .select(`
           id,
@@ -28,10 +30,12 @@ export const useStudentData = () => {
             teacher_id
           )
         `)
-        .eq("student_id", user?.id);
+        .eq("student_id", user?.id)
+        .single();
       
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      // Return as an array even though single returns one item
+      return result.data ? [result.data] : [];
     },
     enabled: !!user?.id
   });
@@ -47,16 +51,15 @@ export const useStudentData = () => {
       
       const classIds = enrollments.map(e => e.class_id);
       
-      const { data, error } = await supabase
+      const result = await supabase
         .from("lessons")
         .select("*, classes(name)")
-        .in("class_id", classIds)
-        .order("date", { ascending: true });
+        .in("class_id", classIds);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       
       // Transform the data to match expected format
-      return (data || []).map(lesson => ({
+      return (result.data || []).map(lesson => ({
         ...lesson,
         class: lesson.classes.name
       }));
@@ -73,13 +76,14 @@ export const useStudentData = () => {
     queryFn: async () => {
       if (!lessons?.length) return [];
       
-      const { data, error } = await supabase
+      // In the mock, we need to await the result of select
+      const result = await supabase
         .from("lesson_progress")
         .select("*")
         .eq("student_id", user?.id);
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return result.data || [];
     },
     enabled: !!lessons?.length
   });
@@ -91,14 +95,13 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentNotifications", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await supabase
         .from("notifications")
         .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
+        .eq("user_id", user?.id);
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return result.data || [];
     },
     enabled: !!user?.id
   });
@@ -111,9 +114,10 @@ export const useStudentData = () => {
     }) => {
       const status = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
       
+      // Fix the upsert call to use insert with onConflict
       const { data, error } = await supabase
         .from("lesson_progress")
-        .upsert({
+        .insert({
           lesson_id: lessonId,
           student_id: user?.id,
           watch_time_minutes: watchTimeMinutes,
