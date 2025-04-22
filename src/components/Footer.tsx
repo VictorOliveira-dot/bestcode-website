@@ -11,7 +11,7 @@ const Footer = () => {
           <div>
             <Link to="/" className="inline-block mb-4">
               <img 
-                src="/img/logotipo/logotipoBestCode.png" 
+                src="/img/logotipo/logotipoWhite.png" 
                 alt="Code Academy" 
                 className="h-10"
               />
