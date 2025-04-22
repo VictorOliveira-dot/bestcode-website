@@ -14,8 +14,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import EmailField from './EmailField';
-import PasswordField from './PasswordField';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth';
 
@@ -49,9 +47,9 @@ const RegisterForm = () => {
     try {
       setIsSubmitting(true);
       
-      // Usar a função de registro do contexto Auth que usa o Supabase
+      // Enviar os metadados (nome e role) junto com o registro
       const result = await registerUser({
-        email: values.email, 
+        email: values.email,
         password: values.password,
         name: values.name,
         role: values.role
@@ -60,13 +58,12 @@ const RegisterForm = () => {
       if (result.success) {
         toast({
           title: "Conta criada com sucesso!",
-          description: "Você será redirecionado para a página de pagamento.",
+          description: "Você será redirecionado para a página inicial.",
           variant: "default"
         });
         
-        // Redirecionar para checkout após registro bem-sucedido
         setTimeout(() => {
-          navigate('/checkout');
+          navigate('/');
         }, 1500);
       } else {
         toast({
@@ -98,7 +95,11 @@ const RegisterForm = () => {
               <FormItem>
                 <FormLabel>Nome Completo</FormLabel>
                 <FormControl>
-                  <input placeholder="Seu nome" {...field} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" />
+                  <input 
+                    placeholder="Seu nome" 
+                    {...field} 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -112,7 +113,12 @@ const RegisterForm = () => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <input type="email" placeholder="seu@email.com" {...field} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" />
+                  <input 
+                    type="email" 
+                    placeholder="seu@email.com" 
+                    {...field} 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -126,7 +132,12 @@ const RegisterForm = () => {
               <FormItem>
                 <FormLabel>Senha</FormLabel>
                 <FormControl>
-                  <input type="password" placeholder="Senha segura" {...field} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" />
+                  <input 
+                    type="password" 
+                    placeholder="Senha segura" 
+                    {...field} 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -156,7 +167,11 @@ const RegisterForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full bg-bestcode-600 hover:bg-bestcode-700" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
+            disabled={isSubmitting}
+          >
             {isSubmitting ? 'Criando conta...' : 'Registrar'}
           </Button>
         </form>
