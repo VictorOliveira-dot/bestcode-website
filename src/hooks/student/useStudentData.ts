@@ -17,7 +17,7 @@ export const useStudentData = () => {
     queryFn: async () => {
       // The mock client has a different structure than the actual Supabase client
       // In the mock, we need to await the result of single() to get data/error
-      const { data, error } = await supabase
+      const result = await supabase
         .from("enrollments")
         .select(`
           id,
@@ -33,9 +33,9 @@ export const useStudentData = () => {
         .eq("student_id", user?.id)
         .single();
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       // Return as an array even though single returns one item
-      return data ? [data] : [];
+      return result.data ? [result.data] : [];
     },
     enabled: !!user?.id
   });
@@ -51,15 +51,15 @@ export const useStudentData = () => {
       
       const classIds = enrollments.map(e => e.class_id);
       
-      const { data, error } = await supabase
+      const result = await supabase
         .from("lessons")
         .select("*, classes(name)")
         .in("class_id", classIds);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       
       // Transform the data to match expected format
-      return (data || []).map(lesson => ({
+      return (result.data || []).map(lesson => ({
         ...lesson,
         class: lesson.classes.name,
         youtubeUrl: lesson.youtube_url // Map youtube_url to youtubeUrl to match our expected type
@@ -84,7 +84,6 @@ export const useStudentData = () => {
         .eq("student_id", user?.id);
 
       // With the mock implementation, we need to access the returned object directly
-      // since it doesn't have data/error properties at this level
       return result.data || [];
     },
     enabled: !!lessons?.length
@@ -117,7 +116,7 @@ export const useStudentData = () => {
       const status = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
       
       // Fix the upsert call to use insert with onConflict
-      const { data, error } = await supabase
+      const result = await supabase
         .from("lesson_progress")
         .insert({
           lesson_id: lessonId,
@@ -128,8 +127,8 @@ export const useStudentData = () => {
           status
         });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["studentProgress"] });
