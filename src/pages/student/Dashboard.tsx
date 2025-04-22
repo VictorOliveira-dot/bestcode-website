@@ -27,7 +27,17 @@ const StudentDashboard = () => {
     return <Navigate to="/teacher/dashboard" />;
   }
 
-  const formattedLessons = Array.isArray(lessons) ? lessons : [];
+  const formattedLessons = Array.isArray(lessons) ? lessons.map(lesson => ({
+    id: lesson.id,
+    title: lesson.title,
+    description: lesson.description,
+    youtubeUrl: lesson.youtubeUrl || lesson.youtube_url, // Handle both field names
+    date: lesson.date,
+    class: lesson.class,
+    class_id: lesson.class_id,
+    visibility: lesson.visibility
+  })) : [];
+
   const formattedProgress = Array.isArray(progress) ? progress.map(p => ({
     lessonId: p.lesson_id,
     watchTimeMinutes: p.watch_time_minutes,
@@ -35,6 +45,7 @@ const StudentDashboard = () => {
     status: p.status as 'completed' | 'in_progress' | 'not_started',
     lastWatched: p.last_watched
   })) : [];
+
   const formattedNotifications = Array.isArray(notifications) ? notifications : [];
 
   const stats = {

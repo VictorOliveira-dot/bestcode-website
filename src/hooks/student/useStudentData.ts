@@ -61,7 +61,8 @@ export const useStudentData = () => {
       // Transform the data to match expected format
       return (result.data || []).map(lesson => ({
         ...lesson,
-        class: lesson.classes.name
+        class: lesson.classes.name,
+        youtubeUrl: lesson.youtube_url // Map youtube_url to youtubeUrl to match our expected type
       }));
     },
     enabled: !!enrollments?.length
