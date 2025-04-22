@@ -1,19 +1,12 @@
+
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
-
-// Components
 import DashboardHeader from "@/components/teacher/DashboardHeader";
 import DashboardCards from "@/components/teacher/DashboardCards";
 import DashboardContent from "@/components/teacher/DashboardContent";
 import AddLessonForm from "@/components/teacher/AddLessonForm";
-
-// Custom hooks and utilities
-import { useDashboardData } from "@/hooks/teacher/useDashboardData";
-import { addLesson, deleteLesson, editLesson } from "@/utils/teacher/lessonManager";
-
-// Types
-import { NewLesson } from "@/components/student/types/lesson";
+import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 
 const TeacherDashboard = () => {
   const { user } = useAuth();
@@ -21,14 +14,14 @@ const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState("lessons");
   
   const { 
-    lessons, 
-    setLessons, 
-    availableClasses, 
+    classes, 
     studentCount, 
-    isLoading 
-  } = useDashboardData();
+    lessons, 
+    isLoading,
+    refetchLessons,
+    refetchClasses
+  } = useTeacherData();
 
-  // Redirect if not authenticated or not a teacher
   if (!user) {
     return <Navigate to="/login" />;
   }
@@ -37,51 +30,15 @@ const TeacherDashboard = () => {
     return <Navigate to="/student/dashboard" />;
   }
 
-  const handleAddLesson = async (newLesson: NewLesson) => {
-    if (!user) return;
-    
-    console.log("Adding lesson:", newLesson);
-    
-    const updatedLessons = await addLesson(
-      newLesson,
-      user.id,
-      availableClasses,
-      lessons
-    );
-    
-    setLessons(updatedLessons);
-    setIsAddLessonOpen(false);
-  };
-
-  const handleDeleteLesson = async (id: string) => {
-    const updatedLessons = await deleteLesson(id, lessons);
-    setLessons(updatedLessons);
-  };
-
-  const handleEditLesson = async (id: string, updatedLesson: NewLesson) => {
-    if (!user) return;
-    
-    console.log("Editing lesson:", id, updatedLesson);
-    
-    const updatedLessons = await editLesson(
-      id,
-      updatedLesson,
-      availableClasses,
-      lessons
-    );
-    
-    setLessons(updatedLessons);
-  };
-
   return (
     <div className="min-h-screen bg-slate-50">
       <DashboardHeader userName={user.name} />
 
       <main className="container-custom py-4 md:py-8 px-2 md:px-0">
         <DashboardCards 
-          classesCount={availableClasses.length}
-          lessonsCount={lessons.length}
-          studentsCount={studentCount}
+          classesCount={classes?.length || 0}
+          lessonsCount={lessons?.length || 0}
+          studentsCount={studentCount || 0}
           onAddLessonClick={() => setIsAddLessonOpen(true)}
           onChangeTab={setActiveTab}
         />
@@ -89,11 +46,11 @@ const TeacherDashboard = () => {
         <DashboardContent 
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          lessons={lessons}
-          availableClasses={availableClasses}
+          lessons={lessons || []}
+          availableClasses={classes || []}
           setIsAddLessonOpen={setIsAddLessonOpen}
-          handleDeleteLesson={handleDeleteLesson}
-          handleEditLesson={handleEditLesson}
+          handleDeleteLesson={async () => { await refetchLessons(); }}
+          handleEditLesson={async () => { await refetchLessons(); }}
           isLoading={isLoading}
         />
       </main>
@@ -101,8 +58,11 @@ const TeacherDashboard = () => {
       <AddLessonForm 
         isOpen={isAddLessonOpen}
         onOpenChange={setIsAddLessonOpen}
-        onAddLesson={handleAddLesson}
-        availableClasses={availableClasses}
+        onAddLesson={async () => { 
+          await refetchLessons();
+          await refetchClasses();
+        }}
+        availableClasses={classes || []}
       />
     </div>
   );

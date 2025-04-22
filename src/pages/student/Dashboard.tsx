@@ -6,21 +6,19 @@ import StudentLessonsPanel from "@/components/student/StudentLessonsPanel";
 import StudentNotifications from "@/components/student/StudentNotifications";
 import DashboardHeader from "@/components/student/DashboardHeader";
 import DashboardStatsCards from "@/components/student/DashboardStatsCards";
-import { useStudentDashboard } from "@/components/student/hooks/useStudentDashboard";
+import { useStudentData } from "@/hooks/student/useStudentData";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { 
     lessons,
-    lessonProgress,
+    progress,
     notifications,
-    studentClass,
-    updateLessonProgress,
-    handleMarkNotificationAsRead,
-    stats
-  } = useStudentDashboard();
+    enrollments,
+    updateProgress,
+    isLoading
+  } = useStudentData();
   
-  // Redirect if not authenticated or not a student
   if (!user) {
     return <Navigate to="/login" />;
   }
@@ -29,31 +27,39 @@ const StudentDashboard = () => {
     return <Navigate to="/teacher/dashboard" />;
   }
 
+  const stats = {
+    inProgressLessons: progress?.filter(p => p.status === "in_progress").length || 0,
+    completedLessons: progress?.filter(p => p.status === "completed").length || 0,
+    overallProgress: progress?.length 
+      ? Math.round((progress.reduce((acc, p) => acc + p.progress, 0) / (progress.length * 100)) * 100)
+      : 0,
+    availableLessons: lessons?.length || 0,
+  };
+
+  const studentClass = enrollments?.[0]?.classes?.name || "";
+
   return (
     <div className="min-h-screen bg-slate-50">
       <DashboardHeader userName={user.name} />
 
       <main className="container-custom py-8">
-        <DashboardStatsCards
-          inProgressLessons={stats.inProgressLessons}
-          overallProgress={stats.overallProgress}
-          completedLessons={stats.completedLessons}
-          availableLessons={stats.availableLessons}
-        />
+        <DashboardStatsCards {...stats} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <StudentLessonsPanel
-              lessons={lessons}
+              lessons={lessons || []}
               studentClass={studentClass}
-              lessonProgress={lessonProgress}
-              updateLessonProgress={updateLessonProgress}
+              lessonProgress={progress || []}
+              updateLessonProgress={updateProgress}
+              isLoading={isLoading}
             />
           </div>
           <div>
             <StudentNotifications 
-              notifications={notifications}
-              onMarkAsRead={handleMarkNotificationAsRead}
+              notifications={notifications || []}
+              onMarkAsRead={() => {}} // Implementar mais tarde
+              isLoading={isLoading}
             />
           </div>
         </div>

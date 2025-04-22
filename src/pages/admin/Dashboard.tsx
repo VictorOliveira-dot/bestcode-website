@@ -7,45 +7,38 @@ import AdminDashboardHeader from "@/components/admin/DashboardHeader";
 import AdminDashboardCards from "@/components/admin/DashboardCards";
 import DashboardContent from "@/components/admin/DashboardContent";
 import DashboardActions from "@/components/admin/DashboardActions";
-import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useAdminData } from "@/hooks/admin/useAdminData";
 
-const queryClient = new QueryClient();
-
-// Mock data
-const ADMIN_STATS = {
-  studentsCount: 35,
-  teachersCount: 8,
-  coursesCount: 5,
-  revenueAmount: "R$ 34.895,00"
-};
-
-const AdminDashboardComponent = () => {
+const AdminDashboard = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("students");
   
+  const {
+    students,
+    teachers,
+    isLoading,
+    refetchStudents,
+    refetchTeachers
+  } = useAdminData();
+  
   if (!user) {
-    console.log("No authenticated user found, redirecting to login");
     return <Navigate to="/login" />;
   }
   
   if (user.role !== 'admin') {
-    console.log("User is not an admin, redirecting to home");
     return <Navigate to="/" />;
   }
 
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['admin-stats'],
-    queryFn: async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return ADMIN_STATS;
-    }
-  });
+  const stats = {
+    studentsCount: students?.length || 0,
+    teachersCount: teachers?.length || 0,
+    coursesCount: 0, // Implementar depois
+    revenueAmount: "R$ 0,00" // Implementar depois
+  };
 
   useEffect(() => {
     const path = location.pathname.split('/').pop();
-    
     if (path === "students" || path === "teachers" || 
         path === "courses" || path === "payments" || 
         path === "enrollments" || path === "reports") {
@@ -63,13 +56,11 @@ const AdminDashboardComponent = () => {
   }, [user]);
 
   const handleTeacherAdded = () => {
-    queryClient.invalidateQueries({ queryKey: ['teachers'] });
-    queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+    refetchTeachers();
   };
 
   const handleClassAdded = () => {
-    queryClient.invalidateQueries({ queryKey: ['courses'] });
-    queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+    refetchStudents();
   };
 
   return (
@@ -83,10 +74,7 @@ const AdminDashboardComponent = () => {
         />
 
         <AdminDashboardCards 
-          studentsCount={stats?.studentsCount || 0}
-          teachersCount={stats?.teachersCount || 0}
-          coursesCount={stats?.coursesCount || 0}
-          revenueAmount={stats?.revenueAmount || "R$ 0,00"}
+          {...stats}
           onChangeTab={setActiveTab}
         />
 
@@ -100,13 +88,4 @@ const AdminDashboardComponent = () => {
   );
 };
 
-const AdminDashboard = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AdminDashboardComponent />
-    </QueryClientProvider>
-  );
-};
-
 export default AdminDashboard;
-
