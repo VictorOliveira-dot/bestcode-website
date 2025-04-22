@@ -8,6 +8,22 @@ import DashboardContent from "@/components/teacher/DashboardContent";
 import AddLessonForm from "@/components/teacher/AddLessonForm";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 
+interface Lesson {
+  id: string;
+  title: string;
+  description: string;
+  youtubeUrl: string;
+  date: string;
+  class: string;
+  class_id: string;
+  visibility: 'all' | 'class_only';
+}
+
+interface Class {
+  id: string;
+  name: string;
+}
+
 const TeacherDashboard = () => {
   const { user } = useAuth();
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
@@ -30,8 +46,8 @@ const TeacherDashboard = () => {
     return <Navigate to="/student/dashboard" />;
   }
 
-  // Garantir que os dados são do tipo esperado
-  const formattedLessons = Array.isArray(lessons) ? lessons.map(lesson => ({
+  // Ensure we have the right data types
+  const formattedLessons: Lesson[] = Array.isArray(lessons) ? lessons.map(lesson => ({
     id: lesson.id,
     title: lesson.title,
     description: lesson.description,
@@ -39,10 +55,14 @@ const TeacherDashboard = () => {
     date: lesson.date,
     class: lesson.class_name,
     class_id: lesson.class_id,
-    visibility: lesson.visibility
+    visibility: lesson.visibility as 'all' | 'class_only'
   })) : [];
 
-  const formattedClasses = Array.isArray(classes) ? classes : [];
+  const formattedClasses: Class[] = Array.isArray(classes) ? classes.map(cls => ({
+    id: cls.id,
+    name: cls.name
+  })) : [];
+  
   const studentCountValue = typeof studentCount === 'number' ? studentCount : 0;
 
   return (

@@ -64,12 +64,14 @@ const StudentDashboard = () => {
               studentClass={studentClass}
               lessonProgress={formattedProgress}
               updateLessonProgress={updateProgress}
+              isLoading={isLoading}
             />
           </div>
           <div>
             <StudentNotifications 
               notifications={formattedNotifications}
               onMarkAsRead={() => {}} // Implementar mais tarde
+              isLoading={isLoading}
             />
           </div>
         </div>

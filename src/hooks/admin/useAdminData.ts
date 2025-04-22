@@ -14,9 +14,9 @@ export const useAdminData = () => {
   } = useQuery({
     queryKey: ["adminStudents"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_get_students_data", {});
+      const { data, error } = await supabase.rpc("admin_get_students_data");
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: user?.role === "admin"
   });
@@ -29,16 +29,16 @@ export const useAdminData = () => {
   } = useQuery({
     queryKey: ["adminTeachers"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_get_teachers", {});
+      const { data, error } = await supabase.rpc("admin_get_teachers");
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: user?.role === "admin"
   });
 
   return {
-    students,
-    teachers,
+    students: students || [],
+    teachers: teachers || [],
     isLoading: isLoadingStudents || isLoadingTeachers,
     error: studentsError || teachersError,
     refetchStudents,

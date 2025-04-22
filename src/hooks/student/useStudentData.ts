@@ -15,7 +15,7 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentEnrollments", user?.id],
     queryFn: async () => {
-      const response = await supabase
+      const { data, error } = await supabase
         .from("enrollments")
         .select(`
           id,
@@ -30,8 +30,8 @@ export const useStudentData = () => {
         `)
         .eq("student_id", user?.id);
       
-      if (response.error) throw response.error;
-      return response.data;
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!user?.id
   });
@@ -47,16 +47,16 @@ export const useStudentData = () => {
       
       const classIds = enrollments.map(e => e.class_id);
       
-      const response = await supabase
+      const { data, error } = await supabase
         .from("lessons")
         .select("*, classes(name)")
         .in("class_id", classIds)
         .order("date", { ascending: true });
 
-      if (response.error) throw response.error;
+      if (error) throw error;
       
       // Transform the data to match expected format
-      return response.data.map(lesson => ({
+      return (data || []).map(lesson => ({
         ...lesson,
         class: lesson.classes.name
       }));
@@ -73,13 +73,13 @@ export const useStudentData = () => {
     queryFn: async () => {
       if (!lessons?.length) return [];
       
-      const response = await supabase
+      const { data, error } = await supabase
         .from("lesson_progress")
         .select("*")
         .eq("student_id", user?.id);
 
-      if (response.error) throw response.error;
-      return response.data;
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!lessons?.length
   });
@@ -91,14 +91,14 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentNotifications", user?.id],
     queryFn: async () => {
-      const response = await supabase
+      const { data, error } = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
-      if (response.error) throw response.error;
-      return response.data;
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!user?.id
   });
@@ -111,7 +111,7 @@ export const useStudentData = () => {
     }) => {
       const status = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
       
-      const response = await supabase
+      const { data, error } = await supabase
         .from("lesson_progress")
         .upsert({
           lesson_id: lessonId,
@@ -122,8 +122,8 @@ export const useStudentData = () => {
           status
         });
 
-      if (response.error) throw response.error;
-      return response.data;
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["studentProgress"] });
