@@ -30,15 +30,30 @@ const TeacherDashboard = () => {
     return <Navigate to="/student/dashboard" />;
   }
 
+  // Garantir que os dados são do tipo esperado
+  const formattedLessons = Array.isArray(lessons) ? lessons.map(lesson => ({
+    id: lesson.id,
+    title: lesson.title,
+    description: lesson.description,
+    youtubeUrl: lesson.youtube_url,
+    date: lesson.date,
+    class: lesson.class_name,
+    class_id: lesson.class_id,
+    visibility: lesson.visibility
+  })) : [];
+
+  const formattedClasses = Array.isArray(classes) ? classes : [];
+  const studentCountValue = typeof studentCount === 'number' ? studentCount : 0;
+
   return (
     <div className="min-h-screen bg-slate-50">
       <DashboardHeader userName={user.name} />
 
       <main className="container-custom py-4 md:py-8 px-2 md:px-0">
         <DashboardCards 
-          classesCount={classes?.length || 0}
-          lessonsCount={lessons?.length || 0}
-          studentsCount={studentCount || 0}
+          classesCount={formattedClasses.length}
+          lessonsCount={formattedLessons.length}
+          studentsCount={studentCountValue}
           onAddLessonClick={() => setIsAddLessonOpen(true)}
           onChangeTab={setActiveTab}
         />
@@ -46,8 +61,8 @@ const TeacherDashboard = () => {
         <DashboardContent 
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          lessons={lessons || []}
-          availableClasses={classes || []}
+          lessons={formattedLessons}
+          availableClasses={formattedClasses}
           setIsAddLessonOpen={setIsAddLessonOpen}
           handleDeleteLesson={async () => { await refetchLessons(); }}
           handleEditLesson={async () => { await refetchLessons(); }}
@@ -62,7 +77,7 @@ const TeacherDashboard = () => {
           await refetchLessons();
           await refetchClasses();
         }}
-        availableClasses={classes || []}
+        availableClasses={formattedClasses}
       />
     </div>
   );

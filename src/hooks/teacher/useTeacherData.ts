@@ -25,7 +25,10 @@ export const useTeacherData = () => {
     enabled: !!user?.id
   });
 
-  const { data: studentCount } = useQuery({
+  const { 
+    data: studentCount,
+    isLoading: isLoadingStudentCount
+  } = useQuery({
     queryKey: ["teacherStudentCount", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -59,10 +62,10 @@ export const useTeacherData = () => {
   });
 
   return {
-    classes,
-    studentCount,
-    lessons,
-    isLoading: isLoadingClasses || isLoadingLessons,
+    classes: classes || [],
+    studentCount: studentCount || 0,
+    lessons: lessons || [],
+    isLoading: isLoadingClasses || isLoadingLessons || isLoadingStudentCount,
     error: classesError || lessonsError,
     refetchClasses,
     refetchLessons

@@ -1,11 +1,12 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
 
 export const useStudentData = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const {
     data: enrollments,
@@ -14,7 +15,7 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentEnrollments", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const response = await supabase
         .from("enrollments")
         .select(`
           id,
@@ -28,9 +29,9 @@ export const useStudentData = () => {
           )
         `)
         .eq("student_id", user?.id);
-
-      if (error) throw error;
-      return data;
+      
+      if (response.error) throw response.error;
+      return response.data;
     },
     enabled: !!user?.id
   });
@@ -46,14 +47,19 @@ export const useStudentData = () => {
       
       const classIds = enrollments.map(e => e.class_id);
       
-      const { data, error } = await supabase
+      const response = await supabase
         .from("lessons")
-        .select("*")
+        .select("*, classes(name)")
         .in("class_id", classIds)
         .order("date", { ascending: true });
 
-      if (error) throw error;
-      return data;
+      if (response.error) throw response.error;
+      
+      // Transform the data to match expected format
+      return response.data.map(lesson => ({
+        ...lesson,
+        class: lesson.classes.name
+      }));
     },
     enabled: !!enrollments?.length
   });
@@ -67,13 +73,13 @@ export const useStudentData = () => {
     queryFn: async () => {
       if (!lessons?.length) return [];
       
-      const { data, error } = await supabase
+      const response = await supabase
         .from("lesson_progress")
         .select("*")
         .eq("student_id", user?.id);
 
-      if (error) throw error;
-      return data;
+      if (response.error) throw response.error;
+      return response.data;
     },
     enabled: !!lessons?.length
   });
@@ -85,21 +91,27 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentNotifications", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const response = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (response.error) throw response.error;
+      return response.data;
     },
     enabled: !!user?.id
   });
 
-  const updateProgress = async (lessonId: string, watchTimeMinutes: number, progress: number) => {
-    try {
-      const { error } = await supabase
+  const updateProgressMutation = useMutation({
+    mutationFn: async ({ lessonId, watchTimeMinutes, progress }: { 
+      lessonId: string, 
+      watchTimeMinutes: number, 
+      progress: number 
+    }) => {
+      const status = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
+      
+      const response = await supabase
         .from("lesson_progress")
         .upsert({
           lesson_id: lessonId,
@@ -107,16 +119,20 @@ export const useStudentData = () => {
           watch_time_minutes: watchTimeMinutes,
           progress,
           last_watched: new Date().toISOString(),
-          status: progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started"
+          status
         });
 
-      if (error) throw error;
-
+      if (response.error) throw response.error;
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["studentProgress"] });
       toast({
         title: "Progresso atualizado",
-        description: `Seu progresso foi atualizado para ${progress}%`
+        description: "Seu progresso foi atualizado com sucesso"
       });
-    } catch (error: any) {
+    },
+    onError: (error: any) => {
       console.error("Erro ao atualizar progresso:", error);
       toast({
         title: "Erro",
@@ -124,6 +140,10 @@ export const useStudentData = () => {
         variant: "destructive"
       });
     }
+  });
+
+  const updateProgress = (lessonId: string, watchTimeMinutes: number, progress: number) => {
+    return updateProgressMutation.mutateAsync({ lessonId, watchTimeMinutes, progress });
   };
 
   return {

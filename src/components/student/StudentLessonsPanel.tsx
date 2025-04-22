@@ -5,19 +5,22 @@ import VideoPlayerModal from "./VideoPlayerModal";
 import LessonsList from "./LessonsList";
 import { useLessonState } from "./hooks/useLessonState";
 import { Lesson, LessonProgress } from "./types/lesson";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface StudentLessonsPanelProps {
   lessons: Lesson[];
   studentClass: string;
   lessonProgress: LessonProgress[];
   updateLessonProgress: (lessonId: string, watchTimeMinutes: number, progress: number) => void;
+  isLoading?: boolean;
 }
 
 const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
   lessons,
   studentClass,
   lessonProgress,
-  updateLessonProgress
+  updateLessonProgress,
+  isLoading = false
 }) => {
   const {
     selectedLesson,
@@ -31,6 +34,22 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
     handleProgressUpdate,
     getLessonProgress
   } = useLessonState(lessons, studentClass, lessonProgress, updateLessonProgress);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white p-4 rounded-lg shadow">
+        <Skeleton className="h-8 w-1/3 mb-4" />
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">

@@ -27,16 +27,28 @@ const StudentDashboard = () => {
     return <Navigate to="/teacher/dashboard" />;
   }
 
+  const formattedLessons = Array.isArray(lessons) ? lessons : [];
+  const formattedProgress = Array.isArray(progress) ? progress.map(p => ({
+    lessonId: p.lesson_id,
+    watchTimeMinutes: p.watch_time_minutes,
+    progress: p.progress,
+    status: p.status as 'completed' | 'in_progress' | 'not_started',
+    lastWatched: p.last_watched
+  })) : [];
+  const formattedNotifications = Array.isArray(notifications) ? notifications : [];
+
   const stats = {
-    inProgressLessons: progress?.filter(p => p.status === "in_progress").length || 0,
-    completedLessons: progress?.filter(p => p.status === "completed").length || 0,
-    overallProgress: progress?.length 
-      ? Math.round((progress.reduce((acc, p) => acc + p.progress, 0) / (progress.length * 100)) * 100)
+    inProgressLessons: formattedProgress.filter(p => p.status === "in_progress").length || 0,
+    completedLessons: formattedProgress.filter(p => p.status === "completed").length || 0,
+    overallProgress: formattedProgress.length 
+      ? Math.round((formattedProgress.reduce((acc, p) => acc + p.progress, 0) / (formattedProgress.length * 100)) * 100)
       : 0,
-    availableLessons: lessons?.length || 0,
+    availableLessons: formattedLessons.length || 0,
   };
 
-  const studentClass = enrollments?.[0]?.classes?.name || "";
+  const studentClass = enrollments && enrollments.length > 0 && enrollments[0].classes 
+    ? enrollments[0].classes.name 
+    : "";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -48,18 +60,16 @@ const StudentDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <StudentLessonsPanel
-              lessons={lessons || []}
+              lessons={formattedLessons}
               studentClass={studentClass}
-              lessonProgress={progress || []}
+              lessonProgress={formattedProgress}
               updateLessonProgress={updateProgress}
-              isLoading={isLoading}
             />
           </div>
           <div>
             <StudentNotifications 
-              notifications={notifications || []}
+              notifications={formattedNotifications}
               onMarkAsRead={() => {}} // Implementar mais tarde
-              isLoading={isLoading}
             />
           </div>
         </div>

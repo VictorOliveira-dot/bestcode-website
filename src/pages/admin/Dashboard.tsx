@@ -30,9 +30,13 @@ const AdminDashboard = () => {
     return <Navigate to="/" />;
   }
 
+  // Garantir que os dados são do tipo esperado
+  const formattedStudents = Array.isArray(students) ? students : [];
+  const formattedTeachers = Array.isArray(teachers) ? teachers : [];
+
   const stats = {
-    studentsCount: students?.length || 0,
-    teachersCount: teachers?.length || 0,
+    studentsCount: formattedStudents.length,
+    teachersCount: formattedTeachers.length,
     coursesCount: 0, // Implementar depois
     revenueAmount: "R$ 0,00" // Implementar depois
   };
