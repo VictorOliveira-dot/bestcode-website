@@ -13,7 +13,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth';
 
@@ -21,9 +20,6 @@ const formSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
   email: z.string().email('Endereço de e-mail inválido'),
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
-  role: z.enum(['student', 'teacher', 'admin'], {
-    required_error: "Por favor selecione um tipo de usuário",
-  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -39,7 +35,6 @@ const RegisterForm = () => {
       name: '',
       email: '',
       password: '',
-      role: 'student',
     },
   });
 
@@ -47,12 +42,12 @@ const RegisterForm = () => {
     try {
       setIsSubmitting(true);
       
-      // Enviar os metadados (nome e role) junto com o registro
+      // Enviar os metadados (nome e role) junto com o registro, sempre como student
       const result = await registerUser({
         email: values.email,
         password: values.password,
         name: values.name,
-        role: values.role
+        role: 'student' // Role is now hardcoded to student
       });
       
       if (result.success) {
@@ -144,29 +139,6 @@ const RegisterForm = () => {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Usuário</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de usuário" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="student">Estudante</SelectItem>
-                    <SelectItem value="teacher">Professor</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
           <Button 
             type="submit" 
             className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
@@ -190,3 +162,4 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
+
