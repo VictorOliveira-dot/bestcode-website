@@ -78,13 +78,14 @@ export const useStudentData = () => {
       if (!lessons?.length) return [];
       
       // In the mock, we need to await the result of select
-      const { data, error } = await supabase
+      const result = await supabase
         .from("lesson_progress")
         .select("*")
         .eq("student_id", user?.id);
 
-      if (error) throw error;
-      return data || [];
+      // With the mock implementation, we need to access the returned object directly
+      // since it doesn't have data/error properties at this level
+      return result.data || [];
     },
     enabled: !!lessons?.length
   });
@@ -96,13 +97,13 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentNotifications", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", user?.id);
 
-      if (error) throw error;
-      return data || [];
+      // With the mock implementation, we need to access the returned object directly
+      return result.data || [];
     },
     enabled: !!user?.id
   });
