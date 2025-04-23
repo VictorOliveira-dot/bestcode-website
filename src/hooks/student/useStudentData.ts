@@ -51,6 +51,7 @@ export const useStudentData = () => {
       
       const classIds = enrollments.map(e => e.class_id);
       
+      // With the mock implementation, this already returns the data property
       const result = await supabase
         .from("lessons")
         .select("*, classes(name)")
@@ -77,7 +78,7 @@ export const useStudentData = () => {
     queryFn: async () => {
       if (!lessons?.length) return [];
       
-      // For this query, we need to correctly await the whole chain
+      // For the mock implementation, this query returns the data directly
       const result = await supabase
         .from("lesson_progress")
         .select("*")
@@ -96,7 +97,7 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentNotifications", user?.id],
     queryFn: async () => {
-      // For this query, we need to correctly await the full chain
+      // For the mock implementation, this query returns the data directly
       const result = await supabase
         .from("notifications")
         .select("*")
