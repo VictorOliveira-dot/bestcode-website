@@ -32,7 +32,7 @@ const StudentDashboard = () => {
     id: lesson.id,
     title: lesson.title,
     description: lesson.description,
-    youtubeUrl: lesson.youtubeUrl,  // Use consistent property name
+    youtubeUrl: lesson.youtubeUrl,  // Now using consistent property name
     date: lesson.date,
     class: lesson.class,
     class_id: lesson.class_id,
@@ -58,8 +58,9 @@ const StudentDashboard = () => {
     availableLessons: formattedLessons.length || 0,
   };
 
-  const studentClass = enrollments && enrollments.length > 0 && enrollments[0].classes 
-    ? enrollments[0].classes.name 
+  // Correctly access the student class name from the transformed enrollment data
+  const studentClass = enrollments && enrollments.length > 0 
+    ? enrollments[0].name
     : "";
 
   return (
