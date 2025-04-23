@@ -6,6 +6,7 @@ export const fetchUserData = async (authUser: User) => {
   try {
     console.log("Fetching user data from public.users for:", authUser.email);
     
+    // First, check if the user exists in the public.users table
     const { data: userData, error: selectError } = await supabase
       .from('users')
       .select('*')
@@ -15,11 +16,28 @@ export const fetchUserData = async (authUser: User) => {
     if (selectError) {
       console.error('Error fetching user data:', selectError);
       
+      // If user is not found, create a new user record
       if (selectError.code === 'PGRST116') {
         console.log("User not found in public.users table, creating record for:", authUser.email);
         
+        // Extract metadata from auth user or use defaults
         const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
-        const metaRole = 'student';
+        
+        // Determine role - first try metadata, then default to student
+        let metaRole = authUser.user_metadata?.role || 'student';
+        // Ensure role is one of the valid types
+        if (!['admin', 'teacher', 'student'].includes(metaRole)) {
+          metaRole = 'student';
+        }
+        
+        // If email is admin@bestcode.com, set role to admin regardless of metadata
+        if (authUser.email === 'admin@bestcode.com') {
+          metaRole = 'admin';
+        } else if (authUser.email === 'professor@bestcode.com') {
+          metaRole = 'teacher';
+        } else if (authUser.email === 'aluno@bestcode.com') {
+          metaRole = 'student';
+        }
         
         try {
           const { data: newUser, error: insertError } = await supabase
@@ -38,7 +56,7 @@ export const fetchUserData = async (authUser: User) => {
             return null;
           }
           
-          console.log('Created new user record:', newUser);
+          console.log('Created new user record with role:', newUser.role);
           return newUser;
         } catch (error) {
           console.error('Error in user creation:', error);

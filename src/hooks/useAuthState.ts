@@ -19,15 +19,18 @@ export const useAuthState = () => {
     console.log("Auth Provider: Initializing authentication...");
     setLoading(true);
     
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
         
         if (session?.user) {
+          // Use setTimeout to avoid potential deadlocks
           setTimeout(async () => {
             try {
               console.log("User authenticated in state change event:", session.user.email);
               
+              // Fetch or create user data from public.users table
               const userData = await fetchUserData(session.user);
               
               if (userData) {
@@ -57,6 +60,7 @@ export const useAuthState = () => {
       }
     );
 
+    // Check for existing session
     const initializeAuth = async () => {
       try {
         console.log("Initializing authentication...");
@@ -69,6 +73,7 @@ export const useAuthState = () => {
         }
         
         if (session?.user) {
+          // User is logged in, fetch their data from the public.users table
           const { data: dbUser, error: dbError } = await supabase
             .from('users')
             .select('*')
@@ -98,6 +103,7 @@ export const useAuthState = () => {
 
     initializeAuth();
 
+    // Clean up subscription
     return () => {
       console.log("Cleaning up auth subscription");
       subscription.unsubscribe();
