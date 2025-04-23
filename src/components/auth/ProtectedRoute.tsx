@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     });
   }, [loading, user, allowedRoles, location]);
 
-  // Enquanto estiver carregando, podemos mostrar um indicador de carregamento
+  // While loading, show a loading indicator
   if (loading) {
     console.log("ProtectedRoute - Loading auth state...");
     return (
@@ -33,7 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     );
   }
 
-  // Se não estiver logado, redireciona para o login
+  // If not logged in, redirect to login
   if (!user) {
     console.log("ProtectedRoute - No user, redirecting to login");
     toast({
@@ -44,16 +44,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Se houver papéis permitidos especificados e o usuário não estiver na lista
+  // If there are allowed roles specified and the user doesn't have the role
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    console.log("ProtectedRoute - User doesn't have permission, redirecting to appropriate dashboard");
+    console.log("ProtectedRoute - User doesn't have permission, role:", user.role);
+    console.log("ProtectedRoute - Allowed roles:", allowedRoles);
+    
     toast({
       variant: "destructive",
       title: "Acesso restrito",
       description: "Você não tem permissão para acessar esta página",
     });
     
-    // Redirecionar para a dashboard apropriada com base no papel do usuário
+    // Redirect to the appropriate dashboard based on user's role
     let redirectPath = "/";
     if (user.role === 'admin') {
       redirectPath = "/admin/dashboard";
@@ -63,10 +65,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
       redirectPath = "/student/dashboard";
     }
     
+    console.log("ProtectedRoute - Redirecting to:", redirectPath);
     return <Navigate to={redirectPath} replace />;
   }
 
-  // O usuário está autenticado e tem o papel correto
+  // The user is authenticated and has the correct role
   console.log("ProtectedRoute - Access granted");
   return <>{children}</>;
 };

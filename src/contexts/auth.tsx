@@ -32,64 +32,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Function to create a user record in public.users if missing
-  const ensureUserExists = async (authUser: User) => {
+  // Function to fetch user data from public.users table
+  const fetchUserData = async (authUser: User) => {
     try {
-      // First check if user already exists
+      console.log("Fetching user data from public.users for:", authUser.email);
+      
+      // Query the public.users table for the user role
       const { data: userData, error: selectError } = await supabase
         .from('users')
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
 
-      if (selectError && selectError.code !== 'PGRST116') {
-        console.error('Error checking if user exists:', selectError);
+      if (selectError) {
+        console.error('Error fetching user data:', selectError);
         return null;
       }
 
-      // If user doesn't exist, create one based on auth metadata
-      if (!userData) {
-        console.log('User not found in users table, creating record for:', authUser.email);
+      if (userData) {
+        console.log("Found user data in public.users:", userData);
+        return userData;
+      } else {
+        console.log("User not found in public.users table, creating record for:", authUser.email);
         
         // Get user metadata from auth user
         const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
         const metaRole = authUser.user_metadata?.role || 'student';
         
-        const { data: newUser, error: insertError } = await supabase
-          .from('users')
-          .insert({
-            id: authUser.id,
-            email: authUser.email,
-            name: metaName,
-            role: metaRole
-          })
-          .select()
-          .single();
+        // Create a new user record
+        try {
+          const { data: newUser, error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: authUser.id,
+              email: authUser.email,
+              name: metaName,
+              role: metaRole
+            })
+            .select()
+            .single();
+            
+          if (insertError) {
+            console.error('Error creating user record:', insertError);
+            return null;
+          }
           
-        if (insertError) {
-          console.error('Error creating user record:', insertError);
+          console.log('Created new user record:', newUser);
+          return newUser;
+        } catch (error) {
+          console.error('Error in user creation:', error);
           return null;
         }
-        
-        console.log('Created new user record:', newUser);
-        return newUser;
       }
-      
-      return userData;
     } catch (error) {
-      console.error('Error in ensureUserExists:', error);
+      console.error('Error in fetchUserData:', error);
       return null;
     }
   };
 
-  // Inicialização: busca o estado atual da sessão e configura o listener de mudança de estado
+  // Initialization: Set up auth state listener and check current session
   useEffect(() => {
     console.log("Auth Provider: Initializing authentication...");
     setLoading(true);
     
-    // Primeiro configurar o listener para mudanças de autenticação
+    // First set up listener for authentication state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
         
         if (session?.user) {
@@ -98,11 +106,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
               console.log("User authenticated in state change event:", session.user.email);
               
-              // Ensure user exists in public.users table
-              const userData = await ensureUserExists(session.user);
+              // Fetch user data from public.users table
+              const userData = await fetchUserData(session.user);
               
               if (userData) {
-                console.log("User data found or created:", userData);
+                console.log("Setting user state with role:", userData.role);
                 setUser({
                   id: session.user.id,
                   email: session.user.email || '',
@@ -110,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   role: userData.role as 'admin' | 'teacher' | 'student',
                 });
               } else {
-                // Fallback to using metadata if we couldn't get/create user record
+                // Fallback to using metadata if we couldn't get user record
                 console.log("Using auth metadata as fallback for user data");
                 const metaName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
                 const metaRole = session.user.user_metadata?.role || 'student';
@@ -137,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Depois verificar a sessão existente
+    // Then check existing session
     const initializeAuth = async () => {
       try {
         console.log("Initializing authentication...");
@@ -154,11 +162,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           console.log("User authenticated during initialization:", session.user.email);
           
-          // Ensure user exists in public.users table
-          const userData = await ensureUserExists(session.user);
+          // Fetch user data from public.users table
+          const userData = await fetchUserData(session.user);
           
           if (userData) {
-            console.log("User data found or created during init:", userData);
+            console.log("Setting user state during init with role:", userData.role);
             setUser({
               id: session.user.id,
               email: session.user.email || '',
@@ -166,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               role: userData.role as 'admin' | 'teacher' | 'student',
             });
           } else {
-            // Fallback to using metadata if we couldn't get/create user record
+            // Fallback to using metadata if we couldn't get user record
             console.log("Using auth metadata as fallback during init");
             const metaName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
             const metaRole = session.user.user_metadata?.role || 'student';
@@ -192,13 +200,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
 
-    // Limpar a inscrição ao desmontar
+    // Clean up subscription when unmounting
     return () => {
       console.log("Cleaning up auth subscription");
       subscription.unsubscribe();
     };
   }, []);
 
+  // Login function
   const login = async (email: string, password: string) => {
     try {
       console.log('Attempting login with:', email);
@@ -235,26 +244,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Logout function
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('Error ao fazer logout:', error.message);
+        console.error('Error during logout:', error.message);
         return { success: false };
       }
       
-      // Os dados do usuário serão atualizados pelo onAuthStateChange
+      // User data will be updated by onAuthStateChange
       return { success: true };
     } catch (error) {
-      console.error('Erro inesperado durante logout:', error);
+      console.error('Unexpected error during logout:', error);
       return { success: false };
     }
   };
 
+  // Register function
   const register = async (data: { email: string; password: string; name: string; role: string }) => {
     try {
-      // Registra o usuário no supabase auth
+      // Register user in supabase auth
       const authResponse = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -273,17 +284,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      // O trigger no banco de dados criará automaticamente um registro 
-      // na tabela users quando um novo usuário for criado na auth.users
+      // The trigger in the database will automatically create a record
+      // in the users table when a new user is created in auth.users
 
       return { 
         success: true,
-        message: 'Registro realizado com sucesso'
+        message: 'Registration successful'
       };
     } catch (error: any) {
       return {
         success: false,
-        message: error.message || 'Um erro ocorreu durante o registro'
+        message: error.message || 'An error occurred during registration'
       };
     }
   };

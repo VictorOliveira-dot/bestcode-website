@@ -14,17 +14,21 @@ const Login = () => {
   // Check if user is authenticated and redirect to appropriate dashboard
   useEffect(() => {
     if (!loading && user) {
-      console.log("Login page - redirecting user to dashboard:", user.role);
+      console.log("Login page - User authenticated:", user);
+      console.log("Login page - User role:", user.role);
       
       // Properly redirect based on user role
       let redirectPath = "/";
       
       if (user.role === "admin") {
         redirectPath = "/admin/dashboard";
+        console.log("Redirecting to admin dashboard");
       } else if (user.role === "teacher") {
         redirectPath = "/teacher/dashboard";
+        console.log("Redirecting to teacher dashboard");
       } else if (user.role === "student") {
         redirectPath = "/student/dashboard";
+        console.log("Redirecting to student dashboard");
       }
       
       // Show success message
