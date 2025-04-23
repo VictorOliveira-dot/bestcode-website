@@ -17,21 +17,24 @@ const Login = () => {
       console.log("Login page - redirecting user to dashboard:", user.role);
       
       // Properly redirect based on user role
-      try {
-        if (user.role === "admin") {
-          navigate("/admin/dashboard", { replace: true });
-        } else if (user.role === "teacher") {
-          navigate("/teacher/dashboard", { replace: true });
-        } else if (user.role === "student") {
-          navigate("/student/dashboard", { replace: true });
-        }
-        
+      if (user.role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
         toast({
           title: "Login bem-sucedido!",
           description: `Bem-vindo de volta, ${user.name}!`,
         });
-      } catch (error) {
-        console.error("Error during navigation:", error);
+      } else if (user.role === "teacher") {
+        navigate("/teacher/dashboard", { replace: true });
+        toast({
+          title: "Login bem-sucedido!",
+          description: `Bem-vindo de volta, ${user.name}!`,
+        });
+      } else if (user.role === "student") {
+        navigate("/student/dashboard", { replace: true });
+        toast({
+          title: "Login bem-sucedido!",
+          description: `Bem-vindo de volta, ${user.name}!`,
+        });
       }
     }
   }, [user, loading, navigate]);

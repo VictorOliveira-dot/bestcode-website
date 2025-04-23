@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -38,44 +39,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Primeiro configurar o listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
         
         if (session?.user) {
-          try {
-            console.log("User authenticated in state change event:", session.user.email);
-            // Busca dados adicionais do usuário da tabela public.users
-            const { data: userData, error: userError } = await supabase
-              .from('users')
-              .select('name, role')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (userError) {
-              console.error('Error fetching user data:', userError);
+          // Important: Use setTimeout to avoid Supabase call deadlocks
+          setTimeout(async () => {
+            try {
+              console.log("User authenticated in state change event:", session.user.email);
+              // Busca dados adicionais do usuário da tabela public.users
+              const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('name, role')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (userError) {
+                console.error('Error fetching user data:', userError);
+                setUser(null);
+              } else if (userData) {
+                console.log("User data found in state change:", userData);
+                setUser({
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  name: userData.name,
+                  role: userData.role as 'admin' | 'teacher' | 'student',
+                });
+              } else {
+                console.error('User authenticated, but not found in users table');
+                setUser(null);
+              }
+            } catch (error) {
+              console.error('Error fetching user data:', error);
               setUser(null);
-            } else if (userData) {
-              console.log("User data found in state change:", userData);
-              setUser({
-                id: session.user.id,
-                email: session.user.email || '',
-                name: userData.name,
-                role: userData.role as 'admin' | 'teacher' | 'student',
-              });
-            } else {
-              console.error('User authenticated, but not found in users table');
-              setUser(null);
+            } finally {
+              setLoading(false);
             }
-          } catch (error) {
-            console.error('Error fetching user data:', error);
-            setUser(null);
-          }
+          }, 0);
         } else {
           console.log("No session detected in state change");
           setUser(null);
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
@@ -156,6 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data?.user) {
         console.log('Login successful for:', data.user.email);
+        // The user state will be updated by the onAuthStateChange listener
         return { success: true };
       }
 

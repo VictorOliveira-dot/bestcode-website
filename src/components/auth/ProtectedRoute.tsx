@@ -54,13 +54,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     });
     
     // Redirecionar para a dashboard apropriada com base no papel do usuário
+    let redirectPath = "/";
     if (user.role === 'admin') {
-      return <Navigate to="/admin/dashboard" replace />;
+      redirectPath = "/admin/dashboard";
     } else if (user.role === 'teacher') {
-      return <Navigate to="/teacher/dashboard" replace />;
-    } else {
-      return <Navigate to="/student/dashboard" replace />;
+      redirectPath = "/teacher/dashboard";
+    } else if (user.role === 'student') {
+      redirectPath = "/student/dashboard";
     }
+    
+    return <Navigate to={redirectPath} replace />;
   }
 
   // O usuário está autenticado e tem o papel correto

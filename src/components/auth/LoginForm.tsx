@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import LoginFormHeader from "./LoginFormHeader";
@@ -7,7 +7,6 @@ import EmailField from "./EmailField";
 import PasswordField from "./PasswordField";
 import LoginFormActions from "./LoginFormActions";
 import { useAuth } from "@/contexts/auth";
-import { useNavigate } from "react-router-dom";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const LoginForm = () => {
@@ -17,17 +16,7 @@ const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const { login, user } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user) {
-      console.log("LoginForm - User authenticated, redirecting:", user.role);
-      
-      // Remove any navigate calls here as they're handled in the Login page
-      // This avoids potential race conditions or double-redirects
-    }
-  }, [user]);
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +29,7 @@ const LoginForm = () => {
     try {
       const result = await login(email, password);
       
-      if (result.success) {
-        console.log("Login successful");
-        // Don't redirect here, let the Login component handle redirection
-      } else {
+      if (!result.success) {
         console.log("Login error:", result.message);
         setErrorMessage(result.message || "Login inválido. Tente novamente.");
         toast({
@@ -52,6 +38,7 @@ const LoginForm = () => {
           description: result.message || "Login inválido. Tente novamente.",
         });
       }
+      // Note: Successful login redirection is handled in the Login page component
     } catch (error: any) {
       console.error("Login error:", error);
       setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
