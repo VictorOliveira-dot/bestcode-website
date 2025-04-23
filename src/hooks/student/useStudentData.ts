@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
@@ -34,14 +33,14 @@ export const useStudentData = () => {
       if (error) throw error;
 
       // Transform the data to ensure we have a consistent structure
-      return (data || []).map(enrollment => ({
+      return data ? data.map(enrollment => ({
         id: enrollment.id,
         class_id: enrollment.class_id,
         name: enrollment.classes?.name || '',
         description: enrollment.classes?.description || '',
         start_date: enrollment.classes?.start_date || '',
         teacher_id: enrollment.classes?.teacher_id || null
-      }));
+      })) : [];
     },
     enabled: !!user?.id
   });
