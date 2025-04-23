@@ -7,6 +7,21 @@ export const useAdminData = () => {
   const { user } = useAuth();
 
   const {
+    data: dashboardStats,
+    isLoading: isLoadingStats,
+    error: statsError
+  } = useQuery({
+    queryKey: ["adminDashboardStats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_get_dashboard_stats');
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: user?.role === "admin"
+  });
+
+  const {
     data: students,
     isLoading: isLoadingStudents,
     error: studentsError,
@@ -14,7 +29,8 @@ export const useAdminData = () => {
   } = useQuery({
     queryKey: ["adminStudents"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_get_students_data", {});
+      const { data, error } = await supabase.rpc('admin_get_students_data');
+      
       if (error) throw error;
       return data || [];
     },
@@ -29,7 +45,8 @@ export const useAdminData = () => {
   } = useQuery({
     queryKey: ["adminTeachers"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_get_teachers", {});
+      const { data, error } = await supabase.rpc('admin_get_teachers');
+      
       if (error) throw error;
       return data || [];
     },
@@ -37,10 +54,11 @@ export const useAdminData = () => {
   });
 
   return {
+    dashboardStats: dashboardStats || {},
     students: students || [],
     teachers: teachers || [],
-    isLoading: isLoadingStudents || isLoadingTeachers,
-    error: studentsError || teachersError,
+    isLoading: isLoadingStudents || isLoadingTeachers || isLoadingStats,
+    error: studentsError || teachersError || statsError,
     refetchStudents,
     refetchTeachers
   };

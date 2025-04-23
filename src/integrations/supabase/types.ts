@@ -345,6 +345,17 @@ export type Database = {
         Args: { p_email: string; p_name: string; p_password: string }
         Returns: string
       }
+      admin_get_dashboard_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_students: number
+          total_teachers: number
+          total_classes: number
+          active_students_last_week: number
+          total_lessons: number
+          average_completion_rate: number
+        }[]
+      }
       admin_get_students_data: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -404,6 +415,26 @@ export type Database = {
           student_id: string
         }[]
       }
+      get_student_notifications: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          title: string
+          message: string
+          date: string
+          read: boolean
+        }[]
+      }
+      get_student_progress: {
+        Args: { student_id: string }
+        Returns: {
+          lesson_id: string
+          watch_time_minutes: number
+          progress: number
+          last_watched: string
+          status: string
+        }[]
+      }
       get_teacher_classes: {
         Args: { teacher_id: string }
         Returns: {
@@ -437,6 +468,19 @@ export type Database = {
       get_teacher_student_count: {
         Args: { teacher_id: string }
         Returns: number
+      }
+      get_teacher_student_progress: {
+        Args: { teacher_id: string }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          class_name: string
+          last_activity: string
+          completed_lessons: number
+          total_lessons: number
+          progress: number
+        }[]
       }
       get_user_role: {
         Args: { user_id: string }

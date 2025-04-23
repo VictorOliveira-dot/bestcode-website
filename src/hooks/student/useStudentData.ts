@@ -1,12 +1,12 @@
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
+import { Lesson } from "@/components/student/types/lesson";
 
 export const useStudentData = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   const {
     data: enrollments,
@@ -15,7 +15,6 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentEnrollments", user?.id],
     queryFn: async () => {
-      // O cliente mock tem uma estrutura diferente do cliente Supabase real
       const { data, error } = await supabase
         .from("enrollments")
         .select(`
@@ -31,14 +30,8 @@ export const useStudentData = () => {
         `)
         .eq("student_id", user?.id);
       
-      // Se estiver usando .single() no mock, precisamos chamar await nele
-      const singleResult = data?.length === 1 
-        ? { data: data[0], error: null }
-        : { data: null, error: error || new Error("No enrollment found") };
-      
-      if (singleResult.error) throw singleResult.error;
-      // Retorna como array mesmo que single retorne um item
-      return singleResult.data ? [singleResult.data] : [];
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!user?.id
   });
@@ -61,11 +54,16 @@ export const useStudentData = () => {
 
       if (error) throw error;
       
-      // Transforma os dados para corresponder ao formato esperado
+      // Transform the data to match our expected type
       return (data || []).map(lesson => ({
-        ...lesson,
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description,
+        youtubeUrl: lesson.youtube_url,
+        date: lesson.date,
         class: lesson.classes.name,
-        youtubeUrl: lesson.youtube_url // Mapeia youtube_url para youtubeUrl para corresponder ao nosso tipo esperado
+        class_id: lesson.class_id,
+        visibility: lesson.visibility as 'all' | 'class_only'
       }));
     },
     enabled: !!enrollments?.length
@@ -76,20 +74,19 @@ export const useStudentData = () => {
     isLoading: isLoadingProgress,
     error: progressError
   } = useQuery({
-    queryKey: ["studentProgress", lessons],
+    queryKey: ["studentProgress", user?.id],
     queryFn: async () => {
-      if (!lessons?.length) return [];
+      if (!user?.id) return [];
       
-      const { data, error } = await supabase
-        .from("lesson_progress")
-        .select("*")
-        .eq("student_id", user?.id);
+      const { data, error } = await supabase.rpc('get_student_progress', {
+        student_id: user.id
+      });
 
       if (error) throw error;
       
       return data || [];
     },
-    enabled: !!lessons?.length
+    enabled: !!user?.id
   });
 
   const {
@@ -99,10 +96,11 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentNotifications", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user?.id);
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase.rpc('get_student_notifications', {
+        p_user_id: user.id
+      });
 
       if (error) throw error;
       
@@ -119,10 +117,9 @@ export const useStudentData = () => {
     }) => {
       const status = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
       
-      // Corrige a chamada de upsert para usar insert com onConflict
       const result = await supabase
         .from("lesson_progress")
-        .insert({
+        .upsert({
           lesson_id: lessonId,
           student_id: user?.id,
           watch_time_minutes: watchTimeMinutes,

@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
+import { toast } from "@/hooks/use-toast";
 
 export const useTeacherData = () => {
   const { user } = useAuth();
@@ -14,13 +15,12 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["teacherClasses", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc("get_teacher_classes", {
-          teacher_id: user?.id
-        });
+      const { data, error } = await supabase.rpc('get_teacher_classes', {
+        teacher_id: user?.id
+      });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!user?.id
   });
@@ -31,10 +31,9 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["teacherStudentCount", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc("get_teacher_student_count", {
-          teacher_id: user?.id
-        });
+      const { data, error } = await supabase.rpc('get_teacher_student_count', {
+        teacher_id: user?.id
+      });
 
       if (error) throw error;
       return data;
@@ -50,13 +49,12 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["teacherLessons", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc("get_teacher_lessons", {
-          teacher_id: user?.id
-        });
+      const { data, error } = await supabase.rpc('get_teacher_lessons', {
+        teacher_id: user?.id
+      });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!user?.id
   });
