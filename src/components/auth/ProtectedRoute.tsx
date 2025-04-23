@@ -17,7 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   useEffect(() => {
     console.log("ProtectedRoute - Current auth state:", { 
       loading, 
-      user: user ? { role: user.role, email: user.email } : null,
+      user: user ? { id: user.id, role: user.role, email: user.email } : null,
       allowedRoles,
       path: location.pathname
     });
@@ -59,10 +59,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     let redirectPath = "/";
     if (user.role === 'admin') {
       redirectPath = "/admin/dashboard";
+      console.log("ProtectedRoute - Redirecting admin to:", redirectPath);
     } else if (user.role === 'teacher') {
       redirectPath = "/teacher/dashboard";
+      console.log("ProtectedRoute - Redirecting teacher to:", redirectPath);
     } else if (user.role === 'student') {
       redirectPath = "/student/dashboard";
+      console.log("ProtectedRoute - Redirecting student to:", redirectPath);
     }
     
     console.log("ProtectedRoute - Redirecting to:", redirectPath);

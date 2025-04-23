@@ -281,7 +281,7 @@ export type Database = {
           email: string
           id?: string
           name: string
-          role: string
+          role?: string
           updated_at?: string | null
         }
         Update: {

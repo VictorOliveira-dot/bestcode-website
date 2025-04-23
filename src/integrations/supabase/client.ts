@@ -16,5 +16,5 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 });
 
-// Verifica e exibe no console em qual ambiente estamos trabalhando
+// Log debug info about environment
 console.log('[Supabase] Cliente inicializado em: ', process.env.NODE_ENV === 'production' ? 'produção' : 'desenvolvimento');

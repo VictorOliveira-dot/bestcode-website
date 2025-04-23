@@ -38,7 +38,7 @@ const Login = () => {
       });
       
       // Navigate to dashboard
-      console.log("Redirecting to:", redirectPath);
+      console.log("Final redirect path:", redirectPath);
       navigate(redirectPath, { replace: true });
     }
   }, [user, loading, navigate]);

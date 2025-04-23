@@ -42,48 +42,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('users')
         .select('*')
         .eq('id', authUser.id)
-        .maybeSingle();
+        .single();
 
       if (selectError) {
         console.error('Error fetching user data:', selectError);
+        
+        // If user not found in public.users, create a record
+        if (selectError.code === 'PGRST116') {
+          console.log("User not found in public.users table, creating record for:", authUser.email);
+          
+          // Get user metadata from auth user
+          const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
+          const metaRole = authUser.user_metadata?.role || 'student';
+          
+          // Create a new user record
+          try {
+            const { data: newUser, error: insertError } = await supabase
+              .from('users')
+              .insert({
+                id: authUser.id,
+                email: authUser.email,
+                name: metaName,
+                role: metaRole
+              })
+              .select()
+              .single();
+              
+            if (insertError) {
+              console.error('Error creating user record:', insertError);
+              return null;
+            }
+            
+            console.log('Created new user record:', newUser);
+            return newUser;
+          } catch (error) {
+            console.error('Error in user creation:', error);
+            return null;
+          }
+        }
         return null;
       }
 
-      if (userData) {
-        console.log("Found user data in public.users:", userData);
-        return userData;
-      } else {
-        console.log("User not found in public.users table, creating record for:", authUser.email);
-        
-        // Get user metadata from auth user
-        const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
-        const metaRole = authUser.user_metadata?.role || 'student';
-        
-        // Create a new user record
-        try {
-          const { data: newUser, error: insertError } = await supabase
-            .from('users')
-            .insert({
-              id: authUser.id,
-              email: authUser.email,
-              name: metaName,
-              role: metaRole
-            })
-            .select()
-            .single();
-            
-          if (insertError) {
-            console.error('Error creating user record:', insertError);
-            return null;
-          }
-          
-          console.log('Created new user record:', newUser);
-          return newUser;
-        } catch (error) {
-          console.error('Error in user creation:', error);
-          return null;
-        }
-      }
+      console.log("Found user data in public.users:", userData);
+      return userData;
     } catch (error) {
       console.error('Error in fetchUserData:', error);
       return null;
@@ -97,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // First set up listener for authentication state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
         
         if (session?.user) {
@@ -110,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const userData = await fetchUserData(session.user);
               
               if (userData) {
-                console.log("Setting user state with role:", userData.role);
+                console.log("Setting user state with role from DB:", userData.role);
                 setUser({
                   id: session.user.id,
                   email: session.user.email || '',
@@ -162,20 +163,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           console.log("User authenticated during initialization:", session.user.email);
           
-          // Fetch user data from public.users table
-          const userData = await fetchUserData(session.user);
-          
-          if (userData) {
-            console.log("Setting user state during init with role:", userData.role);
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-              name: userData.name,
-              role: userData.role as 'admin' | 'teacher' | 'student',
-            });
-          } else {
-            // Fallback to using metadata if we couldn't get user record
-            console.log("Using auth metadata as fallback during init");
+          // Directly query the users table to get the correct role
+          const { data: dbUser, error: dbError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (dbError) {
+            console.error("Error fetching user from DB:", dbError);
+            
+            // If user doesn't exist in DB, create one
+            if (dbError.code === 'PGRST116') {
+              const metaName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
+              const metaRole = session.user.user_metadata?.role || 'student';
+              
+              const { data: newUser, error: insertError } = await supabase
+                .from('users')
+                .insert({
+                  id: session.user.id,
+                  email: session.user.email,
+                  name: metaName,
+                  role: metaRole
+                })
+                .select()
+                .single();
+                
+              if (insertError) {
+                console.error('Error creating user record:', insertError);
+                setUser(null);
+                setLoading(false);
+                return;
+              }
+              
+              console.log("Created new user in DB:", newUser);
+              setUser({
+                id: session.user.id,
+                email: session.user.email || '',
+                name: newUser.name,
+                role: newUser.role
+              });
+              setLoading(false);
+              return;
+            }
+            
+            // Fallback to using metadata
             const metaName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
             const metaRole = session.user.user_metadata?.role || 'student';
             
@@ -184,6 +216,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               email: session.user.email || '',
               name: metaName,
               role: metaRole as 'admin' | 'teacher' | 'student',
+            });
+          } else {
+            console.log("Found user in DB with role:", dbUser.role);
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name: dbUser.name,
+              role: dbUser.role
             });
           }
         } else {
