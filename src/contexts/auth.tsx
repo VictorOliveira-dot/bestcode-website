@@ -37,19 +37,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Primeiro configurar o listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.email);
         // Apenas atualizações síncronas aqui
         setLoading(true);
         
         if (session?.user) {
           try {
             // Busca dados adicionais do usuário da tabela public.users
-            const { data: userData } = await supabase
+            const { data: userData, error: userError } = await supabase
               .from('users')
               .select('name, role')
               .eq('id', session.user.id)
               .single();
             
-            if (userData) {
+            if (userError) {
+              console.error('Erro ao buscar dados do usuário:', userError);
+              setUser(null);
+            } else if (userData) {
+              console.log("Dados do usuário encontrados:", userData);
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
@@ -75,16 +80,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Depois verificar a sessão existente
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Inicializando autenticação...");
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Erro ao buscar sessão:", sessionError);
+          return;
+        }
+        
+        console.log("Sessão encontrada:", session?.user?.email);
         
         if (session?.user) {
-          const { data: userData } = await supabase
+          const { data: userData, error: userError } = await supabase
             .from('users')
             .select('name, role')
             .eq('id', session.user.id)
             .single();
           
-          if (userData) {
+          if (userError) {
+            console.error("Erro ao buscar dados do usuário:", userError);
+          } else if (userData) {
+            console.log("Dados do usuário encontrados:", userData);
             setUser({
               id: session.user.id,
               email: session.user.email || '',
@@ -94,6 +110,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             console.error('Usuário autenticado, mas não encontrado na tabela users');
           }
+        } else {
+          console.log("Nenhuma sessão encontrada");
         }
       } catch (error) {
         console.error('Erro ao inicializar autenticação:', error);
@@ -112,6 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('Tentando login com:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -126,6 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data?.user) {
+        console.log('Login bem sucedido para:', data.user.email);
         // Os dados do usuário serão atualizados pelo onAuthStateChange
         return { success: true };
       }

@@ -22,6 +22,7 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (user) {
+      console.log("Usuário autenticado, redirecionando:", user.role);
       if (user.role === "admin") {
         navigate("/admin/dashboard");
       } else if (user.role === "teacher") {
@@ -38,29 +39,33 @@ const LoginForm = () => {
     setIsLoading(true);
     setErrorMessage(null);
 
+    console.log("Tentando login com email:", email);
+
     try {
       const result = await login(email, password);
       
       if (result.success) {
         toast({
-          title: "Login successful!",
-          description: "You have been authenticated.",
+          title: "Login bem-sucedido!",
+          description: "Você foi autenticado.",
         });
+        console.log("Login bem-sucedido");
       } else {
-        setErrorMessage(result.message || "Invalid login. Please try again.");
+        console.log("Erro de login:", result.message);
+        setErrorMessage(result.message || "Login inválido. Tente novamente.");
         toast({
           variant: "destructive",
-          title: "Could not log in",
-          description: result.message || "Invalid login. Please try again.",
+          title: "Não foi possível fazer login",
+          description: result.message || "Login inválido. Tente novamente.",
         });
       }
     } catch (error: any) {
-      console.error("Login error:", error);
-      setErrorMessage(error.message || "An error occurred during login. Try again.");
+      console.error("Erro de login:", error);
+      setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
       toast({
         variant: "destructive",
-        title: "Authentication error",
-        description: error.message || "An error occurred during login. Try again.",
+        title: "Erro de autenticação",
+        description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
       });
     } finally {
       setIsLoading(false);
