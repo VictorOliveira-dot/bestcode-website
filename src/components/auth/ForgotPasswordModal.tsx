@@ -7,15 +7,17 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Mail } from "lucide-react";
 
 // Esquema de validação
-const forgotPasswordSchema = z.object({
-  email: z.string().email("Digite um e-mail válido")
+const resetPasswordSchema = z.object({
+  email: z.string().email("Digite um email válido"),
+  newPassword: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
 });
 
-type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -25,34 +27,39 @@ interface ForgotPasswordModalProps {
 const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Inicializa o formulário
-  const form = useForm<ForgotPasswordFormValues>({
-    resolver: zodResolver(forgotPasswordSchema),
+  const form = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      email: ""
+      email: "",
+      newPassword: ""
     }
   });
 
-  const onSubmit = async (data: ForgotPasswordFormValues) => {
+  const onSubmit = async (data: ResetPasswordFormValues) => {
     setIsSubmitting(true);
     
     try {
-      // Simulação de envio de e-mail de recuperação
-      // Em um app real, isso seria conectado a um backend
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      // Tenta atualizar a senha diretamente no Supabase
+      const { error } = await supabase.auth.updateUser({
+        email: data.email,
+        password: data.newPassword
+      });
+
+      if (error) throw error;
+
       toast({
-        title: "E-mail enviado",
-        description: `Instruções de recuperação de senha foram enviadas para ${data.email}`,
+        title: "Senha atualizada",
+        description: "Sua senha foi atualizada com sucesso. Você já pode fazer login."
       });
       
       form.reset();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Erro ao redefinir senha:", error);
       toast({
         variant: "destructive",
-        title: "Erro ao enviar e-mail",
-        description: "Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.",
+        title: "Erro ao redefinir senha",
+        description: error.message || "Não foi possível redefinir sua senha. Tente novamente."
       });
     } finally {
       setIsSubmitting(false);
@@ -63,9 +70,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center text-xl">Recuperação de Senha</DialogTitle>
+          <DialogTitle className="text-center text-xl">Redefinição de Senha</DialogTitle>
           <DialogDescription className="text-center">
-            Digite seu e-mail para receber instruções de recuperação de senha
+            Digite seu email e a nova senha para redefinir seu acesso
           </DialogDescription>
         </DialogHeader>
         
@@ -76,7 +83,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>E-mail</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <div className="flex">
                       <span className="inline-flex items-center border border-r-0 border-input bg-muted px-3 rounded-l-md">
@@ -88,6 +95,24 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
                         {...field} 
                       />
                     </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="newPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nova Senha</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="password" 
+                      placeholder="Digite sua nova senha"
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -108,7 +133,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
                 className="bg-bestcode-600 hover:bg-bestcode-700"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Enviando..." : "Enviar Link"}
+                {isSubmitting ? "Atualizando..." : "Atualizar Senha"}
               </Button>
             </div>
           </form>

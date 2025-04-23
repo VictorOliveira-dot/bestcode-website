@@ -7,16 +7,28 @@ import { Link } from "react-router-dom";
 
 interface LoginFormActionsProps {
   isLoading: boolean;
+  onForgotPassword: () => void;
 }
 
-const LoginFormActions = ({ isLoading }: LoginFormActionsProps) => {
+const LoginFormActions = ({ isLoading, onForgotPassword }: LoginFormActionsProps) => {
   return (
     <>
-      <div className="flex items-center space-x-2">
-        <Checkbox id="remember" disabled={isLoading} />
-        <Label htmlFor="remember" className="text-sm font-normal">
-          Lembrar de mim
-        </Label>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Checkbox id="remember" disabled={isLoading} />
+          <Label htmlFor="remember" className="text-sm font-normal">
+            Lembrar de mim
+          </Label>
+        </div>
+        <Button
+          type="button"
+          variant="link"
+          className="text-sm text-bestcode-600 hover:text-bestcode-800"
+          onClick={onForgotPassword}
+          disabled={isLoading}
+        >
+          Esqueceu a senha?
+        </Button>
       </div>
       
       <div className="pt-2">

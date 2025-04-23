@@ -8,12 +8,14 @@ import PasswordField from "./PasswordField";
 import LoginFormActions from "./LoginFormActions";
 import { useAuth } from "@/contexts/auth";
 import { useNavigate } from "react-router-dom";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const { login, user } = useAuth();
   const navigate = useNavigate();
@@ -83,25 +85,33 @@ const LoginForm = () => {
             />
             {errorMessage && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
-                <p className="font-medium">Error: {errorMessage}</p>
-                <p className="text-xs mt-1">Make sure the email and password are correct.</p>
+                <p className="font-medium">Erro: {errorMessage}</p>
+                <p className="text-xs mt-1">Verifique se o email e senha estão corretos.</p>
               </div>
             )}
-            <LoginFormActions isLoading={isLoading} />
+            <LoginFormActions 
+              isLoading={isLoading} 
+              onForgotPassword={() => setShowForgotPassword(true)}
+            />
           </form>
           
           <div className="mt-8 text-center text-sm text-gray-500">
             <div className="mt-4 text-xs bg-blue-50 p-3 rounded-lg">
-              <p><strong>Test Credentials:</strong></p>
+              <p><strong>Credenciais de Teste:</strong></p>
               <ul className="mt-1 list-disc list-inside text-left">
                 <li>Admin: <code>admin@bestcode.com</code> / <code>Senha123!</code></li>
-                <li>Teacher: <code>professor@bestcode.com</code> / <code>Senha123!</code></li>
-                <li>Student: <code>aluno@bestcode.com</code> / <code>Senha123!</code></li>
+                <li>Professor: <code>professor@bestcode.com</code> / <code>Senha123!</code></li>
+                <li>Aluno: <code>aluno@bestcode.com</code> / <code>Senha123!</code></li>
               </ul>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      <ForgotPasswordModal 
+        isOpen={showForgotPassword} 
+        onClose={() => setShowForgotPassword(false)}
+      />
     </>
   );
 };
