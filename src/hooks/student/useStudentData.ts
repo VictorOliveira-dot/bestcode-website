@@ -1,5 +1,4 @@
-
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
@@ -7,6 +6,7 @@ import { Lesson } from "@/components/student/types/lesson";
 
 export const useStudentData = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const {
     data: enrollments,
@@ -54,7 +54,6 @@ export const useStudentData = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our expected type
       return (data || []).map(lesson => ({
         id: lesson.id,
         title: lesson.title,

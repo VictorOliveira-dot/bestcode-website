@@ -32,11 +32,11 @@ const StudentDashboard = () => {
     id: lesson.id,
     title: lesson.title,
     description: lesson.description,
-    youtubeUrl: lesson.youtubeUrl || lesson.youtube_url, // Handle both field names
+    youtubeUrl: lesson.youtubeUrl,  // Use consistent property name
     date: lesson.date,
     class: lesson.class,
     class_id: lesson.class_id,
-    visibility: lesson.visibility as 'all' | 'class_only' // Type cast to match our expected type
+    visibility: lesson.visibility as 'all' | 'class_only'
   })) : [];
 
   const formattedProgress = Array.isArray(progress) ? progress.map(p => ({
