@@ -77,7 +77,7 @@ export const useStudentData = () => {
     queryFn: async () => {
       if (!lessons?.length) return [];
       
-      // In the mock, we need to await the result of select
+      // For this query, we need to correctly await the whole chain
       const result = await supabase
         .from("lesson_progress")
         .select("*")
@@ -96,6 +96,7 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentNotifications", user?.id],
     queryFn: async () => {
+      // For this query, we need to correctly await the full chain
       const result = await supabase
         .from("notifications")
         .select("*")
