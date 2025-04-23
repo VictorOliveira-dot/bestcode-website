@@ -73,7 +73,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   }
 
   // The user is authenticated and has the correct role
-  console.log("ProtectedRoute - Access granted");
+  console.log("ProtectedRoute - Access granted for role:", user.role);
   return <>{children}</>;
 };
 

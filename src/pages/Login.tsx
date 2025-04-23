@@ -15,9 +15,9 @@ const Login = () => {
   useEffect(() => {
     if (!loading && user) {
       console.log("Login page - User authenticated:", user);
-      console.log("Login page - User role:", user.role);
+      console.log("Login page - User role from public.users table:", user.role);
       
-      // Properly redirect based on user role
+      // Properly redirect based on user role from public.users table
       let redirectPath = "/";
       
       if (user.role === "admin") {
