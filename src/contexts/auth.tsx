@@ -38,11 +38,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
+        
         // Apenas atualizações síncronas aqui
         setLoading(true);
         
         if (session?.user) {
           try {
+            console.log("Usuário autenticado no evento de mudança de estado:", session.user.email);
             // Busca dados adicionais do usuário da tabela public.users
             const { data: userData, error: userError } = await supabase
               .from('users')
@@ -85,12 +87,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (sessionError) {
           console.error("Erro ao buscar sessão:", sessionError);
+          setLoading(false);
           return;
         }
         
         console.log("Sessão encontrada:", session?.user?.email);
         
         if (session?.user) {
+          console.log("Usuário autenticado na inicialização:", session.user.email);
           const { data: userData, error: userError } = await supabase
             .from('users')
             .select('name, role')
@@ -99,8 +103,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (userError) {
             console.error("Erro ao buscar dados do usuário:", userError);
+            setUser(null);
           } else if (userData) {
-            console.log("Dados do usuário encontrados:", userData);
+            console.log("Dados do usuário encontrados na inicialização:", userData);
             setUser({
               id: session.user.id,
               email: session.user.email || '',
@@ -109,12 +114,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
           } else {
             console.error('Usuário autenticado, mas não encontrado na tabela users');
+            setUser(null);
           }
         } else {
           console.log("Nenhuma sessão encontrada");
+          setUser(null);
         }
       } catch (error) {
         console.error('Erro ao inicializar autenticação:', error);
+        setUser(null);
       } finally {
         setLoading(false);
       }

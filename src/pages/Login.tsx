@@ -1,6 +1,6 @@
 
 import React, { useEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
@@ -8,16 +8,25 @@ import { useAuth } from "@/contexts/auth";
 
 const Login = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  // Se o usuário já estiver autenticado, redireciona para a dashboard correspondente
-  if (!loading && user) {
-    if (user.role === "admin") {
-      return <Navigate to="/admin/dashboard" />;
-    } else if (user.role === "teacher") {
-      return <Navigate to="/teacher/dashboard" />;
-    } else if (user.role === "student") {
-      return <Navigate to="/student/dashboard" />;
+  // Check if user is authenticated and redirect to appropriate dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      console.log("Login page - redirecting user to dashboard:", user.role);
+      if (user.role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+      } else if (user.role === "teacher") {
+        navigate("/teacher/dashboard", { replace: true });
+      } else if (user.role === "student") {
+        navigate("/student/dashboard", { replace: true });
+      }
     }
+  }, [user, loading, navigate]);
+
+  // If user is already authenticated, return null while the useEffect handles the redirect
+  if (!loading && user) {
+    return null;
   }
 
   return (

@@ -20,16 +20,21 @@ const LoginForm = () => {
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
+  // This effect runs when the user state changes
   useEffect(() => {
     if (user) {
       console.log("Usuário autenticado, redirecionando:", user.role);
-      if (user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (user.role === "teacher") {
-        navigate("/teacher/dashboard");
-      } else if (user.role === "student") {
-        navigate("/student/dashboard");
-      }
+      
+      // Add a small delay to ensure state is properly updated
+      setTimeout(() => {
+        if (user.role === "admin") {
+          navigate("/admin/dashboard");
+        } else if (user.role === "teacher") {
+          navigate("/teacher/dashboard");
+        } else if (user.role === "student") {
+          navigate("/student/dashboard");
+        }
+      }, 100);
     }
   }, [user, navigate]);
 
@@ -71,6 +76,18 @@ const LoginForm = () => {
       setIsLoading(false);
     }
   };
+
+  // If user is already logged in, redirect immediately
+  if (user) {
+    console.log("Usuário já autenticado, redirecionando imediatamente:", user.role);
+    if (user.role === "admin") {
+      return <>{navigate("/admin/dashboard")}</>;
+    } else if (user.role === "teacher") {
+      return <>{navigate("/teacher/dashboard")}</>;
+    } else if (user.role === "student") {
+      return <>{navigate("/student/dashboard")}</>;
+    }
+  }
 
   return (
     <>

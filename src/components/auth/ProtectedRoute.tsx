@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 
 interface ProtectedRouteProps {
@@ -16,6 +16,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Enquanto estiver carregando, podemos mostrar um indicador de carregamento
   if (loading) {
@@ -33,6 +34,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
 
   // Se houver papéis permitidos especificados e o usuário não estiver na lista
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    console.log("Usuário não tem permissão para acessar esta rota, redirecionando para dashboard apropriada");
+    
     // Redirecionar para a dashboard apropriada com base no papel do usuário
     if (user.role === 'admin') {
       return <Navigate to="/admin/dashboard" replace />;
