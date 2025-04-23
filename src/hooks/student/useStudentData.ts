@@ -15,8 +15,7 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentEnrollments", user?.id],
     queryFn: async () => {
-      // The mock client has a different structure than the actual Supabase client
-      // In the mock, we need to await the result of single() to get data/error
+      // O cliente mock tem uma estrutura diferente do cliente Supabase real
       const { data, error } = await supabase
         .from("enrollments")
         .select(`
@@ -30,12 +29,16 @@ export const useStudentData = () => {
             teacher_id
           )
         `)
-        .eq("student_id", user?.id)
-        .single();
+        .eq("student_id", user?.id);
       
-      if (error) throw error;
-      // Return as an array even though single returns one item
-      return data ? [data] : [];
+      // Se estiver usando .single() no mock, precisamos chamar await nele
+      const singleResult = data?.length === 1 
+        ? { data: data[0], error: null }
+        : { data: null, error: error || new Error("No enrollment found") };
+      
+      if (singleResult.error) throw singleResult.error;
+      // Retorna como array mesmo que single retorne um item
+      return singleResult.data ? [singleResult.data] : [];
     },
     enabled: !!user?.id
   });
@@ -58,11 +61,11 @@ export const useStudentData = () => {
 
       if (error) throw error;
       
-      // Transform the data to match expected format
+      // Transforma os dados para corresponder ao formato esperado
       return (data || []).map(lesson => ({
         ...lesson,
         class: lesson.classes.name,
-        youtubeUrl: lesson.youtube_url // Map youtube_url to youtubeUrl to match our expected type
+        youtubeUrl: lesson.youtube_url // Mapeia youtube_url para youtubeUrl para corresponder ao nosso tipo esperado
       }));
     },
     enabled: !!enrollments?.length
@@ -116,7 +119,7 @@ export const useStudentData = () => {
     }) => {
       const status = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
       
-      // Fix the upsert call to use insert with onConflict
+      // Corrige a chamada de upsert para usar insert com onConflict
       const result = await supabase
         .from("lesson_progress")
         .insert({
