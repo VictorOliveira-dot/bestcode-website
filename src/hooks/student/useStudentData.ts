@@ -31,7 +31,16 @@ export const useStudentData = () => {
         .eq("student_id", user?.id);
       
       if (error) throw error;
-      return data || [];
+
+      // Transform the data to ensure we have a consistent structure
+      return (data || []).map(enrollment => ({
+        id: enrollment.id,
+        class_id: enrollment.class_id,
+        name: enrollment.classes?.name || '',
+        description: enrollment.classes?.description || '',
+        start_date: enrollment.classes?.start_date || '',
+        teacher_id: enrollment.classes?.teacher_id || null
+      }));
     },
     enabled: !!user?.id
   });
