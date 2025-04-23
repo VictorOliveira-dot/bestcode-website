@@ -20,23 +20,14 @@ const LoginForm = () => {
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
-  // This effect runs when the user state changes
   useEffect(() => {
     if (user) {
-      console.log("Usuário autenticado, redirecionando:", user.role);
+      console.log("LoginForm - User authenticated, redirecting:", user.role);
       
-      // Add a small delay to ensure state is properly updated
-      setTimeout(() => {
-        if (user.role === "admin") {
-          navigate("/admin/dashboard");
-        } else if (user.role === "teacher") {
-          navigate("/teacher/dashboard");
-        } else if (user.role === "student") {
-          navigate("/student/dashboard");
-        }
-      }, 100);
+      // Remove any navigate calls here as they're handled in the Login page
+      // This avoids potential race conditions or double-redirects
     }
-  }, [user, navigate]);
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,19 +35,16 @@ const LoginForm = () => {
     setIsLoading(true);
     setErrorMessage(null);
 
-    console.log("Tentando login com email:", email);
+    console.log("Attempting login with email:", email);
 
     try {
       const result = await login(email, password);
       
       if (result.success) {
-        toast({
-          title: "Login bem-sucedido!",
-          description: "Você foi autenticado.",
-        });
-        console.log("Login bem-sucedido");
+        console.log("Login successful");
+        // Don't redirect here, let the Login component handle redirection
       } else {
-        console.log("Erro de login:", result.message);
+        console.log("Login error:", result.message);
         setErrorMessage(result.message || "Login inválido. Tente novamente.");
         toast({
           variant: "destructive",
@@ -65,7 +53,7 @@ const LoginForm = () => {
         });
       }
     } catch (error: any) {
-      console.error("Erro de login:", error);
+      console.error("Login error:", error);
       setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
       toast({
         variant: "destructive",
@@ -76,18 +64,6 @@ const LoginForm = () => {
       setIsLoading(false);
     }
   };
-
-  // If user is already logged in, redirect immediately
-  if (user) {
-    console.log("Usuário já autenticado, redirecionando imediatamente:", user.role);
-    if (user.role === "admin") {
-      return <>{navigate("/admin/dashboard")}</>;
-    } else if (user.role === "teacher") {
-      return <>{navigate("/teacher/dashboard")}</>;
-    } else if (user.role === "student") {
-      return <>{navigate("/student/dashboard")}</>;
-    }
-  }
 
   return (
     <>

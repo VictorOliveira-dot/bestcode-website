@@ -8,13 +8,14 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 // Cria o cliente do Supabase com as configurações adequadas para autenticação
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: false,
-    flowType: 'pkce'
+    storage: localStorage, // Explicitly use localStorage for auth storage
+    persistSession: true,  // Persist the session in storage
+    autoRefreshToken: true, // Automatically refresh the auth token
+    detectSessionInUrl: false, // Don't detect the session in the URL
+    flowType: 'pkce' // Use the PKCE flow for authentication
   }
 });
 
 // Verifica e exibe no console em qual ambiente estamos trabalhando
 console.log('[Supabase] Cliente inicializado em: ', process.env.NODE_ENV === 'production' ? 'produção' : 'desenvolvimento');
+

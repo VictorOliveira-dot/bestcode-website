@@ -1,10 +1,11 @@
 
 import React, { useEffect } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/auth";
+import { toast } from "@/hooks/use-toast";
 
 const Login = () => {
   const { user, loading } = useAuth();
@@ -14,20 +15,26 @@ const Login = () => {
   useEffect(() => {
     if (!loading && user) {
       console.log("Login page - redirecting user to dashboard:", user.role);
-      if (user.role === "admin") {
-        navigate("/admin/dashboard", { replace: true });
-      } else if (user.role === "teacher") {
-        navigate("/teacher/dashboard", { replace: true });
-      } else if (user.role === "student") {
-        navigate("/student/dashboard", { replace: true });
+      
+      // Properly redirect based on user role
+      try {
+        if (user.role === "admin") {
+          navigate("/admin/dashboard", { replace: true });
+        } else if (user.role === "teacher") {
+          navigate("/teacher/dashboard", { replace: true });
+        } else if (user.role === "student") {
+          navigate("/student/dashboard", { replace: true });
+        }
+        
+        toast({
+          title: "Login bem-sucedido!",
+          description: `Bem-vindo de volta, ${user.name}!`,
+        });
+      } catch (error) {
+        console.error("Error during navigation:", error);
       }
     }
   }, [user, loading, navigate]);
-
-  // If user is already authenticated, return null while the useEffect handles the redirect
-  if (!loading && user) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen flex flex-col">
