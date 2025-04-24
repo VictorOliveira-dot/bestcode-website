@@ -20,7 +20,7 @@ interface StudentDetailsModalProps {
       class_name: string;
       enrollment_date: string;
       status: string;
-    }>;
+    }> | null;
     subscription_plan: string;
     progress_average: number;
     last_active: string | null;
@@ -29,6 +29,9 @@ interface StudentDetailsModalProps {
 
 export function StudentDetailsModal({ isOpen, onClose, details }: StudentDetailsModalProps) {
   if (!details) return null;
+
+  // Ensure current_classes is always an array even if it's null
+  const currentClasses = details.current_classes || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -57,8 +60,8 @@ export function StudentDetailsModal({ isOpen, onClose, details }: StudentDetails
             <div>
               <h3 className="font-semibold">Turmas</h3>
               <div className="mt-2 space-y-4">
-                {details.current_classes.length > 0 ? (
-                  details.current_classes.map((cls) => (
+                {currentClasses.length > 0 ? (
+                  currentClasses.map((cls) => (
                     <div key={cls.class_id} className="border p-3 rounded-md">
                       <p className="font-medium">{cls.class_name}</p>
                       <p className="text-sm text-muted-foreground">
