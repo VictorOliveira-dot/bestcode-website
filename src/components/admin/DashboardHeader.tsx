@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,11 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LogOut, Menu, Settings, User } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { ProfileEditModal } from "./ProfileEditModal";
 import { SettingsModal } from "./SettingsModal";
+import { toast } from "@/hooks/use-toast";
 
 interface DashboardHeaderProps {
   userName: string;
@@ -21,12 +21,37 @@ interface DashboardHeaderProps {
 
 const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    try {
+      const result = await logout();
+      
+      if (result.success) {
+        toast({
+          title: "Logout realizado",
+          description: "Você foi desconectado com sucesso."
+        });
+        
+        navigate("/login", { replace: true });
+      } else {
+        toast({
+          title: "Erro no logout",
+          description: "Não foi possível sair. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Erro no logout",
+        description: "Ocorreu um erro inesperado. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
