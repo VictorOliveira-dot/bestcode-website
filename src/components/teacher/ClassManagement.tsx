@@ -6,6 +6,7 @@ import EditClassDialog from "./EditClassDialog";
 import { ClassInfo } from "./ClassItem";
 import ClassManagementHeader from "./ClassManagementHeader";
 import { useClassManagement } from "@/hooks/teacher/useClassManagement";
+import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 import { toast } from "@/hooks/use-toast";
 
 const ClassManagement = () => {
@@ -18,15 +19,19 @@ const ClassManagement = () => {
     startDate: '',
   });
   
+  // Usando o hook useTeacherData para obter as classes e refetchClasses
+  const { classes, refetchClasses, isLoading: isLoadingTeacherData } = useTeacherData();
+
   const {
-    classes,
-    isLoading,
+    isLoading: isLoadingManagement,
     error,
-    fetchClasses,
     handleAddClass,
     handleEditClass,
     handleDeleteClass
   } = useClassManagement();
+
+  // Combinando os estados de carregamento
+  const isLoading = isLoadingTeacherData || isLoadingManagement;
 
   const openEditDialog = (classInfo: ClassInfo) => {
     setSelectedClass(classInfo);
@@ -39,6 +44,8 @@ const ClassManagement = () => {
       if (success) {
         setNewClass({ name: '', description: '', startDate: '' });
         setIsAddClassOpen(false);
+        // Recarregar a lista de turmas após adicionar
+        await refetchClasses();
         toast({
           title: "Sucesso",
           description: "Turma adicionada com sucesso",
@@ -60,6 +67,8 @@ const ClassManagement = () => {
         const success = await handleEditClass(selectedClass);
         if (success) {
           setIsEditClassOpen(false);
+          // Recarregar a lista de turmas após editar
+          await refetchClasses();
           toast({
             title: "Sucesso",
             description: "Turma atualizada com sucesso",
@@ -76,6 +85,14 @@ const ClassManagement = () => {
     }
   };
 
+  const handleDelete = async (classId: string) => {
+    const success = await handleDeleteClass(classId);
+    if (success) {
+      // Recarregar a lista de turmas após excluir
+      await refetchClasses();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <ClassManagementHeader 
@@ -87,10 +104,10 @@ const ClassManagement = () => {
         <ClassTable 
           classes={classes}
           openEditDialog={openEditDialog}
-          handleDeleteClass={handleDeleteClass}
+          handleDeleteClass={handleDelete}
           isLoading={isLoading}
           error={error}
-          refetch={fetchClasses}
+          refetch={refetchClasses}
         />
       </div>
 
