@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth";
 
 export interface Student {
   user_id: string;
@@ -15,7 +16,7 @@ export interface Student {
 }
 
 export function useStudentsTable() {
-  const [isSessionChecked, setIsSessionChecked] = useState(false);
+  const { user, loading: authLoading } = useAuth();
 
   const { 
     data: students, 
@@ -45,7 +46,7 @@ export function useStudentsTable() {
         throw err;
       }
     },
-    enabled: isSessionChecked
+    enabled: !authLoading && user?.role === 'admin'
   });
 
   const handleViewDetails = (studentId: string) => {
@@ -75,8 +76,6 @@ export function useStudentsTable() {
     isLoading,
     error,
     refetch,
-    isSessionChecked,
-    setIsSessionChecked,
     handleViewDetails,
     handleEdit,
     handleDelete

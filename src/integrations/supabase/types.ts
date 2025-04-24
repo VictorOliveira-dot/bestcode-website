@@ -391,7 +391,7 @@ export type Database = {
       admin_get_students_data: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
+          user_id: string
           name: string
           email: string
           created_at: string

@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+
+import React from "react";
 import {
   Table,
   TableBody,
@@ -21,18 +22,10 @@ const StudentsTable: React.FC = () => {
     students,
     isLoading,
     error,
-    isSessionChecked,
-    setIsSessionChecked,
     handleViewDetails,
     handleEdit,
     handleDelete
   } = useStudentsTable();
-
-  useEffect(() => {
-    if (user) {
-      setIsSessionChecked(true);
-    }
-  }, [user, setIsSessionChecked]);
 
   if (isLoading) {
     return (
