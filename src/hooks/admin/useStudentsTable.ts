@@ -1,11 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 export interface Student {
-  id: string;
+  user_id: string;
   name: string;
   email: string;
   created_at: string;
