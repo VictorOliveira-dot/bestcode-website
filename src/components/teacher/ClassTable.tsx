@@ -14,9 +14,9 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((_, index) => (
-          <Skeleton key={index} className="h-24 w-full" />
+      <div className="space-y-2">
+        {[1, 2].map((_, index) => (
+          <Skeleton key={index} className="h-20 w-full" />
         ))}
       </div>
     );
@@ -24,19 +24,18 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
 
   if (error) {
     return (
-      <div className="text-center p-6 border rounded-md bg-destructive/10">
-        <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-        <p className="text-destructive-foreground font-medium">Erro ao carregar dados</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          {error || "Ocorreu um erro ao carregar as turmas. Por favor, tente novamente."}
-        </p>
+      <div className="text-center p-4 border rounded-md bg-destructive/10">
+        <AlertCircle className="h-6 w-6 text-destructive mx-auto mb-2" />
+        <p className="text-destructive-foreground font-medium">Erro ao carregar turmas</p>
+        <p className="text-sm text-muted-foreground mt-1">{error}</p>
         {refetch && (
           <Button 
             onClick={refetch} 
             variant="outline" 
-            className="mt-4 flex items-center gap-2"
+            size="sm"
+            className="mt-3"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="h-4 w-4 mr-2" />
             Tentar novamente
           </Button>
         )}
@@ -46,15 +45,15 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
 
   if (isEmpty) {
     return (
-      <div className="text-center p-4 border rounded-md bg-muted/20">
-        <p className="text-muted-foreground">Nenhuma turma encontrada</p>
+      <div className="text-center p-6 border rounded-md bg-muted/10">
+        <p className="text-muted-foreground">Você ainda não possui turmas cadastradas</p>
       </div>
     );
   }
 
   if (isMobile) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         {classes.map((classInfo) => (
           <MobileClassCard
             key={classInfo.id}
@@ -68,7 +67,7 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="rounded-md border">
       <Table>
         <TableBody>
           {classes.map((classInfo) => (
@@ -86,4 +85,3 @@ const ClassTable: React.FC<ClassTableProps> = (props) => {
 };
 
 export default ClassTable;
-

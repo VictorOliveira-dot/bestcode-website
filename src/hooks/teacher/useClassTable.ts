@@ -27,7 +27,7 @@ export function useClassTable(props: ClassTableProps) {
   
   // Reset error state when classes load successfully
   useEffect(() => {
-    if (classes.length > 0 && error) {
+    if (classes && error) {
       setError(null);
     }
   }, [classes, error]);
@@ -47,7 +47,7 @@ export function useClassTable(props: ClassTableProps) {
     classes,
     isLoading,
     isMobile,
-    isEmpty: classes.length === 0 && !isLoading,
+    isEmpty: !isLoading && (!classes || classes.length === 0),
     error,
     setError,
     refetch

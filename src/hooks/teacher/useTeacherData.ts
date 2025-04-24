@@ -8,7 +8,7 @@ export const useTeacherData = () => {
   const { user } = useAuth();
 
   const {
-    data: classes,
+    data: classes = [],
     isLoading: isLoadingClasses,
     error: classesError,
     refetch: refetchClasses
@@ -22,11 +22,13 @@ export const useTeacherData = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    cacheTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
   });
 
   const { 
-    data: studentCount,
+    data: studentCount = 0,
     isLoading: isLoadingStudentCount
   } = useQuery({
     queryKey: ["teacherStudentCount", user?.id],
@@ -38,11 +40,13 @@ export const useTeacherData = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 30000,
+    cacheTime: 1000 * 60 * 5,
   });
 
   const {
-    data: lessons,
+    data: lessons = [],
     isLoading: isLoadingLessons,
     error: lessonsError,
     refetch: refetchLessons
@@ -56,13 +60,15 @@ export const useTeacherData = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 30000,
+    cacheTime: 1000 * 60 * 5,
   });
 
   return {
-    classes: classes || [],
-    studentCount: studentCount || 0,
-    lessons: lessons || [],
+    classes,
+    studentCount,
+    lessons,
     isLoading: isLoadingClasses || isLoadingLessons || isLoadingStudentCount,
     error: classesError || lessonsError,
     refetchClasses,
