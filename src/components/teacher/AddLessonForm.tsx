@@ -20,6 +20,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { NewLesson } from "@/components/student/types/lesson";
 import { Class } from "@/hooks/teacher/useDashboardData";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface AddLessonFormProps {
   isOpen: boolean;
@@ -57,8 +59,34 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
     }
   }, [isOpen, availableClasses]);
 
-  const handleSubmit = () => {
-    onAddLesson(newLesson);
+  const handleSubmit = async () => {
+    try {
+      const { error } = await supabase.rpc('create_lesson', {
+        p_title: newLesson.title,
+        p_description: newLesson.description,
+        p_youtube_url: newLesson.youtubeUrl,
+        p_date: newLesson.date,
+        p_class_id: newLesson.classId,
+        p_visibility: newLesson.visibility
+      });
+
+      if (error) throw error;
+
+      onOpenChange(false);
+      onAddLesson(newLesson);
+      
+      toast({
+        title: "Aula criada",
+        description: "A aula foi criada com sucesso",
+      });
+    } catch (error: any) {
+      console.error('Error creating lesson:', error);
+      toast({
+        title: "Erro ao criar aula",
+        description: error.message || "Ocorreu um erro ao criar a aula",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

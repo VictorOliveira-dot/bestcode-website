@@ -467,6 +467,21 @@ export type Database = {
           start_date: string
         }[]
       }
+      create_lesson: {
+        Args: {
+          p_title: string
+          p_description: string
+          p_youtube_url: string
+          p_date: string
+          p_class_id: string
+          p_visibility: string
+        }
+        Returns: string
+      }
+      create_teacher_class: {
+        Args: { p_name: string; p_description: string; p_start_date: string }
+        Returns: string
+      }
       create_test_users: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -550,6 +565,17 @@ export type Database = {
           completed_lessons: number
           total_lessons: number
           progress: number
+        }[]
+      }
+      get_teacher_students: {
+        Args: { teacher_id: string }
+        Returns: {
+          student_id: string
+          name: string
+          email: string
+          class_name: string
+          enrollment_date: string
+          progress_percentage: number
         }[]
       }
       get_user_role: {
