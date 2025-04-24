@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface StudentActionsProps {
   studentId: string;
@@ -33,9 +34,11 @@ export function StudentActions({ studentId, onViewDetails, onEdit, onDelete }: S
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <DropdownMenuItem onClick={() => onViewDetails(studentId)}>
+              <DropdownMenuItem onSelect={() => onViewDetails(studentId)}>
                 <Eye className="mr-2 h-4 w-4" />
-                <span>Detalhes</span>
+                <Link to={`/admin/students/${studentId}`}>
+                  <span>Detalhes</span>
+                </Link>
               </DropdownMenuItem>
             </TooltipTrigger>
             <TooltipContent>
@@ -46,7 +49,7 @@ export function StudentActions({ studentId, onViewDetails, onEdit, onDelete }: S
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <DropdownMenuItem onClick={() => onEdit(studentId)}>
+              <DropdownMenuItem onSelect={() => onEdit(studentId)}>
                 <Edit className="mr-2 h-4 w-4" />
                 <span>Editar</span>
               </DropdownMenuItem>
@@ -59,7 +62,7 @@ export function StudentActions({ studentId, onViewDetails, onEdit, onDelete }: S
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <DropdownMenuItem onClick={() => onDelete(studentId)} className="text-red-600">
+              <DropdownMenuItem onSelect={() => onDelete(studentId)} className="text-red-600">
                 <Trash className="mr-2 h-4 w-4" />
                 <span>Excluir</span>
               </DropdownMenuItem>

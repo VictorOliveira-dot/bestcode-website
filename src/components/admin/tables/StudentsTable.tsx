@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import {
   Table,
@@ -14,6 +13,7 @@ import { useAuth } from "@/contexts/auth";
 import { StudentActions } from "./StudentActions";
 import { useStudentsTable } from "@/hooks/admin/useStudentsTable";
 import StudentProgress from "./StudentProgress";
+import { Link } from "react-router-dom";
 
 const StudentsTable: React.FC = () => {
   const { user } = useAuth();
@@ -81,7 +81,7 @@ const StudentsTable: React.FC = () => {
         </TableHeader>
         <TableBody>
           {students.map((student, index) => (
-            <TableRow key={student.id}>
+            <TableRow key={student.user_id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>{student.name}</TableCell>
               <TableCell>{student.email}</TableCell>
@@ -101,7 +101,7 @@ const StudentsTable: React.FC = () => {
               </TableCell>
               <TableCell className="text-right">
                 <StudentActions
-                  studentId={student.id}
+                  studentId={student.user_id}
                   onViewDetails={handleViewDetails}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
