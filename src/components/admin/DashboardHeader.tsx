@@ -10,9 +10,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LogOut, Menu, User } from "lucide-react";
+import { LogOut, Menu, Settings, User } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { ProfileEditModal } from "./ProfileEditModal";
+import { SettingsModal } from "./SettingsModal";
 
 interface DashboardHeaderProps {
   userName: string;
@@ -22,6 +23,7 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
   const { logout } = useAuth();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -29,7 +31,7 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
 
   return (
     <>
-      <header className="bg-white border-b">
+      <header className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
         <div className="container-custom h-16 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -158,13 +160,15 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setIsProfileModalOpen(true)}>
+                  <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsSettingsModalOpen(true)}>
+                  <Settings className="mr-2 h-4 w-4" />
                   <span>Configurações</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -184,6 +188,11 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
       <ProfileEditModal 
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
+      />
+      
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
       />
     </>
   );
