@@ -345,6 +345,10 @@ export type Database = {
         Args: { p_email: string; p_name: string; p_password: string }
         Returns: string
       }
+      admin_delete_student: {
+        Args: { p_student_id: string }
+        Returns: undefined
+      }
       admin_get_courses: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -388,6 +392,19 @@ export type Database = {
           status: string
         }[]
       }
+      admin_get_student_details: {
+        Args: { p_student_id: string }
+        Returns: {
+          user_id: string
+          name: string
+          email: string
+          created_at: string
+          current_classes: Json
+          subscription_plan: string
+          progress_average: number
+          last_active: string
+        }[]
+      }
       admin_get_students_data: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -410,6 +427,10 @@ export type Database = {
           classes_count: number
           students_count: number
         }[]
+      }
+      admin_update_student_enrollment: {
+        Args: { p_student_id: string; p_class_id: string; p_status: string }
+        Returns: undefined
       }
       can_access_class: {
         Args: { class_id: string }

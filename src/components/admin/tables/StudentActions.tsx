@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,71 +9,117 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
-import { Link } from "react-router-dom";
+import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
+import { useStudentActions } from "@/hooks/admin/useStudentActions";
+import { StudentDetailsModal } from "../modals/StudentDetailsModal";
+import { StudentEditModal } from "../modals/StudentEditModal";
+import { DeleteStudentDialog } from "../modals/DeleteStudentDialog";
 
 interface StudentActionsProps {
-  studentId: string;
-  onViewDetails: (id: string) => void;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  student: {
+    user_id: string;
+    name: string;
+  };
 }
 
-export function StudentActions({ studentId, onViewDetails, onEdit, onDelete }: StudentActionsProps) {
+export function StudentActions({ student }: StudentActionsProps) {
+  const [showDetails, setShowDetails] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [details, setDetails] = useState(null);
+  
+  const { 
+    fetchStudentDetails, 
+    updateEnrollment, 
+    deleteStudent 
+  } = useStudentActions();
+
+  const handleViewDetails = async () => {
+    try {
+      const details = await fetchStudentDetails(student.user_id);
+      setDetails(details);
+      setShowDetails(true);
+    } catch (error) {
+      console.error("Error fetching student details:", error);
+    }
+  };
+
+  const handleEdit = async () => {
+    try {
+      const details = await fetchStudentDetails(student.user_id);
+      setDetails(details);
+      setShowEdit(true);
+    } catch (error) {
+      console.error("Error fetching student details for edit:", error);
+    }
+  };
+
+  const handleUpdateEnrollment = async (values: { classId: string; status: string }) => {
+    await updateEnrollment({
+      studentId: student.user_id,
+      classId: values.classId,
+      status: values.status
+    });
+  };
+
+  const handleDelete = async () => {
+    setShowDelete(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    await deleteStudent(student.user_id);
+    setShowDelete(false);
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Abrir menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuItem onSelect={() => onViewDetails(studentId)}>
-                <Eye className="mr-2 h-4 w-4" />
-                <Link to={`/admin/students/${studentId}`}>
-                  <span>Detalhes</span>
-                </Link>
-              </DropdownMenuItem>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Ver perfil completo e histórico do aluno</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuItem onSelect={() => onEdit(studentId)}>
-                <Edit className="mr-2 h-4 w-4" />
-                <span>Editar</span>
-              </DropdownMenuItem>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Atualizar informações cadastrais do aluno</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuItem onSelect={() => onDelete(studentId)} className="text-red-600">
-                <Trash className="mr-2 h-4 w-4" />
-                <span>Excluir</span>
-              </DropdownMenuItem>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Remover aluno e todo seu histórico do sistema</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Abrir menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleViewDetails}>
+            <Eye className="mr-2 h-4 w-4" />
+            <span>Detalhes</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleEdit}>
+            <Pencil className="mr-2 h-4 w-4" />
+            <span>Editar</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={handleDelete}
+            className="text-red-600"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span>Excluir</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <StudentDetailsModal
+        isOpen={showDetails}
+        onClose={() => setShowDetails(false)}
+        details={details}
+      />
+
+      <StudentEditModal
+        isOpen={showEdit}
+        onClose={() => setShowEdit(false)}
+        onConfirm={handleUpdateEnrollment}
+        studentDetails={details}
+      />
+
+      <DeleteStudentDialog
+        isOpen={showDelete}
+        onClose={() => setShowDelete(false)}
+        onConfirm={handleConfirmDelete}
+        studentName={student.name}
+      />
+    </>
   );
 }
