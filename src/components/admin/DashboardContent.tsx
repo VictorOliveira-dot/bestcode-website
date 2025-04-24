@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -9,6 +8,7 @@ import PaymentsTable from "./tables/PaymentsTable";
 import EnrollmentsChart from "./EnrollmentsChart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminData } from "@/hooks/admin/useAdminData";
+import RevenueTable from "./tables/RevenueTable";
 
 interface DashboardContentProps {
   activeTab: string;
@@ -72,15 +72,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         </TabsContent>
         
         <TabsContent value="payments" className="p-4">
-          <h2 className="text-2xl font-bold mb-4">Payments Overview</h2>
-          {isLoading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-72 w-full" />
-            </div>
-          ) : (
-            <PaymentsTable />
-          )}
+          <RevenueTable />
         </TabsContent>
         
         <TabsContent value="reports" className="p-4">

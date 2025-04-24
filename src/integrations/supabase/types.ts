@@ -392,6 +392,20 @@ export type Database = {
           status: string
         }[]
       }
+      admin_get_revenue_data: {
+        Args: {
+          p_group_by?: string
+          p_start_date?: string
+          p_end_date?: string
+        }
+        Returns: {
+          class_id: string
+          class_name: string
+          total_revenue: number
+          total_students: number
+          month_date: string
+        }[]
+      }
       admin_get_student_details: {
         Args: { p_student_id: string }
         Returns: {
