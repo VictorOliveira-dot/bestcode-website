@@ -1,7 +1,9 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardHeaderProps {
   userName: string;
@@ -9,13 +11,27 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
   
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso."
-    });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso."
+      });
+      
+      setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 100);
+    } catch (error) {
+      toast({
+        title: "Erro ao sair",
+        description: "Não foi possível realizar o logout. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

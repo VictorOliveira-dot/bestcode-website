@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -30,27 +29,21 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
 
   const handleLogout = async () => {
     try {
-      const result = await logout();
+      await logout();
       
-      if (result.success) {
-        toast({
-          title: "Logout realizado",
-          description: "Você foi desconectado com sucesso."
-        });
-        
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso."
+      });
+      
+      setTimeout(() => {
         navigate("/login", { replace: true });
-      } else {
-        toast({
-          title: "Erro no logout",
-          description: "Não foi possível sair. Tente novamente.",
-          variant: "destructive"
-        });
-      }
+      }, 100);
     } catch (error) {
       console.error("Logout error:", error);
       toast({
         title: "Erro no logout",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
+        description: "Não foi possível sair. Tente novamente.",
         variant: "destructive"
       });
     }

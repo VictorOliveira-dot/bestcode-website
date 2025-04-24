@@ -111,16 +111,22 @@ export const loginUser = async (email: string, password: string) => {
 
 export const logoutUser = async () => {
   try {
-    const { error } = await supabase.auth.signOut();
+    console.log('Iniciando processo de logout...');
+    
+    // Limpar primeiro quaisquer sessões que possam estar vazadas
+    const { error } = await supabase.auth.signOut({
+      scope: 'global' // Garante que todas as sessões sejam encerradas
+    });
     
     if (error) {
-      console.error('Error during logout:', error.message);
+      console.error('Erro durante logout:', error.message);
       return { success: false };
     }
     
+    console.log('Logout realizado com sucesso');
     return { success: true };
   } catch (error) {
-    console.error('Unexpected error during logout:', error);
+    console.error('Erro inesperado durante logout:', error);
     return { success: false };
   }
 };
