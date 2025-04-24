@@ -500,6 +500,31 @@ export type Database = {
           student_id: string
         }[]
       }
+      get_student_enrollments: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          enrollment_id: string
+          class_id: string
+          class_name: string
+          class_description: string
+          start_date: string
+          enrollment_status: string
+          teacher_name: string
+        }[]
+      }
+      get_student_lessons: {
+        Args: { filter_date?: string }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          youtube_url: string
+          date: string
+          class_id: string
+          class_name: string
+          visibility: string
+        }[]
+      }
       get_student_notifications: {
         Args: { p_user_id: string }
         Returns: {
@@ -511,7 +536,7 @@ export type Database = {
         }[]
       }
       get_student_progress: {
-        Args: { student_id: string }
+        Args: Record<PropertyKey, never> | { student_id: string }
         Returns: {
           lesson_id: string
           watch_time_minutes: number
@@ -589,6 +614,10 @@ export type Database = {
       get_user_role_safe: {
         Args: { user_id: string }
         Returns: string
+      }
+      mark_notification_as_read: {
+        Args: { p_notification_id: string }
+        Returns: boolean
       }
       reset_test_users: {
         Args: Record<PropertyKey, never>

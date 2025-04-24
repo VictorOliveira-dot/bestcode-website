@@ -3,8 +3,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
-import { Lesson } from "@/components/student/types/lesson";
-import { Enrollment, LessonData, ProgressData, NotificationData } from "@/components/student/types";
+import { 
+  Enrollment, 
+  LessonData, 
+  ProgressData, 
+  NotificationData 
+} from "@/components/student/types";
 
 export const useStudentData = () => {
   const { user } = useAuth();
@@ -18,36 +22,10 @@ export const useStudentData = () => {
     queryKey: ["studentEnrollments", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("enrollments")
-        .select(`
-          id,
-          class_id,
-          classes (
-            id,
-            name,
-            description,
-            start_date,
-            teacher_id
-          )
-        `)
-        .eq("student_id", user?.id);
+        .rpc('get_student_enrollments');
       
       if (error) throw error;
-
-      // Transform the data to ensure we have a consistent structure
-      return data ? data.map(enrollment => {
-        // Correctly access the classes object for each enrollment
-        const classData = enrollment.classes as Record<string, any>;
-        
-        return {
-          id: enrollment.id,
-          class_id: enrollment.class_id,
-          name: classData.name || '',
-          description: classData.description || '',
-          start_date: classData.start_date || '',
-          teacher_id: classData.teacher_id || null
-        } as Enrollment;
-      }) : [];
+      return data || [];
     },
     enabled: !!user?.id
   });
@@ -61,25 +39,12 @@ export const useStudentData = () => {
     queryFn: async () => {
       if (!enrollments?.length) return [];
       
-      const classIds = enrollments.map(e => e.class_id);
-      
       const { data, error } = await supabase
-        .from("lessons")
-        .select("*, classes(name)")
-        .in("class_id", classIds);
+        .rpc('get_student_lessons');
 
       if (error) throw error;
       
-      return (data || []).map(lesson => ({
-        id: lesson.id,
-        title: lesson.title,
-        description: lesson.description,
-        youtubeUrl: lesson.youtube_url,
-        date: lesson.date,
-        class: lesson.classes.name,
-        class_id: lesson.class_id,
-        visibility: lesson.visibility as 'all' | 'class_only'
-      }));
+      return data || [];
     },
     enabled: !!enrollments?.length
   });
@@ -93,9 +58,8 @@ export const useStudentData = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase.rpc('get_student_progress', {
-        student_id: user.id
-      });
+      const { data, error } = await supabase
+        .rpc('get_student_progress');
 
       if (error) throw error;
       
@@ -113,9 +77,10 @@ export const useStudentData = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase.rpc('get_student_notifications', {
-        p_user_id: user.id
-      });
+      const { data, error } = await supabase
+        .rpc('get_student_notifications', {
+          p_user_id: user.id
+        });
 
       if (error) throw error;
       

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -32,7 +33,7 @@ const StudentDashboard = () => {
     id: lesson.id,
     title: lesson.title,
     description: lesson.description,
-    youtubeUrl: lesson.youtubeUrl,  // Now using consistent property name
+    youtubeUrl: lesson.youtube_url,  // Now using consistent property name
     date: lesson.date,
     class: lesson.class,
     class_id: lesson.class_id,
