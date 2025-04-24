@@ -345,6 +345,18 @@ export type Database = {
         Args: { p_email: string; p_name: string; p_password: string }
         Returns: string
       }
+      admin_get_courses: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          description: string
+          start_date: string
+          teacher_name: string
+          students_count: number
+          is_active: boolean
+        }[]
+      }
       admin_get_dashboard_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -354,6 +366,26 @@ export type Database = {
           active_students_last_week: number
           total_lessons: number
           average_completion_rate: number
+        }[]
+      }
+      admin_get_enrollment_stats: {
+        Args: { p_start_date: string; p_end_date: string }
+        Returns: {
+          enrollment_date: string
+          total_enrollments: number
+        }[]
+      }
+      admin_get_payments: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          student_name: string
+          student_email: string
+          course_name: string
+          amount: number
+          payment_date: string
+          payment_method: string
+          status: string
         }[]
       }
       admin_get_students_data: {

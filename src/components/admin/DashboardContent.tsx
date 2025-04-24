@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -7,7 +6,8 @@ import TeachersTable from "./tables/TeachersTable";
 import CoursesTable from "./tables/CoursesTable";
 import PaymentsTable from "./tables/PaymentsTable";
 import EnrollmentsChart from "./EnrollmentsChart";
-import { Skeleton } from "@/components/ui/skeleton"; 
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAdminData } from "@/hooks/admin/useAdminData";
 
 interface DashboardContentProps {
   activeTab: string;
@@ -17,10 +17,17 @@ interface DashboardContentProps {
 
 const DashboardContent: React.FC<DashboardContentProps> = ({ 
   activeTab, 
-  setActiveTab,
-  isLoading = false
+  setActiveTab 
 }) => {
-  // Add state for the month and year
+  const { 
+    students, 
+    teachers, 
+    courses, 
+    payments, 
+    enrollmentStats,
+    isLoading 
+  } = useAdminData();
+
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -35,7 +42,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Skeleton className="h-72 w-full" />
             </div>
           ) : (
-            <StudentsTable />
+            <StudentsTable 
+              initialStudents={students}
+            />
           )}
         </TabsContent>
         
@@ -47,7 +56,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Skeleton className="h-72 w-full" />
             </div>
           ) : (
-            <TeachersTable />
+            <TeachersTable 
+              initialTeachers={teachers}
+            />
           )}
         </TabsContent>
         
@@ -59,7 +70,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Skeleton className="h-72 w-full" />
             </div>
           ) : (
-            <CoursesTable />
+            <CoursesTable 
+              initialCourses={courses}
+            />
           )}
         </TabsContent>
         
@@ -71,7 +84,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Skeleton className="h-72 w-full" />
             </div>
           ) : (
-            <PaymentsTable />
+            <PaymentsTable 
+              initialPayments={payments}
+            />
           )}
         </TabsContent>
         
@@ -83,7 +98,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <div className="grid grid-cols-1">
               <Card className="p-4">
                 <h3 className="text-lg font-medium mb-4">Enrollment Trends</h3>
-                <EnrollmentsChart month={selectedMonth} year={selectedYear} />
+                <EnrollmentsChart 
+                  data={enrollmentStats} 
+                  month="all" 
+                  year={new Date().getFullYear()} 
+                />
               </Card>
             </div>
           )}
@@ -98,7 +117,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             </div>
           ) : (
             <div className="text-center py-12 text-gray-500">
-              Enrollment management coming soon.
+              <p>Showing {payments.length} current enrollments</p>
             </div>
           )}
         </TabsContent>
