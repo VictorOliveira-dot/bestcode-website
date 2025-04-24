@@ -6,10 +6,23 @@ import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Clear any existing session when the login page loads
+  useEffect(() => {
+    const clearSession = async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error clearing session:", error);
+      }
+    };
+    
+    clearSession();
+  }, []);
 
   // Check if user is authenticated and redirect to appropriate dashboard
   useEffect(() => {
