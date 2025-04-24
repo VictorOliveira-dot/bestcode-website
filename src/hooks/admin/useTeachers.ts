@@ -10,6 +10,10 @@ export interface Teacher {
   created_at: string;
   classes_count: number;
   students_count: number;
+  classes?: {
+    id: string;
+    name: string;
+  }[];
 }
 
 export const useTeachers = (shouldFetch: boolean = true) => {
@@ -21,11 +25,29 @@ export const useTeachers = (shouldFetch: boolean = true) => {
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.rpc('admin_get_teachers');
+      const { data, error } = await supabase
+        .from('users')
+        .select(`
+          id,
+          name,
+          email,
+          created_at,
+          classes!inner (
+            id,
+            name
+          )
+        `)
+        .eq('role', 'teacher');
       
       if (error) throw error;
       
-      setTeachers(data || []);
+      const processedTeachers = data.map(teacher => ({
+        ...teacher,
+        classes_count: teacher.classes?.length || 0,
+        students_count: 0 // This needs to be implemented with a separate query or RPC
+      }));
+
+      setTeachers(processedTeachers);
     } catch (error: any) {
       console.error("Failed to fetch teachers:", error);
       toast({
