@@ -7,8 +7,6 @@ import StudentNotifications from "@/components/student/StudentNotifications";
 import DashboardHeader from "@/components/student/DashboardHeader";
 import DashboardStatsCards from "@/components/student/DashboardStatsCards";
 import { useStudentData } from "@/hooks/student/useStudentData";
-import { Lesson } from "@/components/student/types/lesson";
-import { Enrollment, LessonData, ProgressData } from "@/components/student/types";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -18,6 +16,7 @@ const StudentDashboard = () => {
     notifications,
     enrollments,
     updateProgress,
+    markNotificationAsRead,
     isLoading
   } = useStudentData();
   
@@ -33,9 +32,9 @@ const StudentDashboard = () => {
     id: lesson.id,
     title: lesson.title,
     description: lesson.description,
-    youtubeUrl: lesson.youtube_url,  // Now using consistent property name
+    youtubeUrl: lesson.youtube_url,
     date: lesson.date,
-    class: lesson.class,
+    class: lesson.class_name,
     class_id: lesson.class_id,
     visibility: lesson.visibility as 'all' | 'class_only'
   })) : [];
@@ -48,7 +47,13 @@ const StudentDashboard = () => {
     lastWatched: p.last_watched
   })) : [];
 
-  const formattedNotifications = Array.isArray(notifications) ? notifications : [];
+  const formattedNotifications = Array.isArray(notifications) ? notifications.map(n => ({
+    id: n.id,
+    title: n.title,
+    message: n.message,
+    date: n.date,
+    read: n.read
+  })) : [];
 
   const stats = {
     inProgressLessons: formattedProgress.filter(p => p.status === "in_progress").length || 0,
@@ -57,11 +62,12 @@ const StudentDashboard = () => {
       ? Math.round((formattedProgress.reduce((acc, p) => acc + p.progress, 0) / (formattedProgress.length * 100)) * 100)
       : 0,
     availableLessons: formattedLessons.length || 0,
+    enrollmentsCount: enrollments?.length || 0
   };
 
-  // Correctly access the student class name from the transformed enrollment data
+  // Get student class from enrollments data
   const studentClass = enrollments && enrollments.length > 0 
-    ? enrollments[0].name
+    ? enrollments[0].class_name
     : "";
 
   return (
@@ -84,7 +90,7 @@ const StudentDashboard = () => {
           <div>
             <StudentNotifications 
               notifications={formattedNotifications}
-              onMarkAsRead={() => {}} // Implementar mais tarde
+              onMarkAsRead={markNotificationAsRead}
               isLoading={isLoading}
             />
           </div>

@@ -10,13 +10,15 @@ interface DashboardStatsCardsProps {
   overallProgress: number;
   completedLessons: number;
   availableLessons: number;
+  enrollmentsCount: number;
 }
 
 const DashboardStatsCards: React.FC<DashboardStatsCardsProps> = ({
   inProgressLessons,
   overallProgress,
   completedLessons,
-  availableLessons
+  availableLessons,
+  enrollmentsCount
 }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -26,7 +28,7 @@ const DashboardStatsCards: React.FC<DashboardStatsCardsProps> = ({
           <CardDescription>Cursos em andamento</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold">2 cursos</p>
+          <p className="text-2xl font-bold">{enrollmentsCount} cursos</p>
           <Link to="/student/courses">
             <Button className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700 flex items-center justify-center gap-1">
               Ver Cursos

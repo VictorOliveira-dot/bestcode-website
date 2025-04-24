@@ -35,10 +35,8 @@ export const useStudentData = () => {
     isLoading: isLoadingLessons,
     error: lessonsError
   } = useQuery({
-    queryKey: ["studentLessons", enrollments],
+    queryKey: ["studentLessons", user?.id],
     queryFn: async () => {
-      if (!enrollments?.length) return [];
-      
       const { data, error } = await supabase
         .rpc('get_student_lessons');
 
@@ -46,7 +44,7 @@ export const useStudentData = () => {
       
       return data || [];
     },
-    enabled: !!enrollments?.length
+    enabled: !!user?.id
   });
 
   const {
@@ -56,8 +54,6 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentProgress", user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
-      
       const { data, error } = await supabase
         .rpc('get_student_progress');
 
@@ -75,8 +71,6 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentNotifications", user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
-      
       const { data, error } = await supabase
         .rpc('get_student_notifications', {
           p_user_id: user.id
@@ -128,8 +122,38 @@ export const useStudentData = () => {
     }
   });
 
+  const markNotificationAsReadMutation = useMutation({
+    mutationFn: async (notificationId: string) => {
+      const { data, error } = await supabase
+        .rpc('mark_notification_as_read', {
+          p_notification_id: notificationId
+        });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["studentNotifications"] });
+      toast({
+        title: "Notificação atualizada",
+        description: "Notificação marcada como lida"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível marcar a notificação como lida",
+        variant: "destructive"
+      });
+    }
+  });
+
   const updateProgress = (lessonId: string, watchTimeMinutes: number, progress: number) => {
     return updateProgressMutation.mutateAsync({ lessonId, watchTimeMinutes, progress });
+  };
+
+  const markNotificationAsRead = (notificationId: string) => {
+    return markNotificationAsReadMutation.mutateAsync(notificationId);
   };
 
   return {
@@ -139,6 +163,7 @@ export const useStudentData = () => {
     notifications,
     isLoading: isLoadingEnrollments || isLoadingLessons || isLoadingProgress || isLoadingNotifications,
     error: enrollmentsError || lessonsError || progressError || notificationsError,
-    updateProgress
+    updateProgress,
+    markNotificationAsRead
   };
 };
