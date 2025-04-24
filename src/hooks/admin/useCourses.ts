@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Course {
-  id: string;
+  class_id: string;
   name: string;
   description: string;
   start_date: string;
