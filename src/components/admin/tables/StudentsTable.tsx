@@ -94,7 +94,10 @@ const StudentsTable: React.FC = () => {
               </TableCell>
               <TableCell className="text-right">
                 <StudentActions
-                  studentId={student.user_id}
+                  student={{
+                    user_id: student.user_id,
+                    name: student.name
+                  }}
                   onViewDetails={handleViewDetails}
                   onEdit={handleEdit}
                   onDelete={handleDelete}

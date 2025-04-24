@@ -15,14 +15,17 @@ import { StudentDetailsModal } from "../modals/StudentDetailsModal";
 import { StudentEditModal } from "../modals/StudentEditModal";
 import { DeleteStudentDialog } from "../modals/DeleteStudentDialog";
 
-interface StudentActionsProps {
+export interface StudentActionsProps {
   student: {
     user_id: string;
     name: string;
   };
+  onViewDetails?: (studentId: string) => void;
+  onEdit?: (studentId: string) => void;
+  onDelete?: (studentId: string) => void;
 }
 
-export function StudentActions({ student }: StudentActionsProps) {
+export function StudentActions({ student, onViewDetails, onEdit, onDelete }: StudentActionsProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -39,6 +42,11 @@ export function StudentActions({ student }: StudentActionsProps) {
       const details = await fetchStudentDetails(student.user_id);
       setDetails(details);
       setShowDetails(true);
+      
+      // Call parent handler if provided
+      if (onViewDetails) {
+        onViewDetails(student.user_id);
+      }
     } catch (error) {
       console.error("Error fetching student details:", error);
     }
@@ -49,6 +57,11 @@ export function StudentActions({ student }: StudentActionsProps) {
       const details = await fetchStudentDetails(student.user_id);
       setDetails(details);
       setShowEdit(true);
+      
+      // Call parent handler if provided
+      if (onEdit) {
+        onEdit(student.user_id);
+      }
     } catch (error) {
       console.error("Error fetching student details for edit:", error);
     }
@@ -64,6 +77,11 @@ export function StudentActions({ student }: StudentActionsProps) {
 
   const handleDelete = async () => {
     setShowDelete(true);
+    
+    // Call parent handler if provided
+    if (onDelete) {
+      onDelete(student.user_id);
+    }
   };
 
   const handleConfirmDelete = async () => {
