@@ -1,36 +1,14 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { ClassInfo } from '@/components/teacher/ClassItem';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
 
 export const useClassManagement = () => {
-  const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-
-  const fetchClasses = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.rpc('get_teacher_classes', {
-        teacher_id: user?.id
-      });
-
-      if (error) throw error;
-      setClasses(data || []);
-    } catch (err: any) {
-      setError('Failed to load classes');
-      toast({
-        title: 'Error loading classes',
-        description: err.message || 'Failed to load classes',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleAddClass = async (classData: { name: string; description: string; startDate: string }) => {
     setIsLoading(true);
@@ -43,18 +21,16 @@ export const useClassManagement = () => {
       
       if (error) throw error;
       
-      await fetchClasses();
-      
       toast({
-        title: 'Class created',
-        description: 'New class was successfully created'
+        title: 'Turma criada',
+        description: 'Nova turma foi criada com sucesso'
       });
       
       return true;
     } catch (err: any) {
       toast({
-        title: 'Error creating class',
-        description: err.message || 'Failed to create class',
+        title: 'Erro ao criar turma',
+        description: err.message || 'Falha ao criar turma',
         variant: 'destructive'
       });
       return false;
@@ -76,18 +52,16 @@ export const useClassManagement = () => {
       
       if (error) throw error;
       
-      await fetchClasses();
-      
       toast({
-        title: 'Class updated',
-        description: 'Class was successfully updated'
+        title: 'Turma atualizada',
+        description: 'Turma foi atualizada com sucesso'
       });
       
       return true;
     } catch (err: any) {
       toast({
-        title: 'Error updating class',
-        description: err.message || 'Failed to update class',
+        title: 'Erro ao atualizar turma',
+        description: err.message || 'Falha ao atualizar turma',
         variant: 'destructive'
       });
       return false;
@@ -97,7 +71,7 @@ export const useClassManagement = () => {
   };
 
   const handleDeleteClass = async (classId: string) => {
-    if (!window.confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
+    if (!window.confirm('Tem certeza que deseja excluir esta turma? Esta ação não pode ser desfeita.')) {
       return false;
     }
     
@@ -110,18 +84,16 @@ export const useClassManagement = () => {
       
       if (error) throw error;
       
-      await fetchClasses();
-      
       toast({
-        title: 'Class deleted',
-        description: 'Class was successfully deleted'
+        title: 'Turma excluída',
+        description: 'Turma foi excluída com sucesso'
       });
       
       return true;
     } catch (err: any) {
       toast({
-        title: 'Error deleting class',
-        description: err.message || 'Failed to delete class',
+        title: 'Erro ao excluir turma',
+        description: err.message || 'Falha ao excluir turma',
         variant: 'destructive'
       });
       return false;
@@ -130,17 +102,9 @@ export const useClassManagement = () => {
     }
   };
 
-  useEffect(() => {
-    if (user?.role === 'teacher' || user?.role === 'admin') {
-      fetchClasses();
-    }
-  }, [user]);
-
   return {
-    classes,
     isLoading,
     error,
-    fetchClasses,
     handleAddClass,
     handleEditClass,
     handleDeleteClass
