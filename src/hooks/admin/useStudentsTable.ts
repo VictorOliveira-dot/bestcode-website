@@ -82,5 +82,3 @@ export function useStudentsTable() {
     handleDelete
   };
 }
-
-export type { Student };
