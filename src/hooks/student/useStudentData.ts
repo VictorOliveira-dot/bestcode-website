@@ -33,14 +33,19 @@ export const useStudentData = () => {
       if (error) throw error;
 
       // Transform the data to ensure we have a consistent structure
-      return data ? data.map(enrollment => ({
-        id: enrollment.id,
-        class_id: enrollment.class_id,
-        name: enrollment.classes?.name || '',
-        description: enrollment.classes?.description || '',
-        start_date: enrollment.classes?.start_date || '',
-        teacher_id: enrollment.classes?.teacher_id || null
-      })) : [];
+      return data ? data.map(enrollment => {
+        // Correctly access the classes object for each enrollment
+        const classData = enrollment.classes || {};
+        
+        return {
+          id: enrollment.id,
+          class_id: enrollment.class_id,
+          name: classData.name || '',
+          description: classData.description || '',
+          start_date: classData.start_date || '',
+          teacher_id: classData.teacher_id || null
+        };
+      }) : [];
     },
     enabled: !!user?.id
   });
