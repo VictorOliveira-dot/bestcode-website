@@ -25,29 +25,75 @@ export const useTeachers = (shouldFetch: boolean = true) => {
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // Primeiro, buscar todos os professores
+      const { data: teachersData, error: teachersError } = await supabase
         .from('users')
         .select(`
           id,
           name,
           email,
-          created_at,
-          classes!inner (
-            id,
-            name
-          )
+          created_at
         `)
         .eq('role', 'teacher');
       
-      if (error) throw error;
+      if (teachersError) throw teachersError;
       
-      const processedTeachers = data.map(teacher => ({
+      if (!teachersData || teachersData.length === 0) {
+        setTeachers([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Preparar o array de professores com contagem zero inicial
+      const processedTeachers = teachersData.map(teacher => ({
         ...teacher,
-        classes_count: teacher.classes?.length || 0,
-        students_count: 0 // This needs to be implemented with a separate query or RPC
+        classes_count: 0,
+        students_count: 0
       }));
-
-      setTeachers(processedTeachers);
+      
+      // Agora, para cada professor, obter o número de classes em uma consulta separada
+      const teachersWithCounts = await Promise.all(
+        processedTeachers.map(async (teacher) => {
+          // Buscar turmas do professor
+          const { data: classesData, error: classesError } = await supabase
+            .from('classes')
+            .select('id, name')
+            .eq('teacher_id', teacher.id);
+          
+          if (classesError) {
+            console.error(`Erro ao buscar turmas para o professor ${teacher.id}:`, classesError);
+            return teacher;
+          }
+          
+          const classes = classesData || [];
+          
+          // Calcular o número de estudantes para as turmas deste professor
+          let studentsCount = 0;
+          if (classes.length > 0) {
+            const classIds = classes.map(c => c.id);
+            
+            const { count, error: studentsError } = await supabase
+              .from('enrollments')
+              .select('student_id', { count: 'exact', head: true })
+              .in('class_id', classIds);
+              
+            if (studentsError) {
+              console.error(`Erro ao contar estudantes para o professor ${teacher.id}:`, studentsError);
+            } else {
+              studentsCount = count || 0;
+            }
+          }
+          
+          return {
+            ...teacher,
+            classes_count: classes.length,
+            students_count: studentsCount,
+            classes
+          };
+        })
+      );
+      
+      setTeachers(teachersWithCounts);
     } catch (error: any) {
       console.error("Failed to fetch teachers:", error);
       toast({

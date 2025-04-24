@@ -486,6 +486,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: string
       }
+      get_user_role_for_policy: {
+        Args: { user_id: string }
+        Returns: string
+      }
       get_user_role_safe: {
         Args: { user_id: string }
         Returns: string
