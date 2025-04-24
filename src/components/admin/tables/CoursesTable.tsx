@@ -99,7 +99,7 @@ const CoursesTable: React.FC = () => {
         </TableHeader>
         <TableBody>
           {courses.map((course, index) => (
-            <TableRow key={course.id}>
+            <TableRow key={course.class_id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>
                 <div>
@@ -136,16 +136,16 @@ const CoursesTable: React.FC = () => {
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <TooltipProvider>
-                      <DropdownMenuItem onClick={() => handleViewDetails(course.id)}>
+                      <DropdownMenuItem onClick={() => handleViewDetails(course.class_id)}>
                         <Eye className="mr-2 h-4 w-4" />
                         <span>Detalhes</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleEdit(course.id)}>
+                      <DropdownMenuItem onClick={() => handleEdit(course.class_id)}>
                         <Edit className="mr-2 h-4 w-4" />
                         <span>Editar</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => handleDelete(course.id)}
+                        onClick={() => handleDelete(course.class_id)}
                         className="text-red-600"
                       >
                         <Trash className="mr-2 h-4 w-4" />

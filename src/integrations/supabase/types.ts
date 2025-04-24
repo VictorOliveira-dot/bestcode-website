@@ -352,7 +352,7 @@ export type Database = {
       admin_get_courses: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
+          class_id: string
           name: string
           description: string
           start_date: string
