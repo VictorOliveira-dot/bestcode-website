@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -42,9 +43,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Skeleton className="h-72 w-full" />
             </div>
           ) : (
-            <StudentsTable 
-              initialStudents={students}
-            />
+            <StudentsTable />
           )}
         </TabsContent>
         
@@ -56,9 +55,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Skeleton className="h-72 w-full" />
             </div>
           ) : (
-            <TeachersTable 
-              initialTeachers={teachers}
-            />
+            <TeachersTable />
           )}
         </TabsContent>
         
@@ -70,9 +67,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Skeleton className="h-72 w-full" />
             </div>
           ) : (
-            <CoursesTable 
-              initialCourses={courses}
-            />
+            <CoursesTable />
           )}
         </TabsContent>
         
@@ -84,9 +79,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Skeleton className="h-72 w-full" />
             </div>
           ) : (
-            <PaymentsTable 
-              initialPayments={payments}
-            />
+            <PaymentsTable />
           )}
         </TabsContent>
         
@@ -99,9 +92,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               <Card className="p-4">
                 <h3 className="text-lg font-medium mb-4">Enrollment Trends</h3>
                 <EnrollmentsChart 
-                  data={enrollmentStats} 
-                  month="all" 
-                  year={new Date().getFullYear()} 
+                  month={selectedMonth} 
+                  year={selectedYear} 
                 />
               </Card>
             </div>

@@ -2,6 +2,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useAdminData } from "@/hooks/admin/useAdminData";
 
 interface EnrollmentsChartProps {
   month: string;
@@ -9,32 +10,35 @@ interface EnrollmentsChartProps {
 }
 
 const EnrollmentsChart: React.FC<EnrollmentsChartProps> = ({ month, year }) => {
-  // Sample data - in a real application, this would be fetched from your API
-  // based on the selected month and year
-  const data = [
-    { name: "Jan", matriculas: 4 },
-    { name: "Fev", matriculas: 6 },
-    { name: "Mar", matriculas: 8 },
-    { name: "Abr", matriculas: 5 },
-    { name: "Mai", matriculas: 7 },
-    { name: "Jun", matriculas: 9 },
-    { name: "Jul", matriculas: 3 },
-    { name: "Ago", matriculas: 6 },
-    { name: "Set", matriculas: 8 },
-    { name: "Out", matriculas: 10 },
-    { name: "Nov", matriculas: 7 },
-    { name: "Dez", matriculas: 5 }
-  ];
+  const { enrollmentStats } = useAdminData();
+  
+  // Transformar os dados para o formato esperado pelo gráfico
+  const processData = () => {
+    if (!enrollmentStats || enrollmentStats.length === 0) {
+      return [];
+    }
 
-  // Filter data based on selected month
+    // Mapear os meses para nomes abreviados
+    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    
+    // Formatar os dados
+    return enrollmentStats.map(item => {
+      const date = new Date(item.enrollment_date);
+      return {
+        name: monthNames[date.getMonth()],
+        matriculas: item.total_enrollments,
+        monthNumber: date.getMonth() + 1,
+        fullDate: item.enrollment_date
+      };
+    });
+  };
+
+  const chartData = processData();
+  
+  // Filtrar dados com base no mês selecionado
   const filteredData = month === "all" 
-    ? data 
-    : data.filter(item => {
-        const monthNumber = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", 
-                            "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-                            .indexOf(item.name) + 1;
-        return monthNumber.toString() === month;
-      });
+    ? chartData 
+    : chartData.filter(item => item.monthNumber.toString() === month);
 
   return (
     <Card className="p-4">
