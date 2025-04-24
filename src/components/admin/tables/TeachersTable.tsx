@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Table,
@@ -17,24 +18,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { useTeachers } from "@/hooks/admin/useTeachers";
+import { supabase } from "@/integrations/supabase/client";
 
 const TeachersTable: React.FC = () => {
   const navigate = useNavigate();
-
-  const { data: teachers, isLoading, error } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_get_teachers');
-      if (error) throw error;
-      return data;
-    }
-  });
+  const { teachers, isLoading, fetchTeachers } = useTeachers();
 
   const handleViewDetails = (teacherId: string) => {
     toast({
@@ -67,6 +60,9 @@ const TeachersTable: React.FC = () => {
         title: "Professor removido",
         description: "O professor foi removido com sucesso.",
       });
+      
+      // Refresh the teachers list
+      fetchTeachers();
     } catch (error: any) {
       console.error("Error deleting teacher:", error);
       toast({
@@ -87,10 +83,6 @@ const TeachersTable: React.FC = () => {
     );
   }
 
-  if (error) {
-    return <div className="text-red-500">Error loading teachers: {(error as Error).message}</div>;
-  }
-
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -106,7 +98,7 @@ const TeachersTable: React.FC = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {teachers?.map((teacher, index) => (
+          {teachers.map((teacher, index) => (
             <TableRow key={teacher.id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>{teacher.name}</TableCell>

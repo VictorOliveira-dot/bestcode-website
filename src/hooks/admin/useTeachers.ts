@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-interface Teacher {
+export interface Teacher {
   id: string;
   name: string;
   email: string;
@@ -12,7 +12,7 @@ interface Teacher {
   students_count: number;
 }
 
-export const useTeachers = (shouldFetch: boolean = false) => {
+export const useTeachers = (shouldFetch: boolean = true) => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,10 +39,8 @@ export const useTeachers = (shouldFetch: boolean = false) => {
   }, [shouldFetch]);
 
   useEffect(() => {
-    if (shouldFetch) {
-      fetchTeachers();
-    }
-  }, [shouldFetch, fetchTeachers]);
+    fetchTeachers();
+  }, [fetchTeachers]);
 
   return { teachers, isLoading, fetchTeachers };
 };
