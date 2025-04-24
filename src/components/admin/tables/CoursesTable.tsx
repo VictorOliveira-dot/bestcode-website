@@ -27,6 +27,9 @@ import { useCourses } from "@/hooks/admin/useCourses";
 const CoursesTable: React.FC = () => {
   const { data: courses, isLoading, error } = useCourses();
 
+  // Log for debugging
+  console.log("CoursesTable rendered with:", { courses, isLoading, error });
+
   const handleViewDetails = (courseId: string) => {
     toast({
       title: "Visualizando detalhes do curso",
@@ -60,7 +63,24 @@ const CoursesTable: React.FC = () => {
   }
 
   if (error) {
-    return <div className="text-red-500">Erro ao carregar cursos: {error.message}</div>;
+    return (
+      <div className="border rounded-md p-4 bg-red-50">
+        <h3 className="text-red-600 font-medium">Erro ao carregar cursos</h3>
+        <p className="text-red-500">{error.message || "Ocorreu um erro desconhecido"}</p>
+        <p className="text-sm text-gray-600 mt-2">
+          Este erro pode estar relacionado à função SQL no Supabase. 
+          Verifique o console para mais detalhes.
+        </p>
+      </div>
+    );
+  }
+
+  if (!courses || courses.length === 0) {
+    return (
+      <div className="border rounded-md p-8 text-center">
+        <p className="text-gray-500">Nenhum curso encontrado</p>
+      </div>
+    );
   }
 
   return (
@@ -78,7 +98,7 @@ const CoursesTable: React.FC = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {courses?.map((course, index) => (
+          {courses.map((course, index) => (
             <TableRow key={course.id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>
