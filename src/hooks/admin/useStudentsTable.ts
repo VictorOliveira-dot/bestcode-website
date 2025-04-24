@@ -1,60 +1,47 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-interface Student {
+export interface Student {
   id: string;
   name: string;
   email: string;
   created_at: string;
   classes_count: number;
-  last_active: string;
+  last_active: string | null;
   progress_average: number;
 }
-
-export const MOCK_STUDENTS: Student[] = [
-  {
-    id: "1",
-    name: "Ana Silva",
-    email: "ana.silva@example.com",
-    created_at: "2023-02-15T08:30:00Z",
-    classes_count: 2,
-    last_active: "2023-04-18T14:25:00Z",
-    progress_average: 75
-  },
-  {
-    id: "2",
-    name: "Bruno Santos",
-    email: "bruno.santos@example.com",
-    created_at: "2023-03-10T10:15:00Z",
-    classes_count: 3,
-    last_active: "2023-04-20T09:45:00Z",
-    progress_average: 92
-  },
-  {
-    id: "3",
-    name: "Carla Oliveira",
-    email: "carla.oliveira@example.com",
-    created_at: "2023-01-05T11:20:00Z",
-    classes_count: 1,
-    last_active: "2023-04-15T16:30:00Z",
-    progress_average: 45
-  }
-];
 
 export function useStudentsTable() {
   const [isSessionChecked, setIsSessionChecked] = useState(false);
 
-  const { data: students, isLoading, error, refetch } = useQuery({
+  const { 
+    data: students, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useQuery<Student[]>({
     queryKey: ['students'],
     queryFn: async () => {
       try {
-        console.log("Fetching students data...");
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log("Students data fetched successfully:", MOCK_STUDENTS.length);
-        return MOCK_STUDENTS;
+        const { data, error } = await supabase.rpc('admin_get_students_data');
+        
+        if (error) {
+          console.error("Failed to fetch students:", error);
+          throw error;
+        }
+
+        console.log("Students data fetched successfully:", data.length);
+        return data || [];
       } catch (err: any) {
-        console.error("Failed to fetch students:", err);
+        console.error("Error fetching students:", err);
+        toast({
+          title: "Erro ao carregar alunos",
+          description: err.message || "Não foi possível carregar a lista de alunos",
+          variant: "destructive"
+        });
         throw err;
       }
     },
