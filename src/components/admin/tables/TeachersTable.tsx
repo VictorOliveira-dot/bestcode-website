@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Table,
@@ -30,7 +31,7 @@ const TeachersTable: React.FC = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const { teachers, isLoading, refetchTeachers } = useTeachers();
+  const { teachers, isLoading, fetchTeachers } = useTeachers();
 
   const handleViewDetails = (teacherId: string) => {
     const teacher = teachers.find(t => t.id === teacherId);
@@ -61,7 +62,7 @@ const TeachersTable: React.FC = () => {
         description: "As informações foram atualizadas com sucesso.",
       });
 
-      refetchTeachers();
+      fetchTeachers();
     } catch (error: any) {
       toast({
         title: "Erro ao atualizar professor",
@@ -92,7 +93,7 @@ const TeachersTable: React.FC = () => {
       });
 
       setIsDeleteDialogOpen(false);
-      refetchTeachers();
+      fetchTeachers();
     } catch (error: any) {
       toast({
         title: "Erro ao remover professor",
