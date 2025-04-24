@@ -19,50 +19,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useNavigate } from "react-router-dom";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "@/hooks/use-toast";
-
-interface Class {
-  id: string;
-  name: string;
-  description: string;
-  start_date: string;
-  teacher_name: string;
-  students_count: number;
-  is_active: boolean;
-}
+import { useCourses } from "@/hooks/admin/useCourses";
 
 const CoursesTable: React.FC = () => {
-  const navigate = useNavigate();
-
-  const { data: courses, isLoading, error } = useQuery({
-    queryKey: ['courses'],
-    queryFn: async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Mock data instead of Supabase query
-      const mockCourses = [
-        { id: '1', name: 'Web Development', description: 'Learn full-stack web development', start_date: '2023-04-01', teacher_name: 'Professor Silva', students_count: 18, is_active: true },
-        { id: '2', name: 'QA Testing', description: 'Quality assurance and testing methodologies', start_date: '2023-05-15', teacher_name: 'Professor Santos', students_count: 12, is_active: true },
-        { id: '3', name: 'DevOps Basics', description: 'CI/CD and cloud infrastructure', start_date: '2023-06-10', teacher_name: 'Professora Oliveira', students_count: 8, is_active: false }
-      ];
-
-      return mockCourses as Class[];
-    }
-  });
+  const { data: courses, isLoading, error } = useCourses();
 
   const handleViewDetails = (courseId: string) => {
     toast({
       title: "Visualizando detalhes do curso",
       description: `Redirecionando para a página de detalhes do curso #${courseId}`,
     });
-    // In a real app, this would navigate to a course details page
-    // navigate(`/admin/courses/${courseId}`);
   };
 
   const handleEdit = (courseId: string) => {
@@ -70,8 +39,6 @@ const CoursesTable: React.FC = () => {
       title: "Editando curso",
       description: `Redirecionando para a página de edição do curso #${courseId}`,
     });
-    // In a real app, this would navigate to a course edit page
-    // navigate(`/admin/courses/${courseId}/edit`);
   };
 
   const handleDelete = (courseId: string) => {
@@ -80,7 +47,6 @@ const CoursesTable: React.FC = () => {
       description: `Confirmação para excluir o curso #${courseId}`,
       variant: "destructive",
     });
-    // In a real app, this would show a confirmation dialog and then delete the course
   };
 
   if (isLoading) {
@@ -94,7 +60,7 @@ const CoursesTable: React.FC = () => {
   }
 
   if (error) {
-    return <div className="text-red-500">Error loading courses: {error.message}</div>;
+    return <div className="text-red-500">Erro ao carregar cursos: {error.message}</div>;
   }
 
   return (
@@ -150,46 +116,21 @@ const CoursesTable: React.FC = () => {
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuItem onClick={() => handleViewDetails(course.id)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span>Detalhes</span>
-                          </DropdownMenuItem>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Ver informações completas, alunos e progresso do curso</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuItem onClick={() => handleEdit(course.id)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Editar</span>
-                          </DropdownMenuItem>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Modificar conteúdo e configurações do curso</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(course.id)}
-                            className="text-red-600"
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            <span>Excluir</span>
-                          </DropdownMenuItem>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Remover curso do catálogo</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <DropdownMenuItem onClick={() => handleViewDetails(course.id)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        <span>Detalhes</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEdit(course.id)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        <span>Editar</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(course.id)}
+                        className="text-red-600"
+                      >
+                        <Trash className="mr-2 h-4 w-4" />
+                        <span>Excluir</span>
+                      </DropdownMenuItem>
                     </TooltipProvider>
                   </DropdownMenuContent>
                 </DropdownMenu>
