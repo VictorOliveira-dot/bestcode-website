@@ -1,8 +1,10 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
 import { Lesson } from "@/components/student/types/lesson";
+import { Enrollment, LessonData, ProgressData, NotificationData } from "@/components/student/types";
 
 export const useStudentData = () => {
   const { user } = useAuth();
@@ -35,7 +37,7 @@ export const useStudentData = () => {
       // Transform the data to ensure we have a consistent structure
       return data ? data.map(enrollment => {
         // Correctly access the classes object for each enrollment
-        const classData = enrollment.classes || {};
+        const classData = enrollment.classes as Record<string, any>;
         
         return {
           id: enrollment.id,
@@ -44,7 +46,7 @@ export const useStudentData = () => {
           description: classData.description || '',
           start_date: classData.start_date || '',
           teacher_id: classData.teacher_id || null
-        };
+        } as Enrollment;
       }) : [];
     },
     enabled: !!user?.id

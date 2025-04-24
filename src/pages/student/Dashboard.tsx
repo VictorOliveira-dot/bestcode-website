@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -8,6 +7,7 @@ import DashboardHeader from "@/components/student/DashboardHeader";
 import DashboardStatsCards from "@/components/student/DashboardStatsCards";
 import { useStudentData } from "@/hooks/student/useStudentData";
 import { Lesson } from "@/components/student/types/lesson";
+import { Enrollment, LessonData, ProgressData } from "@/components/student/types";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
