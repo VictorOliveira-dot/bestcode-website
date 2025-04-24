@@ -24,7 +24,7 @@ export const useTeacherData = () => {
     },
     enabled: !!user?.id,
     staleTime: 30000, // Consider data fresh for 30 seconds
-    cacheTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes (renamed from cacheTime)
   });
 
   const { 
@@ -42,7 +42,7 @@ export const useTeacherData = () => {
     },
     enabled: !!user?.id,
     staleTime: 30000,
-    cacheTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 5, // Renamed from cacheTime
   });
 
   const {
@@ -62,7 +62,7 @@ export const useTeacherData = () => {
     },
     enabled: !!user?.id,
     staleTime: 30000,
-    cacheTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 5, // Renamed from cacheTime
   });
 
   return {
