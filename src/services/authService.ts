@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -113,15 +112,21 @@ export const logoutUser = async () => {
   try {
     console.log('Iniciando processo de logout...');
     
-    // Limpar primeiro quaisquer sessões que possam estar vazadas
+    // Clear any session data in localStorage first
+    localStorage.removeItem('supabase.auth.token');
+    
+    // Use global scope to ensure all sessions are terminated
     const { error } = await supabase.auth.signOut({
       scope: 'global' // Garante que todas as sessões sejam encerradas
     });
     
     if (error) {
       console.error('Erro durante logout:', error.message);
-      return { success: false };
+      throw error; // Throw error to be caught in the component
     }
+    
+    // Wait a moment to ensure all state is cleared
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     console.log('Logout realizado com sucesso');
     return { success: true };

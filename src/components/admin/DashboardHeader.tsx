@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -36,9 +37,10 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
         description: "Você foi desconectado com sucesso."
       });
       
+      // Increase timeout and use window.location for stronger refresh
       setTimeout(() => {
-        navigate("/login", { replace: true });
-      }, 100);
+        window.location.href = "/login";
+      }, 300);
     } catch (error) {
       console.error("Logout error:", error);
       toast({

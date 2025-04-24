@@ -22,9 +22,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
         description: "Você foi desconectado com sucesso."
       });
       
+      // Increase timeout and use window.location for stronger refresh
       setTimeout(() => {
-        navigate("/login", { replace: true });
-      }, 100);
+        window.location.href = "/login";
+      }, 300);
     } catch (error) {
       toast({
         title: "Erro ao sair",
