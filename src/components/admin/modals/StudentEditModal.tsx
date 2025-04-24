@@ -33,7 +33,7 @@ interface StudentEditModalProps {
       class_id: string;
       class_name: string;
       status: string;
-    }>;
+    }> | null;
   } | null;
 }
 
@@ -50,7 +50,11 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
     onClose();
   };
 
+  // Return null if studentDetails is null
   if (!studentDetails) return null;
+
+  // Ensure current_classes is always an array even if it's null
+  const currentClasses = studentDetails.current_classes || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -76,7 +80,7 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
                         <SelectValue placeholder="Selecione uma turma" />
                       </SelectTrigger>
                       <SelectContent>
-                        {studentDetails.current_classes.map((cls) => (
+                        {currentClasses.map((cls) => (
                           <SelectItem key={cls.class_id} value={cls.class_id}>
                             {cls.class_name}
                           </SelectItem>
