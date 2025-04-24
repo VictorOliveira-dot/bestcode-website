@@ -1,18 +1,16 @@
 
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 interface Teacher {
   id: string;
   name: string;
+  email: string;
+  created_at: string;
+  classes_count: number;
+  students_count: number;
 }
-
-// Mock teachers data
-const MOCK_TEACHERS = [
-  { id: '1', name: 'Professor Silva' },
-  { id: '2', name: 'Professor Santos' },
-  { id: '3', name: 'Professora Oliveira' }
-];
 
 export const useTeachers = (shouldFetch: boolean = false) => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -23,9 +21,11 @@ export const useTeachers = (shouldFetch: boolean = false) => {
     
     setIsLoading(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setTeachers(MOCK_TEACHERS);
+      const { data, error } = await supabase.rpc('admin_get_teachers');
+      
+      if (error) throw error;
+      
+      setTeachers(data || []);
     } catch (error: any) {
       console.error("Failed to fetch teachers:", error);
       toast({

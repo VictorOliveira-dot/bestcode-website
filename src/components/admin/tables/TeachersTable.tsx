@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Table,
@@ -19,47 +18,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-
-interface Teacher {
-  id: string;
-  name: string;
-  email: string;
-  created_at: string;
-  classes_count: number;
-  students_count: number;
-}
-
-// Mock data for teachers
-const MOCK_TEACHERS: Teacher[] = [
-  {
-    id: "1",
-    name: "João Silva",
-    email: "joao.silva@example.com",
-    created_at: "2023-01-15T10:30:00Z",
-    classes_count: 3,
-    students_count: 45
-  },
-  {
-    id: "2",
-    name: "Maria Santos",
-    email: "maria.santos@example.com",
-    created_at: "2023-02-20T14:15:00Z",
-    classes_count: 2,
-    students_count: 32
-  },
-  {
-    id: "3",
-    name: "Carlos Oliveira",
-    email: "carlos.oliveira@example.com",
-    created_at: "2023-03-10T09:45:00Z",
-    classes_count: 4,
-    students_count: 58
-  }
-];
 
 const TeachersTable: React.FC = () => {
   const navigate = useNavigate();
@@ -67,9 +30,9 @@ const TeachersTable: React.FC = () => {
   const { data: teachers, isLoading, error } = useQuery({
     queryKey: ['teachers'],
     queryFn: async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return MOCK_TEACHERS;
+      const { data, error } = await supabase.rpc('admin_get_teachers');
+      if (error) throw error;
+      return data;
     }
   });
 
@@ -91,13 +54,27 @@ const TeachersTable: React.FC = () => {
     // navigate(`/admin/teachers/${teacherId}/edit`);
   };
 
-  const handleDelete = (teacherId: string) => {
-    toast({
-      title: "Excluir professor",
-      description: `Confirmação para excluir o professor #${teacherId}`,
-      variant: "destructive",
-    });
-    // In a real app, this would show a confirmation dialog and then delete the teacher
+  const handleDelete = async (teacherId: string) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', teacherId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Professor removido",
+        description: "O professor foi removido com sucesso.",
+      });
+    } catch (error: any) {
+      console.error("Error deleting teacher:", error);
+      toast({
+        title: "Erro ao remover professor",
+        description: error.message || "Ocorreu um erro ao remover o professor.",
+        variant: "destructive"
+      });
+    }
   };
 
   if (isLoading) {

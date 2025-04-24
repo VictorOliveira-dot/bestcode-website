@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth"; 
 import { PlusCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -57,46 +57,31 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       });
       return;
     }
-    
-    console.log("User attempting to create teacher:", user.id);
-    console.log("User role:", user.role);
-    
-    if (user.role !== 'admin') {
-      toast({
-        title: "Permission error",
-        description: "You must be an administrator to create teachers.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     setIsSubmitting(true);
     
     try {
-      console.log("Creating teacher with data:", {
-        email: data.email,
-        name: data.name,
-        // Not logging password for security
+      const { data: newTeacher, error } = await supabase.rpc('admin_create_teacher', {
+        p_email: data.email,
+        p_name: data.name,
+        p_password: data.password
       });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log("Teacher created successfully, mock ID: teacher-123");
-      
+      if (error) throw error;
+
       toast({
-        title: "Teacher created successfully",
-        description: `Teacher ${data.name} has been added to the system.`,
+        title: "Professor criado com sucesso",
+        description: `O professor ${data.name} foi adicionado ao sistema.`,
       });
 
       form.reset();
       setIsOpen(false);
       onTeacherAdded();
     } catch (error: any) {
-      console.error("Error caught:", error);
+      console.error("Error creating teacher:", error);
       toast({
-        title: "Error creating teacher",
-        description: error.message || "An error occurred while creating the teacher.",
+        title: "Erro ao criar professor",
+        description: error.message || "Ocorreu um erro ao criar o professor.",
         variant: "destructive",
       });
     } finally {
