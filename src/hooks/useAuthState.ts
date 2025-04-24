@@ -21,10 +21,15 @@ export const useAuthState = () => {
 
     // Clear any existing session on initial load
     const clearSession = async () => {
-      await supabase.auth.signOut();
-      console.log("Previous session cleared");
+      try {
+        await supabase.auth.signOut();
+        console.log("Previous session cleared");
+      } catch (error) {
+        console.error("Error clearing session:", error);
+      }
     };
 
+    // Clear session right away
     clearSession();
     
     // Set up auth state listener

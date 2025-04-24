@@ -8,9 +8,9 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 // Cria o cliente do Supabase com as configurações adequadas para autenticação
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    storage: sessionStorage, // Use sessionStorage instead of localStorage
-    persistSession: false,   // Disable session persistence
-    autoRefreshToken: false, // Disable auto token refresh
+    storage: localStorage, // Revert to localStorage for auth storage
+    persistSession: true,  // Allow session persistence for logins to work
+    autoRefreshToken: true, // Enable auto token refresh
     detectSessionInUrl: false, // Don't detect session in URL
     flowType: 'pkce' // Use the PKCE flow for authentication
   }
