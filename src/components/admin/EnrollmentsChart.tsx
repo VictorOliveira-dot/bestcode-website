@@ -2,7 +2,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { useAdminData } from "@/hooks/admin/useAdminData";
 
 interface EnrollmentsChartProps {
   month: string;
@@ -10,35 +9,26 @@ interface EnrollmentsChartProps {
 }
 
 const EnrollmentsChart: React.FC<EnrollmentsChartProps> = ({ month, year }) => {
-  const { enrollmentStats } = useAdminData();
-  
-  // Transformar os dados para o formato esperado pelo gráfico
-  const processData = () => {
-    if (!enrollmentStats || enrollmentStats.length === 0) {
-      return [];
-    }
-
-    // Mapear os meses para nomes abreviados
-    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-    
-    // Formatar os dados
-    return enrollmentStats.map(item => {
-      const date = new Date(item.enrollment_date);
-      return {
-        name: monthNames[date.getMonth()],
-        matriculas: item.total_enrollments,
-        monthNumber: date.getMonth() + 1,
-        fullDate: item.enrollment_date
-      };
-    });
-  };
-
-  const chartData = processData();
+  // Data mockado para demonstração
+  const monthlyData = [
+    { name: "Jan", matriculas: 45 },
+    { name: "Fev", matriculas: 52 },
+    { name: "Mar", matriculas: 48 },
+    { name: "Abr", matriculas: 70 },
+    { name: "Mai", matriculas: 65 },
+    { name: "Jun", matriculas: 85 },
+    { name: "Jul", matriculas: 78 },
+    { name: "Ago", matriculas: 90 },
+    { name: "Set", matriculas: 120 },
+    { name: "Out", matriculas: 95 },
+    { name: "Nov", matriculas: 110 },
+    { name: "Dez", matriculas: 125 }
+  ];
   
   // Filtrar dados com base no mês selecionado
   const filteredData = month === "all" 
-    ? chartData 
-    : chartData.filter(item => item.monthNumber.toString() === month);
+    ? monthlyData 
+    : monthlyData.filter(item => monthlyData.indexOf(item) + 1 === parseInt(month));
 
   return (
     <Card className="p-4">

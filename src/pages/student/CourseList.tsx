@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -24,7 +23,6 @@ const StudentCourseList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect if not authenticated or not a student
   if (!user) {
     return <Navigate to="/login" />;
   }
@@ -38,7 +36,6 @@ const StudentCourseList = () => {
       try {
         setIsLoading(true);
         
-        // Get student enrollments
         const { data: enrollments, error: enrollmentsError } = await supabase
           .rpc('get_student_enrollments');
         
@@ -46,7 +43,6 @@ const StudentCourseList = () => {
           throw enrollmentsError;
         }
 
-        // Get student progress
         const { data: progressData, error: progressError } = await supabase
           .rpc('get_student_progress');
 
@@ -54,16 +50,10 @@ const StudentCourseList = () => {
           throw progressError;
         }
 
-        // Transform and combine the data
         const coursesWithProgress = enrollments.map(enrollment => {
-          // Calculate progress for this course
           const courseProgress = progressData
             ? progressData
-                .filter(p => {
-                  // Find lessons for this course and get progress
-                  const lessonIds = courses.find(c => c.class_id === enrollment.class_id)?.lessons || [];
-                  return lessonIds.includes(p.lesson_id);
-                })
+                .filter(p => p.lesson_id === enrollment.class_id)
                 .reduce((avg, curr) => avg + curr.progress, 0) / 
                 Math.max(1, progressData.length)
             : 0;
