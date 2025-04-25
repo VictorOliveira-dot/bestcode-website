@@ -60,3 +60,4 @@ const EnrollmentsChart: React.FC<EnrollmentsChartProps> = ({ month, year }) => {
 };
 
 export default EnrollmentsChart;
+
