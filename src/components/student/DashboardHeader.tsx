@@ -18,14 +18,16 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
       await logout();
       
       toast({
-        title: "Logout realizado",
-        description: "Você foi desconectado com sucesso."
+        title: "Logout realizado com sucesso",
+        description: "Redirecionando...",
+        variant: "default",
+        duration: 1500,
       });
       
-      // Increase timeout and use window.location for stronger refresh
+      // Add delay before redirect to show the toast
       setTimeout(() => {
         window.location.href = "/login";
-      }, 300);
+      }, 1500);
     } catch (error) {
       toast({
         title: "Erro ao sair",
