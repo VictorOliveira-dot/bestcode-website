@@ -78,7 +78,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
         p_password: data.password
       });
       
-      const { data: newTeacher, error } = await supabase.rpc('admin_create_teacher', {
+      const { data: newTeacher, error } = await supabase.rpc('create_teacher_user', {
         p_email: data.email,
         p_name: data.name,
         p_password: data.password

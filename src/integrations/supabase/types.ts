@@ -482,6 +482,10 @@ export type Database = {
         Args: { p_name: string; p_description: string; p_start_date: string }
         Returns: string
       }
+      create_teacher_user: {
+        Args: { p_email: string; p_password: string; p_name: string }
+        Returns: string
+      }
       create_test_users: {
         Args: Record<PropertyKey, never>
         Returns: undefined
