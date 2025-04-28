@@ -72,22 +72,38 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      // Primeiro tenta criar o usuário no sistema de autenticação
+      // Primeiro, criar o usuário no sistema de autenticação
       console.log("Criando usuário professor com email:", data.email);
       
-      // Usando a função RPC existente que já está configurada para lidar com a criação de professores
-      const { data: newTeacher, error } = await supabase.rpc('create_teacher_user', {
-        p_email: data.email,
-        p_name: data.name,
-        p_password: data.password
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: data.email,
+        password: data.password,
+        email_confirm: true,
       });
       
-      if (error) {
-        console.error("Erro detalhado:", error);
-        throw error;
+      if (authError) {
+        console.error("Erro na criação do usuário na autenticação:", authError);
+        throw authError;
+      }
+      
+      // Se a autenticação foi bem-sucedida, inserir na tabela public.users
+      if (!authData.user?.id) {
+        throw new Error("Erro ao obter ID do usuário criado");
+      }
+      
+      const { error: insertError } = await supabase.from('users').insert({
+        id: authData.user.id,
+        email: data.email,
+        name: data.name,
+        role: 'teacher',
+      });
+      
+      if (insertError) {
+        console.error("Erro ao inserir dados do professor na tabela users:", insertError);
+        throw insertError;
       }
 
-      console.log("Professor criado com sucesso:", newTeacher);
+      console.log("Professor criado com sucesso:", authData.user.id);
       
       toast({
         title: "Professor criado com sucesso",
