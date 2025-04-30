@@ -79,17 +79,6 @@ const LoginForm = () => {
               onForgotPassword={() => setShowForgotPassword(true)}
             />
           </form>
-          
-          <div className="mt-8 text-center text-sm text-gray-500">
-            <div className="mt-4 text-xs bg-blue-50 p-3 rounded-lg">
-              <p><strong>Credenciais de Teste:</strong></p>
-              <ul className="mt-1 list-disc list-inside text-left">
-                <li>Admin: <code>admin@bestcode.com</code> / <code>Senha123!</code></li>
-                <li>Professor: <code>professor@bestcode.com</code> / <code>Senha123!</code></li>
-                <li>Aluno: <code>aluno@bestcode.com</code> / <code>Senha123!</code></li>
-              </ul>
-            </div>
-          </div>
         </CardContent>
       </Card>
 

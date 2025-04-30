@@ -96,8 +96,8 @@ const Testimonials = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="absolute left-0 -translate-x-1/2 hover:bg-bestcode-700 hover:text-white" />
-          <CarouselNext className="absolute right-0 translate-x-1/2 hover:bg-bestcode-700 hover:text-white"/>
+          <CarouselPrevious className="absolute text-primary left-0 -translate-x-1/2 hover:bg-bestcode-700 hover:text-white" />
+          <CarouselNext className="absolute text-primary right-0 translate-x-1/2 hover:bg-bestcode-700 hover:text-white"/>
         </Carousel>
       </div>
     </section>

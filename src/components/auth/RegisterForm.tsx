@@ -148,15 +148,6 @@ const RegisterForm = () => {
           </Button>
         </form>
       </Form>
-      
-      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-        <h3 className="text-sm font-medium text-yellow-800">Contas de teste disponíveis:</h3>
-        <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5">
-          <li><strong>Admin:</strong> admin@bestcode.com (Senha: admin123)</li>
-          <li><strong>Professor:</strong> professor@bestcode.com (Senha: teacher123)</li>
-          <li><strong>Aluno:</strong> aluno@bestcode.com (Senha: student123)</li>
-        </ul>
-      </div>
     </div>
   );
 };
