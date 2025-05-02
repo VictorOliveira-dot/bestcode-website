@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,13 +71,12 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      // Usando a função RPC que acabamos de criar para lidar com a criação de professores
-      // Esta função é executada no backend com permissões elevadas (SECURITY DEFINER)
-      console.log("Chamando RPC admin_create_teacher para criar professor com email:", data.email);
+      // Usando a nova função admin_create_professor com ordem diferente dos parâmetros
+      console.log("Chamando RPC admin_create_professor para criar professor com email:", data.email);
       
-      const { data: teacherId, error } = await supabase.rpc('admin_create_teacher', {
-        p_email: data.email,
+      const { data: teacherId, error } = await supabase.rpc('admin_create_professor', {
         p_name: data.name,
+        p_email: data.email,
         p_password: data.password
       });
       
