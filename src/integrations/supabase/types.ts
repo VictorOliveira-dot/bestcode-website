@@ -345,7 +345,7 @@ export type Database = {
         Returns: string
       }
       admin_create_professor: {
-        Args: { p_name: string; p_email: string; p_password: string }
+        Args: { p_email: string; p_full_name: string; p_password: string }
         Returns: string
       }
       admin_create_teacher: {
