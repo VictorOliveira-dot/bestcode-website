@@ -72,7 +72,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      // Criar o professor apenas na tabela public.users usando a função RPC
+      // Criar o professor nas tabelas public.users e auth.users usando a função RPC
       console.log("Chamando RPC admin_create_professor para criar professor com email:", data.email);
       
       const { data: teacherId, error: rpcError } = await supabase.rpc('admin_create_professor', {
@@ -86,12 +86,11 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
         throw rpcError;
       }
 
-      console.log("Professor criado na tabela public.users com ID:", teacherId);
+      console.log("Professor criado com ID:", teacherId);
       
-      // Informar que o professor foi criado, mas que precisará ser configurado manualmente
       toast({
         title: "Professor criado com sucesso",
-        description: `O professor ${data.name} foi adicionado ao sistema. Um administrador precisará configurar as credenciais de login manualmente no painel do Supabase.`,
+        description: `O professor ${data.name} foi adicionado ao sistema com acesso completo.`,
       });
 
       form.reset();
