@@ -72,26 +72,45 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      // Usando a função admin_create_professor com os parâmetros corretos 
+      // Passo 1: Criar o usuário na tabela public.users usando a função RPC
       console.log("Chamando RPC admin_create_professor para criar professor com email:", data.email);
       
-      const { data: teacherId, error } = await supabase.rpc('admin_create_professor', {
+      const { data: teacherId, error: rpcError } = await supabase.rpc('admin_create_professor', {
         p_email: data.email,
         p_name: data.name,
         p_password: data.password
       });
       
-      if (error) {
-        console.error("Erro ao criar professor via RPC:", error);
-        throw error;
+      if (rpcError) {
+        console.error("Erro ao criar professor via RPC:", rpcError);
+        throw rpcError;
       }
 
-      console.log("Professor criado com sucesso, ID:", teacherId);
+      console.log("Professor criado na tabela public.users com ID:", teacherId);
       
-      toast({
-        title: "Professor criado com sucesso",
-        description: `O professor ${data.name} foi adicionado ao sistema.`,
+      // Passo 2: Criar o usuário na autenticação do Supabase
+      const { error: authError } = await supabase.auth.admin.createUser({
+        email: data.email,
+        password: data.password,
+        email_confirm: true,
+        user_metadata: { name: data.name, role: 'teacher' }
       });
+
+      if (authError) {
+        console.error("Erro ao criar professor na autenticação:", authError);
+        // Mesmo se falhar na autenticação, mantemos o usuário na tabela public.users
+        toast({
+          title: "Professor parcialmente criado",
+          description: `O professor ${data.name} foi adicionado ao sistema, mas houve um erro ao configurar suas credenciais de login: ${authError.message}`,
+          variant: "warning",
+        });
+      } else {
+        console.log("Professor criado com sucesso na autenticação");
+        toast({
+          title: "Professor criado com sucesso",
+          description: `O professor ${data.name} foi adicionado ao sistema.`,
+        });
+      }
 
       form.reset();
       setIsOpen(false);
