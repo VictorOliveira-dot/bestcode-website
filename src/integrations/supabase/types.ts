@@ -457,6 +457,10 @@ export type Database = {
         Args: { class_id: string }
         Returns: boolean
       }
+      check_user_exists: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       create_class: {
         Args: {
           p_name: string
