@@ -72,6 +72,27 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
+      // Verificar se o email já existe antes de tentar criar o professor
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', data.email)
+        .limit(1);
+        
+      if (checkError) {
+        throw checkError;
+      }
+      
+      if (existingUsers && existingUsers.length > 0) {
+        toast({
+          title: "Email já cadastrado",
+          description: "Este email já está em uso por outro usuário.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Criar o professor nas tabelas public.users e auth.users usando a função RPC
       console.log("Chamando RPC admin_create_professor para criar professor com email:", data.email);
       
