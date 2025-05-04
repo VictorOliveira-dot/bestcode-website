@@ -102,7 +102,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
         toast({
           title: "Professor parcialmente criado",
           description: `O professor ${data.name} foi adicionado ao sistema, mas houve um erro ao configurar suas credenciais de login: ${authError.message}`,
-          variant: "warning",
+          variant: "destructive", // Changed from "warning" to "destructive" as it's a valid variant
         });
       } else {
         console.log("Professor criado com sucesso na autenticação");
