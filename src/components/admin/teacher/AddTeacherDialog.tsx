@@ -72,49 +72,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      // Verificar se o email já existe na tabela auth.users usando a função RPC
-      const { data: userExists, error: authCheckError } = await supabase
-        .rpc('check_user_exists', {
-          p_email: data.email
-        });
-      
-      if (authCheckError) {
-        throw new Error(`Erro ao verificar existência do usuário: ${authCheckError.message}`);
-      }
-      
-      // Se a função retornar true, significa que o usuário já existe em auth.users
-      if (userExists === true) {
-        toast({
-          title: "Email já cadastrado",
-          description: "Este email já está em uso por outro usuário no sistema de autenticação.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Verificar também na tabela public.users
-      const { data: existingUsers, error: checkError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', data.email)
-        .limit(1);
-        
-      if (checkError) {
-        throw checkError;
-      }
-      
-      if (existingUsers && existingUsers.length > 0) {
-        toast({
-          title: "Email já cadastrado",
-          description: "Este email já está em uso por outro usuário.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Criar o professor nas tabelas public.users e auth.users usando a função RPC
+      // Criar o professor usando a função RPC atualizada
       console.log("Chamando RPC admin_create_professor para criar professor com email:", data.email);
       
       const { data: teacherId, error: rpcError } = await supabase.rpc('admin_create_professor', {
