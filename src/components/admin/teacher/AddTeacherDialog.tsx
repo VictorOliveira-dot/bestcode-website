@@ -72,7 +72,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      // Verificar se o email já existe antes de tentar criar o professor
+      // Verificar se o email já existe na tabela public.users
       const { data: existingUsers, error: checkError } = await supabase
         .from('users')
         .select('id')
@@ -87,6 +87,28 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
         toast({
           title: "Email já cadastrado",
           description: "Este email já está em uso por outro usuário.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Verificar também na tabela auth.users
+      // Como não podemos consultar auth.users diretamente, usamos a função RPC personalizada
+      const { data: authExistingUser, error: authCheckError } = await supabase
+        .rpc('check_user_exists', {
+          p_email: data.email
+        });
+      
+      if (authCheckError) {
+        console.error("Erro ao verificar existência do usuário na tabela auth:", authCheckError);
+      }
+      
+      // Se a função retornar true, significa que o usuário já existe
+      if (authExistingUser) {
+        toast({
+          title: "Email já cadastrado",
+          description: "Este email já está em uso por outro usuário no sistema de autenticação.",
           variant: "destructive",
         });
         setIsSubmitting(false);
