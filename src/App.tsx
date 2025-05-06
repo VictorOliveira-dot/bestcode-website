@@ -11,7 +11,6 @@ import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import Checkout from "./pages/Checkout";
 import ProfileCompletion from "./pages/ProfileCompletion";
-import Inscricao from "./pages/Inscricao";
 import Enrollment from "./pages/Enrollment";
 import PaymentPix from "./pages/PaymentPix";
 import PaymentBoleto from "./pages/PaymentBoleto";
@@ -54,7 +53,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile-completion" element={<ProfileCompletion />} />
-        <Route path="/inscricao" element={<Inscricao />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment/pix" element={<PaymentPix />} />
         <Route path="/payment/boleto" element={<PaymentBoleto />} />

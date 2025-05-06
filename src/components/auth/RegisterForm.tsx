@@ -57,9 +57,9 @@ const RegisterForm = () => {
           variant: "default"
         });
         
-        // Redirect to inscricao instead of profile-completion
+        // Redirect to profile completion instead of checkout
         setTimeout(() => {
-          navigate('/inscricao');
+          navigate('/profile-completion');
         }, 1500);
       } else {
         toast({
