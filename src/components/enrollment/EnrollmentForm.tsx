@@ -9,6 +9,9 @@ import EnrollmentFormNav from "./EnrollmentFormNav";
 import { validateCPF, validateDateOfBirth, validateBrazilianPhone } from "@/utils/validationUtils";
 import { Button } from "../ui/button";
 import { Save } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/auth";
 
 interface EnrollmentFormProps {
   currentStep: number;
@@ -43,6 +46,9 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     goals: "",
     referral: ""
   });
+  const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Load saved data from localStorage on component mount
   useEffect(() => {
@@ -123,8 +129,55 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     
     return true;
   };
+
+  const saveProfileToSupabase = async () => {
+    if (!user) {
+      toast.error("Você precisa estar logado para salvar seu perfil");
+      return false;
+    }
+
+    try {
+      setSaving(true);
+      
+      // Prepare birth date in YYYY-MM-DD format for database
+      const [day, month, year] = formData.birthDate.split('/');
+      const formattedBirthDate = `${year}-${month}-${day}`;
+      
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          birth_date: formattedBirthDate,
+          gender: formData.gender,
+          cpf: formData.cpf,
+          phone: formData.phone,
+          whatsapp: formData.whatsapp || null,
+          address: formData.address,
+          education: formData.education,
+          professional_area: formData.professionalArea,
+          experience_level: formData.experienceLevel,
+          study_availability: formData.studyAvailability,
+          goals: formData.goals || null,
+          referral: formData.referral || null,
+          is_profile_complete: true,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      
+      return true;
+    } catch (error: any) {
+      console.error("Error saving profile to Supabase:", error);
+      toast.error(`Erro ao salvar perfil: ${error.message}`);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate current step
@@ -140,16 +193,20 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     
     // For the final step, submit the form
     if (currentStep === totalSteps) {
-      // Simulate form submission
-      toast.success("Matrícula enviada com sucesso!");
+      // Save to Supabase
+      const saveSuccess = await saveProfileToSupabase();
       
-      // Clear saved data after successful submission
-      localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
-      
-      setTimeout(() => {
-        // Redirect to student dashboard would happen here
-        window.location.href = "/student/dashboard";
-      }, 2000);
+      if (saveSuccess) {
+        // Clear saved data after successful submission
+        localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
+        
+        toast.success("Perfil salvo com sucesso! Redirecionando para o checkout...");
+        
+        // Redirect to checkout
+        setTimeout(() => {
+          navigate("/checkout");
+        }, 1500);
+      }
     } else {
       // If not the final step, just go to the next step
       goToNextStep();
@@ -249,7 +306,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
           <EnrollmentFormNav 
             currentStep={currentStep}
             totalSteps={totalSteps}
-            isSubmitting={isSubmitting}
+            isSubmitting={saving || isSubmitting}
             goToPreviousStep={goToPreviousStep}
             onNextClick={handleSubmit}
           />

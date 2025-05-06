@@ -68,7 +68,7 @@ const Checkout = () => {
 
         if (!data || !data.is_profile_complete) {
           toast.error("Por favor, complete seu perfil antes de prosseguir");
-          navigate("/enrollment"); // Changed from /profile-completion to /enrollment
+          navigate("/enrollment"); // Redirect to enrollment page
         } else {
           setIsProfileComplete(true);
 
@@ -81,7 +81,7 @@ const Checkout = () => {
 
           if (userData?.is_active) {
             toast.info("Sua conta já está ativa. Redirecionando para a área de alunos.");
-            navigate("/enrollment");
+            navigate("/student/dashboard");
           }
         }
       } catch (error: any) {

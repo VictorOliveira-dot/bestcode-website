@@ -265,6 +265,69 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          cpf: string | null
+          created_at: string | null
+          education: string | null
+          experience_level: string | null
+          first_name: string | null
+          gender: string | null
+          goals: string | null
+          id: string
+          is_profile_complete: boolean | null
+          last_name: string | null
+          phone: string | null
+          professional_area: string | null
+          referral: string | null
+          study_availability: string | null
+          updated_at: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          education?: string | null
+          experience_level?: string | null
+          first_name?: string | null
+          gender?: string | null
+          goals?: string | null
+          id: string
+          is_profile_complete?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          professional_area?: string | null
+          referral?: string | null
+          study_availability?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          education?: string | null
+          experience_level?: string | null
+          first_name?: string | null
+          gender?: string | null
+          goals?: string | null
+          id?: string
+          is_profile_complete?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          professional_area?: string | null
+          referral?: string | null
+          study_availability?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           avatar_url: string | null

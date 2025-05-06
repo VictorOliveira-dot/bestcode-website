@@ -1,37 +1,80 @@
-
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EnrollmentProgressBar from "@/components/enrollment/EnrollmentProgressBar";
 import EnrollmentForm from "@/components/enrollment/EnrollmentForm";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/auth";
 
 const ENROLLMENT_STORAGE_KEY = 'enrollment_form_data';
 
 const Enrollment = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const totalSteps = 3;
+  const { user } = useAuth();
+  const navigate = useNavigate();
   
-  // Check localStorage for saved data and determine starting step
+  // Check for existing profile data in Supabase and localStorage
   useEffect(() => {
-    const savedData = localStorage.getItem(ENROLLMENT_STORAGE_KEY);
-    if (savedData) {
+    const fetchProfileData = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const parsedData = JSON.parse(savedData);
-        // If user has completed personal info, start at step 2
-        if (parsedData.firstName && parsedData.lastName && parsedData.cpf && parsedData.phone) {
-          setCurrentStep(2);
-          // If user has also uploaded documents, start at step 3
-          if (parsedData.education || parsedData.professionalArea) {
-            setCurrentStep(3);
+        setIsLoading(true);
+        
+        // Check if profile exists and is complete in Supabase
+        const { data: profileData, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+          
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+          throw error;
+        }
+        
+        // If profile is complete, redirect to checkout
+        if (profileData?.is_profile_complete) {
+          toast.info("Seu perfil já está completo. Redirecionando para o checkout...");
+          navigate('/checkout');
+          return;
+        }
+        
+        // Otherwise, continue with loading saved form data if available
+        const savedData = localStorage.getItem(ENROLLMENT_STORAGE_KEY);
+        if (savedData) {
+          try {
+            const parsedData = JSON.parse(savedData);
+            // If user has completed personal info, start at step 2
+            if (parsedData.firstName && parsedData.lastName && parsedData.cpf && parsedData.phone) {
+              setCurrentStep(2);
+              // If user has also uploaded documents, start at step 3
+              if (parsedData.education || parsedData.professionalArea) {
+                setCurrentStep(3);
+              }
+            }
+          } catch (error) {
+            console.error("Error parsing saved enrollment data:", error);
           }
         }
+        
       } catch (error) {
-        console.error("Error parsing saved enrollment data:", error);
+        console.error("Error fetching profile data:", error);
+        toast.error("Erro ao carregar dados do perfil");
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, []);
+    };
+
+    fetchProfileData();
+  }, [user, navigate]);
   
   const goToNextStep = () => {
     if (currentStep < totalSteps) {
@@ -46,6 +89,26 @@ const Enrollment = () => {
       window.scrollTo(0, 0);
     }
   };
+
+  // If user is not logged in, redirect to login
+  useEffect(() => {
+    if (!user && !isLoading) {
+      toast.error("Você precisa estar logado para acessar esta página");
+      navigate('/login');
+    }
+  }, [user, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow bg-gray-50 py-12 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bestcode-600"></div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
