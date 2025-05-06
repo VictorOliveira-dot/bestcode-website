@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -50,8 +49,7 @@ const RegisterForm = () => {
         role: 'student'
       }));
       
-      toast({
-        title: "Registro iniciado!",
+      toast("Registro iniciado!", {
         description: "Complete o pagamento para finalizar seu cadastro.",
       });
       
