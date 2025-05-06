@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -68,7 +67,7 @@ const Checkout = () => {
 
         if (!data || !data.is_profile_complete) {
           toast.error("Por favor, complete seu perfil antes de prosseguir");
-          navigate("/profile-completion");
+          navigate("/inscricao");
         } else {
           setIsProfileComplete(true);
 
@@ -110,7 +109,7 @@ const Checkout = () => {
     
     if (!isProfileComplete) {
       toast.error("Por favor, complete seu perfil antes de prosseguir");
-      navigate("/profile-completion");
+      navigate("/inscricao");
       return;
     }
     
