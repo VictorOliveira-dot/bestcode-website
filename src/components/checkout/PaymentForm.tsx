@@ -7,6 +7,7 @@ import CreditCardForm from "./CreditCardForm";
 import BankSlipInfo from "./BankSlipInfo";
 import PixInfo from "./PixInfo";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 interface CardDataType {
   cardName: string;
@@ -45,8 +46,19 @@ const PaymentForm = ({
 }: PaymentFormProps) => {
   const [acceptTerms, setAcceptTerms] = React.useState(false);
 
+  const validateAndSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!acceptTerms) {
+      toast.error("Você precisa aceitar os termos de serviço para continuar.");
+      return;
+    }
+    
+    handleSubmit(e);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={validateAndSubmit} className="space-y-6">
       <PaymentOptions 
         paymentMethod={paymentMethod} 
         setPaymentMethod={setPaymentMethod} 

@@ -53,12 +53,13 @@ const RegisterForm = () => {
       if (result.success) {
         toast({
           title: "Conta criada com sucesso!",
-          description: "Você será redirecionado para a página inicial.",
+          description: "Prossiga para o checkout para completar seu cadastro.",
           variant: "default"
         });
         
+        // Redirect to checkout instead of homepage
         setTimeout(() => {
-          navigate('/');
+          navigate('/checkout');
         }, 1500);
       } else {
         toast({
@@ -153,4 +154,3 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
-
