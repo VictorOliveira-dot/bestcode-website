@@ -1,132 +1,115 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from "react";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Checkout from "./pages/Checkout";
-import Enrollment from "./pages/Enrollment";
-import StudentDashboard from "./pages/student/Dashboard";
-import StudentCourseList from "./pages/student/CourseList";
-import StudentSchedule from "./pages/student/Schedule";
-import StudentProgressDetails from "./pages/student/ProgressDetails";
-import TeacherDashboard from "./pages/teacher/Dashboard";
-import AdminDashboard from "./pages/admin/Dashboard";
-import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
-
-import TermsOfService from "./pages/TermsOfService";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import QATraining from "./pages/courses/QATraining";
-import Complementary from "./pages/courses/Complementary"; 
-import AllCourses from "./pages/courses/AllCourses";
 import About from "./pages/About";
 import HowItWorks from "./pages/HowItWorks";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import NotFound from "./pages/NotFound";
+import Checkout from "./pages/Checkout";
+import Enrollment from "./pages/Enrollment";
+import PaymentPix from "./pages/PaymentPix";
+import PaymentBoleto from "./pages/PaymentBoleto";
 
-const App = () => {
-  const queryClient = new QueryClient();
-  
+// Páginas de Cursos
+import AllCourses from "./pages/courses/AllCourses";
+import Complementary from "./pages/courses/Complementary";
+import QATraining from "./pages/courses/QATraining";
+
+// Páginas de Admin
+import AdminDashboard from "./pages/admin/Dashboard";
+
+// Páginas de Estudante
+import StudentDashboard from "./pages/student/Dashboard";
+import StudentCourseList from "./pages/student/CourseList";
+import StudentProgressDetails from "./pages/student/ProgressDetails";
+import StudentSchedule from "./pages/student/Schedule";
+
+// Páginas de Professor
+import TeacherDashboard from "./pages/teacher/Dashboard";
+
+// Protected Routes
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
+// Tema global
+import "./App.css";
+import { Toaster } from "./components/ui/toaster";
+
+function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/terms" element={<TermsOfService />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/courses/qa-training" element={<QATraining />} />
-            <Route path="/courses/complementary" element={<Complementary />} />
-            <Route path="/courses" element={<AllCourses />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/faq" element={<Index />} />
-            
-            <Route path="/checkout" element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <Checkout />
-              </ProtectedRoute>
-            } />
-            <Route path="/enrollment" element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <Enrollment />
-              </ProtectedRoute>
-            } />
-            <Route path="/student/dashboard" element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/student/courses" element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentCourseList />
-              </ProtectedRoute>
-            } />
-            <Route path="/student/schedule" element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentSchedule />
-              </ProtectedRoute>
-            } />
-            <Route path="/student/progress" element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentProgressDetails />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/teacher/dashboard" element={
-              <ProtectedRoute allowedRoles={['teacher', 'admin']}>
-                <TeacherDashboard />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/admin/dashboard" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/students" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/teachers" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/courses" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/payments" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/reports" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/enrollments" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <>
+      <Routes>
+        {/* Páginas públicas */}
+        <Route path="/" element={<Index />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/payment/pix" element={<PaymentPix />} />
+        <Route path="/payment/boleto" element={<PaymentBoleto />} />
+
+        {/* Páginas de cursos */}
+        <Route path="/courses" element={<AllCourses />} />
+        <Route path="/courses/complementary" element={<Complementary />} />
+        <Route path="/courses/qa-training" element={<QATraining />} />
+
+        {/* Rotas protegidas para admin */}
+        <Route 
+          path="/admin/*" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Routes>
+                <Route path="/" element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+              </Routes>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rotas protegidas para estudantes */}
+        <Route 
+          path="/student/*" 
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <Routes>
+                <Route path="/" element={<StudentDashboard />} />
+                <Route path="dashboard" element={<StudentDashboard />} />
+                <Route path="courses" element={<StudentCourseList />} />
+                <Route path="progress" element={<StudentProgressDetails />} />
+                <Route path="schedule" element={<StudentSchedule />} />
+              </Routes>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rotas protegidas para professores */}
+        <Route 
+          path="/teacher/*" 
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <Routes>
+                <Route path="/" element={<TeacherDashboard />} />
+                <Route path="dashboard" element={<TeacherDashboard />} />
+              </Routes>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rota de matrícula */}
+        <Route path="/enrollment" element={<Enrollment />} />
+
+        {/* Rota 404 */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <Toaster />
+    </>
   );
-};
+}
 
 export default App;

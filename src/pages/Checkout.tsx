@@ -13,6 +13,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import PaymentForm from "@/components/checkout/PaymentForm";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/auth";
 
 const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
@@ -23,8 +25,10 @@ const Checkout = () => {
     cardExpiry: "",
     cardCvc: "",
   });
+  
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const course = {
     title: "Formação Completa em QA",
@@ -42,26 +46,107 @@ const Checkout = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      // Validação básica dos campos dependendo do método de pagamento
+      if (paymentMethod === "credit-card") {
+        if (!cardData.cardName || !cardData.cardNumber || !cardData.cardExpiry || !cardData.cardCvc) {
+          toast({
+            title: "Dados incompletos",
+            description: "Por favor, preencha todos os campos do cartão de crédito.",
+            variant: "destructive",
+          });
+          setIsProcessing(false);
+          return;
+        }
+      }
       
-      // Show success toast
-      toast({
-        title: "Pagamento processado com sucesso!",
-        description: "Você será redirecionado para completar sua matrícula.",
-        variant: "default",
+      // Chamar a função Edge do Supabase para processar o pagamento
+      const { data, error } = await supabase.functions.invoke('process-payment', {
+        body: {
+          paymentMethod,
+          cardData,
+          course
+        }
       });
       
-      // Redirect to enrollment page
-      setTimeout(() => {
-        navigate("/enrollment");
-      }, 1500);
-    }, 2000);
+      if (error) {
+        throw new Error(error.message || "Ocorreu um erro ao processar o pagamento");
+      }
+      
+      // Verificar o resultado do pagamento
+      if (!data.success && paymentMethod === "credit-card") {
+        toast({
+          title: "Erro no pagamento",
+          description: `O pagamento não foi aprovado. Motivo: ${data.status || "erro desconhecido"}`,
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Tratamento específico para cada método de pagamento
+      if (paymentMethod === "credit-card") {
+        toast({
+          title: "Pagamento processado com sucesso!",
+          description: "Você será redirecionado para completar sua matrícula.",
+          variant: "default",
+        });
+        
+        // Redirecionar para a página de matrícula
+        setTimeout(() => {
+          navigate("/enrollment");
+        }, 1500);
+        
+      } else if (paymentMethod === "pix") {
+        // Para PIX, mostrar QR code
+        toast({
+          title: "PIX gerado com sucesso!",
+          description: "Escaneie o QR code para finalizar o pagamento.",
+          variant: "default",
+        });
+        
+        // Armazenar dados do PIX no localStorage para exibição
+        localStorage.setItem("pixPayment", JSON.stringify({
+          qrCodeUrl: data.pixQrCode,
+          paymentId: data.id,
+        }));
+        
+        // Redirecionar para a página de PIX
+        navigate("/payment/pix");
+        
+      } else if (paymentMethod === "bank-slip") {
+        // Para boleto, mostrar link
+        toast({
+          title: "Boleto gerado com sucesso!",
+          description: "Você será redirecionado para visualizar o boleto.",
+          variant: "default",
+        });
+        
+        // Armazenar URL do boleto no localStorage
+        localStorage.setItem("boletoPayment", JSON.stringify({
+          boletoUrl: data.boletoUrl,
+          paymentId: data.id,
+        }));
+        
+        // Redirecionar para a página do boleto ou abrir em nova aba
+        window.open(data.boletoUrl, "_blank");
+        navigate("/payment/boleto");
+      }
+      
+    } catch (error) {
+      console.error("Erro ao processar pagamento:", error);
+      toast({
+        title: "Erro no pagamento",
+        description: error.message || "Ocorreu um erro ao processar o pagamento.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -88,6 +173,17 @@ const Checkout = () => {
                   <CardDescription>Escolha seu método de pagamento preferido</CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {!user ? (
+                    <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-md mb-4">
+                      <p className="text-yellow-700">
+                        É recomendado fazer login antes de concluir sua compra. 
+                        <a href="/login" className="text-bestcode-600 hover:text-bestcode-800 ml-1">
+                          Fazer login
+                        </a>
+                      </p>
+                    </div>
+                  ) : null}
+                  
                   <PaymentForm 
                     paymentMethod={paymentMethod}
                     setPaymentMethod={setPaymentMethod}

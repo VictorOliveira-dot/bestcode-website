@@ -6,6 +6,7 @@ import PaymentOptions from "./PaymentOptions";
 import CreditCardForm from "./CreditCardForm";
 import BankSlipInfo from "./BankSlipInfo";
 import PixInfo from "./PixInfo";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface CardDataType {
   cardName: string;
@@ -42,6 +43,8 @@ const PaymentForm = ({
   isProcessing,
   handleSubmit
 }: PaymentFormProps) => {
+  const [acceptTerms, setAcceptTerms] = React.useState(false);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentOptions 
@@ -62,20 +65,39 @@ const PaymentForm = ({
 
       {paymentMethod === "pix" && <PixInfo />}
 
+      <div className="flex items-center space-x-2 mt-4">
+        <Checkbox 
+          id="terms" 
+          checked={acceptTerms}
+          onCheckedChange={(checked) => setAcceptTerms(checked === true)}
+          required
+        />
+        <label
+          htmlFor="terms"
+          className="text-sm text-gray-500 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Aceito os{" "}
+          <Link to="/terms" className="text-bestcode-600 hover:text-bestcode-800">
+            termos de serviço
+          </Link>{" "}
+          e a{" "}
+          <Link to="/privacy" className="text-bestcode-600 hover:text-bestcode-800">
+            política de privacidade
+          </Link>
+        </label>
+      </div>
+
       <Button 
         type="submit" 
         className="w-full bg-bestcode-600 hover:bg-bestcode-700 mt-6" 
         size="lg"
-        disabled={isProcessing}
+        disabled={isProcessing || !acceptTerms}
       >
         {isProcessing ? "Processando..." : "Finalizar Compra"}
       </Button>
       
       <p className="text-sm text-gray-500 text-center mt-4">
-        Ao finalizar sua compra, você concorda com nossos{" "}
-        <Link to="/terms" className="text-bestcode-600 hover:text-bestcode-800">
-          termos de serviço
-        </Link>
+        Pagamento 100% seguro e criptografado
       </p>
     </form>
   );
