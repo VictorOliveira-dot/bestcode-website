@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { 
@@ -211,11 +210,6 @@ const Checkout = () => {
     }
   };
 
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
   // If no user or still checking profile status, show loading
   if (!user || !isProfileComplete) {
     return (
@@ -234,12 +228,7 @@ const Checkout = () => {
       <Navbar />
       <main className="flex-grow bg-gray-50 py-12">
         <div className="container-custom">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-          >
+          <div>
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Checkout</h1>
               <p className="text-gray-600 mt-1">Complete sua compra em poucos passos</p>
@@ -272,7 +261,7 @@ const Checkout = () => {
                 </Card>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </main>
       <Footer />

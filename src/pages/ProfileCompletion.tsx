@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -200,22 +198,12 @@ const ProfileCompletion = () => {
     }
   };
 
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow bg-gray-50 py-12">
         <div className="container-custom max-w-3xl">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-          >
+          <div>
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl font-bold">Complete seu perfil</CardTitle>
@@ -239,7 +227,7 @@ const ProfileCompletion = () => {
                 )}
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
       </main>
       <Footer />

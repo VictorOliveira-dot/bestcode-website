@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth';
-import { motion } from 'framer-motion';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -81,34 +80,14 @@ const RegisterForm = () => {
     }
   };
 
-  const formVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: 0.5,
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 }
-  };
-
   return (
     <div className="max-w-md mx-auto">
       <Form {...form}>
-        <motion.form 
+        <form 
           onSubmit={form.handleSubmit(onSubmit)} 
           className="space-y-4"
-          variants={formVariants}
-          initial="hidden"
-          animate="visible"
         >
-          <motion.div variants={itemVariants}>
+          <div>
             <FormField
               control={form.control}
               name="name"
@@ -126,9 +105,9 @@ const RegisterForm = () => {
                 </FormItem>
               )}
             />
-          </motion.div>
+          </div>
           
-          <motion.div variants={itemVariants}>
+          <div>
             <FormField
               control={form.control}
               name="email"
@@ -147,9 +126,9 @@ const RegisterForm = () => {
                 </FormItem>
               )}
             />
-          </motion.div>
+          </div>
           
-          <motion.div variants={itemVariants}>
+          <div>
             <FormField
               control={form.control}
               name="password"
@@ -168,9 +147,9 @@ const RegisterForm = () => {
                 </FormItem>
               )}
             />
-          </motion.div>
+          </div>
           
-          <motion.div variants={itemVariants}>
+          <div>
             <Button 
               type="submit" 
               className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
@@ -178,8 +157,8 @@ const RegisterForm = () => {
             >
               {isSubmitting ? 'Criando conta...' : 'Registrar'}
             </Button>
-          </motion.div>
-        </motion.form>
+          </div>
+        </form>
       </Form>
     </div>
   );
