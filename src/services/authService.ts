@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -73,6 +74,7 @@ export const fetchUserData = async (authUser: User) => {
   }
 };
 
+// Modified to store registration data in localStorage instead of creating a user right away
 export const loginUser = async (email: string, password: string) => {
   try {
     console.log('Attempting login with:', email);
@@ -136,6 +138,7 @@ export const logoutUser = async () => {
   }
 };
 
+// Store registration data in localStorage for later use after payment
 export const registerUser = async (data: { 
   email: string; 
   password: string; 
@@ -143,6 +146,15 @@ export const registerUser = async (data: {
   role: string; 
 }) => {
   try {
+    // Store registration data in localStorage
+    localStorage.setItem('pending_registration', JSON.stringify({
+      email: data.email,
+      password: data.password,
+      name: data.name,
+      role: data.role
+    }));
+    
+    // Directly sign up the user with Supabase auth
     const authResponse = await supabase.auth.signUp({
       email: data.email,
       password: data.password,

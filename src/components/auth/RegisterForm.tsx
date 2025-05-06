@@ -13,7 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/auth';
 
 const formSchema = z.object({
@@ -42,39 +42,26 @@ const RegisterForm = () => {
     try {
       setIsSubmitting(true);
       
-      // Enviar os metadados (nome e role) junto com o registro
-      const result = await registerUser({
+      // Store registration data in localStorage for later use after payment
+      localStorage.setItem('pending_registration', JSON.stringify({
         email: values.email,
         password: values.password,
         name: values.name,
-        role: 'student' // Role is hardcoded to student
+        role: 'student'
+      }));
+      
+      toast({
+        title: "Registro iniciado!",
+        description: "Complete o pagamento para finalizar seu cadastro.",
       });
       
-      if (result.success) {
-        toast({
-          title: "Conta criada com sucesso!",
-          description: "Complete seus dados para prosseguir com o pagamento.",
-          variant: "default"
-        });
-        
-        // Redirect to enrollment page instead of profile-completion
-        setTimeout(() => {
-          navigate('/enrollment');
-        }, 1500);
-      } else {
-        toast({
-          title: "Erro no cadastro",
-          description: result.message || "Não foi possível criar sua conta. Por favor, tente novamente.",
-          variant: "destructive"
-        });
-      }
+      // Redirect directly to checkout
+      setTimeout(() => {
+        navigate('/checkout');
+      }, 1000);
     } catch (error: any) {
       console.error('Erro no registro:', error);
-      toast({
-        title: "Erro no cadastro",
-        description: error.message || "Ocorreu um erro ao processar seu cadastro. Por favor, tente novamente.",
-        variant: "destructive"
-      });
+      toast.error(error.message || "Ocorreu um erro ao processar seu cadastro. Por favor, tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
@@ -155,7 +142,7 @@ const RegisterForm = () => {
               className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Criando conta...' : 'Registrar'}
+              {isSubmitting ? 'Iniciando registro...' : 'Registrar e prosseguir para pagamento'}
             </Button>
           </div>
         </form>

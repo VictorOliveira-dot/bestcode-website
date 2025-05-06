@@ -20,6 +20,7 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [registrationData, setRegistrationData] = useState(null);
   const [cardData, setCardData] = useState({
     cardName: "",
     cardNumber: "",
@@ -48,49 +49,61 @@ const Checkout = () => {
       toast.error("Pagamento cancelado. Você pode tentar novamente quando quiser.");
     }
 
-    // Redirect to login if not authenticated
-    if (!user) {
-      toast.error("Você precisa estar logado para acessar esta página");
-      navigate("/login");
+    // Check for pending registration
+    const pendingRegistration = localStorage.getItem('pending_registration');
+    if (pendingRegistration) {
+      try {
+        setRegistrationData(JSON.parse(pendingRegistration));
+      } catch (error) {
+        console.error("Error parsing pending registration:", error);
+      }
+    }
+
+    // If no user and no registration data, redirect to registration
+    if (!user && !pendingRegistration) {
+      toast.error("Você precisa estar registrado para acessar esta página");
+      navigate("/register");
       return;
     }
 
     // Check if user's profile is complete
-    const checkProfileStatus = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("user_profiles")
-          .select("is_profile_complete")
-          .eq("id", user.id)
-          .single();
-
-        if (error) throw error;
-
-        if (!data || !data.is_profile_complete) {
-          toast.error("Por favor, complete seu perfil antes de prosseguir");
-          navigate("/enrollment"); // Redirect to enrollment page
-        } else {
-          setIsProfileComplete(true);
-
-          // Check if user is already active
-          const { data: userData } = await supabase
-            .from("users")
-            .select("is_active")
+    if (user) {
+      const checkProfileStatus = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("user_profiles")
+            .select("is_profile_complete")
             .eq("id", user.id)
             .single();
 
-          if (userData?.is_active) {
-            toast.info("Sua conta já está ativa. Redirecionando para a área de alunos.");
-            navigate("/student/dashboard");
-          }
-        }
-      } catch (error: any) {
-        console.error("Error checking profile status:", error);
-        toast.error("Erro ao verificar status do perfil");
-      }
-    };
+          if (error) throw error;
 
-    checkProfileStatus();
+          if (!data || !data.is_profile_complete) {
+            toast.error("Por favor, complete seu perfil antes de prosseguir");
+            navigate("/enrollment"); // Redirect to enrollment page
+          } else {
+            setIsProfileComplete(true);
+
+            // Check if user is already active
+            const { data: userData } = await supabase
+              .from("users")
+              .select("is_active")
+              .eq("id", user.id)
+              .single();
+
+            if (userData?.is_active) {
+              toast.info("Sua conta já está ativa. Redirecionando para a área de alunos.");
+              navigate("/student/dashboard");
+            }
+          }
+        } catch (error: any) {
+          console.error("Error checking profile status:", error);
+          toast.error("Erro ao verificar status do perfil");
+        }
+      };
+
+      checkProfileStatus();
+    }
   }, [user, navigate, isCanceled]);
 
   const handleCardInputChange = (field: string, value: string) => {
@@ -102,15 +115,17 @@ const Checkout = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      toast.error("Você precisa estar logado para completar a compra");
-      navigate("/login");
+    
+    // If neither user nor registration data, redirect to register
+    if (!user && !registrationData) {
+      toast.error("Você precisa estar registrado para completar a compra");
+      navigate("/register");
       return;
     }
     
-    if (!isProfileComplete) {
+    if (user && !isProfileComplete) {
       toast.error("Por favor, complete seu perfil antes de prosseguir");
-      navigate("/profile-completion");
+      navigate("/enrollment");
       return;
     }
     
@@ -123,7 +138,8 @@ const Checkout = () => {
           body: {
             paymentMethod: "checkout",
             course,
-            userId: user.id
+            userId: user?.id,
+            registrationData: !user ? registrationData : null
           }
         });
         
@@ -154,7 +170,8 @@ const Checkout = () => {
           paymentMethod,
           cardData,
           course,
-          userId: user.id
+          userId: user?.id,
+          registrationData: !user ? registrationData : null
         }
       });
       
@@ -169,13 +186,31 @@ const Checkout = () => {
         return;
       }
       
+      // If payment was successful and we were registering a new user
+      if (!user && registrationData && data.success && data.status === "completed") {
+        // Clear registration data as it's now been used
+        localStorage.removeItem('pending_registration');
+        
+        toast.success("Registro e pagamento concluídos com sucesso! Faça o login para acessar sua conta.");
+        
+        // Redirect to login
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
+        return;
+      }
+      
       // Tratamento específico para cada método de pagamento
       if (paymentMethod === "credit-card") {
         toast.success("Pagamento processado com sucesso! Você será redirecionado para completar sua matrícula.");
         
-        // Redirecionar para a página de matrícula
+        // Redirect to enrollment page or dashboard if already completed
         setTimeout(() => {
-          navigate("/enrollment");
+          if (user && isProfileComplete) {
+            navigate("/student/dashboard");
+          } else {
+            navigate("/enrollment");
+          }
         }, 1500);
       } else if (paymentMethod === "pix") {
         // Para PIX, mostrar QR code
@@ -210,8 +245,8 @@ const Checkout = () => {
     }
   };
 
-  // If no user or still checking profile status, show loading
-  if (!user || !isProfileComplete) {
+  // If still checking profile status, show loading
+  if (user && !isProfileComplete) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -232,6 +267,11 @@ const Checkout = () => {
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Checkout</h1>
               <p className="text-gray-600 mt-1">Complete sua compra em poucos passos</p>
+              {registrationData && !user && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-md mt-2">
+                  Completando registro para: {registrationData.email}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

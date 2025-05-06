@@ -16,18 +16,14 @@ serve(async (req) => {
 
   try {
     // Get request body
-    const { paymentMethod, course, userId } = await req.json();
-
-    if (!userId) {
-      throw new Error("User ID is required");
-    }
+    const { paymentMethod, cardData, course, userId, registrationData } = await req.json();
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2022-11-15",
     });
 
-    console.log(`Processing payment with method: ${paymentMethod} for user: ${userId}`);
+    console.log(`Processing payment with method: ${paymentMethod}`);
 
     // Create Supabase client with service role key to update user status
     const supabaseAdmin = createClient(
@@ -36,14 +32,27 @@ serve(async (req) => {
     );
 
     // Get user data for the checkout
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from("users")
-      .select("email, name")
-      .eq("id", userId)
-      .single();
+    let userEmail, userName;
+    if (userId) {
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from("users")
+        .select("email, name")
+        .eq("id", userId)
+        .single();
 
-    if (userError) {
-      throw new Error(`Error fetching user data: ${userError.message}`);
+      if (!userError && userData) {
+        userEmail = userData.email;
+        userName = userData.name;
+      } else {
+        console.error("Error fetching user data:", userError);
+      }
+    } else if (registrationData) {
+      userEmail = registrationData.email;
+      userName = registrationData.name;
+    }
+
+    if (!userEmail) {
+      throw new Error("User email is required for payment processing");
     }
 
     let result;
@@ -52,7 +61,7 @@ serve(async (req) => {
     if (paymentMethod === "checkout") {
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
-        customer_email: userData.email,
+        customer_email: userEmail,
         line_items: [
           {
             price_data: {
@@ -70,7 +79,8 @@ serve(async (req) => {
         success_url: `${req.headers.get("origin")}/enrollment?success=true`,
         cancel_url: `${req.headers.get("origin")}/checkout?canceled=true`,
         metadata: {
-          userId: userId,
+          userId: userId || '',
+          registrationData: registrationData ? JSON.stringify(registrationData) : '',
         },
       });
 
@@ -86,24 +96,60 @@ serve(async (req) => {
       // For this simulation, we'll assume the payment is successful
       console.log("Processing credit card payment");
       
+      // Handle user creation if registration data is provided
+      if (registrationData && !userId) {
+        // Create the user in auth
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email: registrationData.email,
+          password: registrationData.password,
+          email_confirm: true,
+          user_metadata: {
+            name: registrationData.name,
+            role: registrationData.role || 'student'
+          }
+        });
+        
+        if (authError) {
+          console.error("Error creating auth user:", authError);
+          throw new Error(`Failed to create user: ${authError.message}`);
+        }
+        
+        userId = authData.user.id;
+        
+        // Create user in public.users table
+        const { error: insertError } = await supabaseAdmin
+          .from("users")
+          .insert({
+            id: userId,
+            email: registrationData.email,
+            name: registrationData.name,
+            role: registrationData.role || 'student',
+            is_active: true
+          });
+          
+        if (insertError) {
+          console.error("Error creating user record:", insertError);
+        }
+      } else if (userId) {
+        // Update user to active status
+        const { error: updateUserError } = await supabaseAdmin
+          .from("users")
+          .update({ is_active: true })
+          .eq("id", userId);
+          
+        if (updateUserError) {
+          console.error("Error activating user:", updateUserError);
+        } else {
+          console.log("User activated:", userId);
+        }
+      }
+      
       // Simulating success (in real case, use Stripe Checkout or PaymentIntent)
       result = { 
         success: true, 
         status: "completed",
         id: `sim_${Date.now()}`
       };
-
-      // Update user to active status
-      const { error: updateUserError } = await supabaseAdmin
-        .from("users")
-        .update({ is_active: true })
-        .eq("id", userId);
-        
-      if (updateUserError) {
-        console.error("Error activating user:", updateUserError);
-      } else {
-        console.log("User activated:", userId);
-      }
     } 
     else if (paymentMethod === "pix") {
       console.log("Generating PIX QR code");
@@ -129,9 +175,10 @@ serve(async (req) => {
       };
     }
     
-    // Update user payment status in Supabase
-    if (result.success) {
+    // Update user payment status in Supabase if there's a userId
+    if (result.success && userId) {
       const paymentData = {
+        user_id: userId,
         payment_status: result.status,
         payment_method: paymentMethod,
         stripe_payment_id: result.id,
@@ -139,13 +186,12 @@ serve(async (req) => {
         updated_at: new Date().toISOString()
       };
       
-      const { error: updateError } = await supabaseAdmin
+      const { error: paymentError } = await supabaseAdmin
         .from("user_payments")
-        .update(paymentData)
-        .eq("user_id", userId);
+        .upsert(paymentData);
       
-      if (updateError) {
-        console.error("Error updating payment status:", updateError);
+      if (paymentError) {
+        console.error("Error updating payment status:", paymentError);
       } else {
         console.log("Payment status updated for user:", userId);
       }
