@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Index from "./pages/Index";
@@ -33,6 +34,7 @@ import TeacherDashboard from "./pages/teacher/Dashboard";
 
 // Protected Routes
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ActiveUserRoute from "./components/auth/ActiveUserRoute";
 
 // Tema global
 import "./App.css";
@@ -73,19 +75,21 @@ function App() {
           }
         />
 
-        {/* Rotas protegidas para estudantes */}
+        {/* Rotas protegidas para estudantes (requer ativação) */}
         <Route 
           path="/student/*" 
           element={
-            <ProtectedRoute allowedRoles={['student']}>
-              <Routes>
-                <Route path="/" element={<StudentDashboard />} />
-                <Route path="dashboard" element={<StudentDashboard />} />
-                <Route path="courses" element={<StudentCourseList />} />
-                <Route path="progress" element={<StudentProgressDetails />} />
-                <Route path="schedule" element={<StudentSchedule />} />
-              </Routes>
-            </ProtectedRoute>
+            <ActiveUserRoute>
+              <ProtectedRoute allowedRoles={['student']}>
+                <Routes>
+                  <Route path="/" element={<StudentDashboard />} />
+                  <Route path="dashboard" element={<StudentDashboard />} />
+                  <Route path="courses" element={<StudentCourseList />} />
+                  <Route path="progress" element={<StudentProgressDetails />} />
+                  <Route path="schedule" element={<StudentSchedule />} />
+                </Routes>
+              </ProtectedRoute>
+            </ActiveUserRoute>
           }
         />
 
@@ -102,8 +106,15 @@ function App() {
           }
         />
 
-        {/* Rota de matrícula */}
-        <Route path="/enrollment" element={<Enrollment />} />
+        {/* Rota de matrícula (requer ativação) */}
+        <Route 
+          path="/enrollment" 
+          element={
+            <ActiveUserRoute>
+              <Enrollment />
+            </ActiveUserRoute>
+          } 
+        />
 
         {/* Rota 404 */}
         <Route path="*" element={<NotFound />} />

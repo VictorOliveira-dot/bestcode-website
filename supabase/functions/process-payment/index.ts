@@ -16,7 +16,7 @@ serve(async (req) => {
 
   try {
     // Get request body
-    const { paymentMethod, cardData, course, userId } = await req.json();
+    const { paymentMethod, course, userId } = await req.json();
 
     if (!userId) {
       throw new Error("User ID is required");
@@ -29,13 +29,59 @@ serve(async (req) => {
 
     console.log(`Processing payment with method: ${paymentMethod} for user: ${userId}`);
 
-    let result = {
-      success: false,
-      status: "pending"
-    };
+    // Create Supabase client with service role key to update user status
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") || "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
+    );
 
-    // Simulate payment processing based on payment method
-    if (paymentMethod === "credit-card") {
+    // Get user data for the checkout
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from("users")
+      .select("email, name")
+      .eq("id", userId)
+      .single();
+
+    if (userError) {
+      throw new Error(`Error fetching user data: ${userError.message}`);
+    }
+
+    let result;
+
+    // Create a Stripe checkout session
+    if (paymentMethod === "checkout") {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        customer_email: userData.email,
+        line_items: [
+          {
+            price_data: {
+              currency: 'brl',
+              product_data: {
+                name: course.title || 'Formação Completa em QA',
+                description: 'Curso completo de formação em Quality Assurance',
+              },
+              unit_amount: Math.round((course.finalPrice || 1797) * 100), // Convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${req.headers.get("origin")}/enrollment?success=true`,
+        cancel_url: `${req.headers.get("origin")}/checkout?canceled=true`,
+        metadata: {
+          userId: userId,
+        },
+      });
+
+      result = { 
+        success: true, 
+        status: "pending",
+        id: session.id,
+        url: session.url
+      };
+    } 
+    else if (paymentMethod === "credit-card") {
       // In real implementation, you would use Stripe to charge the card
       // For this simulation, we'll assume the payment is successful
       console.log("Processing credit card payment");
@@ -46,6 +92,18 @@ serve(async (req) => {
         status: "completed",
         id: `sim_${Date.now()}`
       };
+
+      // Update user to active status
+      const { error: updateUserError } = await supabaseAdmin
+        .from("users")
+        .update({ is_active: true })
+        .eq("id", userId);
+        
+      if (updateUserError) {
+        console.error("Error activating user:", updateUserError);
+      } else {
+        console.log("User activated:", userId);
+      }
     } 
     else if (paymentMethod === "pix") {
       console.log("Generating PIX QR code");
@@ -70,12 +128,6 @@ serve(async (req) => {
         boletoUrl: "https://example.com/boleto/123"
       };
     }
-
-    // Create Supabase client to update user payment status
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
-    );
     
     // Update user payment status in Supabase
     if (result.success) {
@@ -96,20 +148,6 @@ serve(async (req) => {
         console.error("Error updating payment status:", updateError);
       } else {
         console.log("Payment status updated for user:", userId);
-      }
-      
-      // If payment is completed, update the user to active
-      if (result.status === "completed") {
-        const { error: userUpdateError } = await supabaseAdmin
-          .from("users")
-          .update({ role: "student" })
-          .eq("id", userId);
-        
-        if (userUpdateError) {
-          console.error("Error updating user role:", userUpdateError);
-        } else {
-          console.log("User activated:", userId);
-        }
       }
     }
     

@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth';
+import { motion } from 'framer-motion';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -42,12 +43,12 @@ const RegisterForm = () => {
     try {
       setIsSubmitting(true);
       
-      // Enviar os metadados (nome e role) junto com o registro, sempre como student
+      // Enviar os metadados (nome e role) junto com o registro
       const result = await registerUser({
         email: values.email,
         password: values.password,
         name: values.name,
-        role: 'student' // Role is now hardcoded to student
+        role: 'student' // Role is hardcoded to student
       });
       
       if (result.success) {
@@ -80,74 +81,105 @@ const RegisterForm = () => {
     }
   };
 
+  const formVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
     <div className="max-w-md mx-auto">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome Completo</FormLabel>
-                <FormControl>
-                  <input 
-                    placeholder="Seu nome" 
-                    {...field} 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <motion.form 
+          onSubmit={form.handleSubmit(onSubmit)} 
+          className="space-y-4"
+          variants={formVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={itemVariants}>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome Completo</FormLabel>
+                  <FormControl>
+                    <input 
+                      placeholder="Seu nome" 
+                      {...field} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </motion.div>
           
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <input 
-                    type="email" 
-                    placeholder="seu@email.com" 
-                    {...field} 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <motion.div variants={itemVariants}>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <input 
+                      type="email" 
+                      placeholder="seu@email.com" 
+                      {...field} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </motion.div>
           
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Senha</FormLabel>
-                <FormControl>
-                  <input 
-                    type="password" 
-                    placeholder="Senha segura" 
-                    {...field} 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <motion.div variants={itemVariants}>
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha</FormLabel>
+                  <FormControl>
+                    <input 
+                      type="password" 
+                      placeholder="Senha segura" 
+                      {...field} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </motion.div>
           
-          <Button 
-            type="submit" 
-            className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Criando conta...' : 'Registrar'}
-          </Button>
-        </form>
+          <motion.div variants={itemVariants}>
+            <Button 
+              type="submit" 
+              className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Criando conta...' : 'Registrar'}
+            </Button>
+          </motion.div>
+        </motion.form>
       </Form>
     </div>
   );
