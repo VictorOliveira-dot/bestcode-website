@@ -52,10 +52,12 @@ function App() {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/profile-completion" element={<ProfileCompletion />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment/pix" element={<PaymentPix />} />
         <Route path="/payment/boleto" element={<PaymentBoleto />} />
+
+        {/* Mapeando o antigo /profile-completion para /enrollment para quem ainda usa links antigos */}
+        <Route path="/profile-completion" element={<Enrollment />} />
 
         {/* Páginas de cursos */}
         <Route path="/courses" element={<AllCourses />} />
@@ -106,15 +108,9 @@ function App() {
           }
         />
 
-        {/* Rota de matrícula (requer ativação) */}
-        <Route 
-          path="/enrollment" 
-          element={
-            <ActiveUserRoute>
-              <Enrollment />
-            </ActiveUserRoute>
-          } 
-        />
+        {/* Rota de matrícula - agora é a página para completar perfil (sem requisito de ativação) */}
+        <Route path="/enrollment" element={<Enrollment />} />
+        <Route path="/inscricao" element={<Enrollment />} />
 
         {/* Rota 404 */}
         <Route path="*" element={<NotFound />} />

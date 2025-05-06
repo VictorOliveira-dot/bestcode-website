@@ -68,7 +68,7 @@ const Checkout = () => {
 
         if (!data || !data.is_profile_complete) {
           toast.error("Por favor, complete seu perfil antes de prosseguir");
-          navigate("/profile-completion");
+          navigate("/enrollment"); // Changed from /profile-completion to /enrollment
         } else {
           setIsProfileComplete(true);
 
