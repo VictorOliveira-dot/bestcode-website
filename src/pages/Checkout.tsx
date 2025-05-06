@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -30,6 +29,18 @@ const Checkout = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!user) {
+      toast({
+        title: "Acesso negado",
+        description: "Você precisa estar logado para acessar esta página.",
+        variant: "destructive",
+      });
+      navigate("/login");
+    }
+  }, [user, navigate, toast]);
+
   const course = {
     title: "Formação Completa em QA",
     price: 1997.00,
@@ -48,6 +59,16 @@ const Checkout = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast({
+        title: "Erro no pagamento",
+        description: "Você precisa estar logado para completar a compra.",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+    
     setIsProcessing(true);
     
     try {
@@ -69,7 +90,8 @@ const Checkout = () => {
         body: {
           paymentMethod,
           cardData,
-          course
+          course,
+          userId: user.id // Pass the user ID to the function
         }
       });
       
@@ -149,6 +171,11 @@ const Checkout = () => {
     }
   };
 
+  // If no user, show loading or return null
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -173,17 +200,6 @@ const Checkout = () => {
                   <CardDescription>Escolha seu método de pagamento preferido</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {!user ? (
-                    <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-md mb-4">
-                      <p className="text-yellow-700">
-                        É recomendado fazer login antes de concluir sua compra. 
-                        <a href="/login" className="text-bestcode-600 hover:text-bestcode-800 ml-1">
-                          Fazer login
-                        </a>
-                      </p>
-                    </div>
-                  ) : null}
-                  
                   <PaymentForm 
                     paymentMethod={paymentMethod}
                     setPaymentMethod={setPaymentMethod}

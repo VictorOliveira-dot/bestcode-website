@@ -53,13 +53,13 @@ const RegisterForm = () => {
       if (result.success) {
         toast({
           title: "Conta criada com sucesso!",
-          description: "Prossiga para o checkout para completar seu cadastro.",
+          description: "Complete seus dados para prosseguir com o pagamento.",
           variant: "default"
         });
         
-        // Redirect to checkout instead of homepage
+        // Redirect to profile completion instead of checkout
         setTimeout(() => {
-          navigate('/checkout');
+          navigate('/profile-completion');
         }, 1500);
       } else {
         toast({

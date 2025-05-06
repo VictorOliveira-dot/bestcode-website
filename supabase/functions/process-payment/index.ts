@@ -16,14 +16,18 @@ serve(async (req) => {
 
   try {
     // Get request body
-    const { paymentMethod, cardData, course } = await req.json();
+    const { paymentMethod, cardData, course, userId } = await req.json();
+
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2022-11-15",
     });
 
-    console.log(`Processing payment with method: ${paymentMethod}`);
+    console.log(`Processing payment with method: ${paymentMethod} for user: ${userId}`);
 
     let result = {
       success: false,
@@ -67,11 +71,47 @@ serve(async (req) => {
       };
     }
 
-    // Create Supabase client to update user status if needed
+    // Create Supabase client to update user payment status
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") || "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
     );
+    
+    // Update user payment status in Supabase
+    if (result.success) {
+      const paymentData = {
+        payment_status: result.status,
+        payment_method: paymentMethod,
+        stripe_payment_id: result.id,
+        payment_date: result.status === "completed" ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString()
+      };
+      
+      const { error: updateError } = await supabaseAdmin
+        .from("user_payments")
+        .update(paymentData)
+        .eq("user_id", userId);
+      
+      if (updateError) {
+        console.error("Error updating payment status:", updateError);
+      } else {
+        console.log("Payment status updated for user:", userId);
+      }
+      
+      // If payment is completed, update the user to active
+      if (result.status === "completed") {
+        const { error: userUpdateError } = await supabaseAdmin
+          .from("users")
+          .update({ role: "student" })
+          .eq("id", userId);
+        
+        if (userUpdateError) {
+          console.error("Error updating user role:", userUpdateError);
+        } else {
+          console.log("User activated:", userId);
+        }
+      }
+    }
     
     console.log("Payment processed successfully");
     
