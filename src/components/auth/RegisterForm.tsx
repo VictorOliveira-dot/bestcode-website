@@ -58,9 +58,9 @@ const RegisterForm = () => {
         description: "Complete seu perfil e pagamento para finalizar seu cadastro.",
       });
       
-      // Redirect to /inscricao route
+      // Redirect to /enrollment route
       setTimeout(() => {
-        navigate('/inscricao');
+        navigate('/enrollment');
       }, 1000);
     } catch (error: any) {
       console.error('Erro no registro:', error);

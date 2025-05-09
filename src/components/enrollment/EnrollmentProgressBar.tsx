@@ -18,8 +18,7 @@ const EnrollmentProgressBar: React.FC<EnrollmentProgressBarProps> = ({
         </div>
         <div className="text-sm text-gray-500">
           {currentStep === 1 && "Informações Pessoais"}
-          {currentStep === 2 && "Documentação"}
-          {currentStep === 3 && "Preferências de Estudo"}
+          {currentStep === 2 && "Preferências de Estudo"}
         </div>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-2.5">

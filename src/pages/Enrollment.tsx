@@ -14,7 +14,7 @@ const Enrollment = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const totalSteps = 3;
+  const totalSteps = 2; // Changed from 3 to 2
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -55,10 +55,6 @@ const Enrollment = () => {
             // If user has completed personal info, start at step 2
             if (parsedData.firstName && parsedData.lastName && parsedData.cpf && parsedData.phone) {
               setCurrentStep(2);
-              // If user has also uploaded documents, start at step 3
-              if (parsedData.education || parsedData.professionalArea) {
-                setCurrentStep(3);
-              }
             }
           } catch (error) {
             console.error("Error parsing saved enrollment data:", error);

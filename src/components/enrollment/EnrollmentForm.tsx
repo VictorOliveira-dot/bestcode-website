@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PersonalInfoStep from "./PersonalInfoStep";
-import DocumentationStep from "./DocumentationStep";
 import StudyPreferencesStep from "./StudyPreferencesStep";
 import EnrollmentFormNav from "./EnrollmentFormNav";
 import { validateCPF, validateDateOfBirth, validateBrazilianPhone } from "@/utils/validationUtils";
@@ -116,55 +116,10 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     return true;
   };
   
-  const validateDocumentation = async () => {
-    try {
-      // Verificar se existem documentos enviados para o usuário atual
-      if (!user) return false;
-
-      const { data: applicationData } = await supabase
-        .from('student_applications')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!applicationData) {
-        toast.error("Perfil incompleto. Complete seu perfil primeiro.");
-        return false;
-      }
-
-      const { data: documents, error } = await supabase
-        .from('student_documents')
-        .select('name')
-        .eq('application_id', applicationData.id);
-
-      if (error) throw error;
-
-      // Verificar se os documentos obrigatórios foram enviados
-      const hasIdFront = documents?.some(doc => 
-        doc.name === "RG/CNH (Frente)" || doc.name.includes("Frente")
-      );
-      
-      const hasSelfie = documents?.some(doc => 
-        doc.name === "Selfie com documento" || doc.name.includes("Selfie")
-      );
-
-      if (!hasIdFront || !hasSelfie) {
-        toast.error("Por favor, envie os documentos obrigatórios antes de prosseguir");
-        return false;
-      }
-
-      return true;
-    } catch (error: any) {
-      console.error("Erro ao verificar documentos:", error);
-      toast.error(`Erro ao verificar documentos: ${error.message}`);
-      return false;
-    }
-  };
-  
   const validateStudyPreferences = () => {
     // Check if required fields for the last step are filled
-    const requiredStep3Fields = ['education', 'professionalArea', 'experienceLevel', 'studyAvailability'];
-    const missingFields = requiredStep3Fields.filter(field => !formData[field as keyof typeof formData]);
+    const requiredStep2Fields = ['education', 'professionalArea', 'experienceLevel', 'studyAvailability'];
+    const missingFields = requiredStep2Fields.filter(field => !formData[field as keyof typeof formData]);
     
     if (missingFields.length > 0) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
@@ -244,8 +199,6 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     
     if (currentStep === 1) {
       isValid = validatePersonalInfo();
-    } else if (currentStep === 2) {
-      isValid = await validateDocumentation();
     } else if (currentStep === totalSteps) {
       isValid = validateStudyPreferences();
     }
@@ -311,13 +264,11 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
       <CardHeader>
         <CardTitle>
           {currentStep === 1 && "Informações Pessoais"}
-          {currentStep === 2 && "Documentação"}
-          {currentStep === 3 && "Preferências de Estudo"}
+          {currentStep === 2 && "Preferências de Estudo"}
         </CardTitle>
         <CardDescription>
           {currentStep === 1 && "Preencha seus dados pessoais"}
-          {currentStep === 2 && "Envie os documentos necessários"}
-          {currentStep === 3 && "Configure suas preferências de estudo"}
+          {currentStep === 2 && "Configure suas preferências de estudo"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -330,13 +281,8 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
             />
           )}
 
-          {/* Step 2: Documentation */}
+          {/* Step 2: Study Preferences (was Step 3 before) */}
           {currentStep === 2 && (
-            <DocumentationStep />
-          )}
-
-          {/* Step 3: Study Preferences */}
-          {currentStep === 3 && (
             <StudyPreferencesStep 
               formData={formData} 
               handleInputChange={handleInputChange} 
