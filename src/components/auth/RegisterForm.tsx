@@ -54,13 +54,13 @@ const RegisterForm = () => {
         throw new Error(result.message || "Erro no registro");
       }
       
-      toast.success("Registro iniciado!", {
-        description: "Complete seu perfil para finalizar seu cadastro.",
+      toast("Registro iniciado!", {
+        description: "Complete seu perfil e pagamento para finalizar seu cadastro.",
       });
       
-      // Redirect to the enrollment route which exists in the Router
+      // Redirect to /inscricao route
       setTimeout(() => {
-        navigate('/enrollment');
+        navigate('/inscricao');
       }, 1000);
     } catch (error: any) {
       console.error('Erro no registro:', error);
@@ -145,7 +145,7 @@ const RegisterForm = () => {
               className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Processando...' : 'Registrar e completar perfil'}
+              {isSubmitting ? 'Processando...' : 'Registrar e prosseguir para inscrição'}
             </Button>
           </div>
         </form>

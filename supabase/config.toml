@@ -108,9 +108,6 @@ verify_jwt = true
 [functions.stripe-webhook]
 verify_jwt = false
 
-[functions.create-checkout-session]
-verify_jwt = true
-
 [analytics]
 enabled = false
 port = 54327

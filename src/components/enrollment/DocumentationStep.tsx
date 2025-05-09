@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,75 +22,8 @@ const DocumentationStep: React.FC = () => {
     idBack: { isUploading: false, progress: 0, success: false, error: false, fileName: "" },
     selfie: { isUploading: false, progress: 0, success: false, error: false, fileName: "" }
   });
-  const [applicationId, setApplicationId] = useState<string | null>(null);
-  const [isCreatingApplication, setIsCreatingApplication] = useState(false);
   
   const { user } = useAuth();
-
-  // Verificar se já existe uma application ou criar uma nova
-  useEffect(() => {
-    const checkOrCreateApplication = async () => {
-      if (!user) return;
-      
-      try {
-        setIsCreatingApplication(true);
-        
-        // Verificar se já existe uma application
-        const { data: existingApplication, error: fetchError } = await supabase
-          .from('student_applications')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (fetchError && fetchError.code !== 'PGRST116') {
-          throw fetchError;
-        }
-        
-        if (existingApplication) {
-          // Se já existe uma application, armazena o ID
-          setApplicationId(existingApplication.id);
-        } else {
-          // Se não existe, cria uma nova application
-          // Primeiro, buscar dados do perfil do usuário
-          const { data: profileData } = await supabase
-            .from('user_profiles')
-            .select('first_name, last_name, phone')
-            .eq('id', user.id)
-            .single();
-            
-          // Criar uma nova application
-          const fullName = profileData ? 
-            `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : 
-            user.email?.split('@')[0] || 'Estudante';
-            
-          const { data: newApplication, error: insertError } = await supabase
-            .from('student_applications')
-            .insert({
-              user_id: user.id,
-              full_name: fullName,
-              email: user.email,
-              phone: profileData?.phone || null,
-              course: 'Formação Completa em QA',
-              status: 'pending'
-            })
-            .select('id')
-            .single();
-            
-          if (insertError) throw insertError;
-          
-          setApplicationId(newApplication.id);
-          console.log("Nova application criada com ID:", newApplication.id);
-        }
-      } catch (error) {
-        console.error("Erro ao verificar/criar application:", error);
-        toast.error("Erro ao preparar o sistema para upload de documentos");
-      } finally {
-        setIsCreatingApplication(false);
-      }
-    };
-    
-    checkOrCreateApplication();
-  }, [user]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, documentType: string) => {
     const file = e.target.files?.[0];
@@ -102,14 +34,10 @@ const DocumentationStep: React.FC = () => {
       return;
     }
     
-    if (!applicationId) {
-      toast.error("Preparando o sistema para upload. Por favor, tente novamente em alguns instantes.");
-      return;
-    }
-    
     // Validação do tipo e tamanho de arquivo
     const fileExt = file.name.split('.').pop();
     const allowedTypes = documentType === 'selfie' ? ['jpg', 'jpeg', 'png'] : ['jpg', 'jpeg', 'png', 'pdf'];
+    const fileType = file.type;
     const maxSize = 5 * 1024 * 1024; // 5MB
     
     if (!allowedTypes.includes(fileExt?.toLowerCase() || '')) {
@@ -136,8 +64,25 @@ const DocumentationStep: React.FC = () => {
     }));
     
     try {
-      // Definir caminho no storage
+      // 1. Buscar o ID da inscrição atual do usuário
+      const { data: applicationData, error: applicationError } = await supabase
+        .from('student_applications')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (applicationError || !applicationData) {
+        throw new Error("Não foi possível encontrar sua inscrição. Por favor, complete seu perfil primeiro.");
+      }
+      
+      const applicationId = applicationData.id;
+      
+      // 2. Definir caminho no storage
       const filePath = `${user.id}/${applicationId}/${documentType}_${Date.now()}.${fileExt}`;
+      
+      // 3. Upload para o Supabase Storage
+      // No Supabase v2, não há onUploadProgress no método upload
+      // Vamos simular o progresso para manter a UX
       
       // Iniciar intervalo para simular o progresso do upload
       let progressCounter = 0;
@@ -171,12 +116,12 @@ const DocumentationStep: React.FC = () => {
         throw uploadError;
       }
       
-      // Obter a URL do arquivo
+      // 4. Obter a URL do arquivo
       const { data: urlData } = supabase.storage
         .from('student-documents')
         .getPublicUrl(filePath);
       
-      // Salvar na tabela student_documents
+      // 5. Salvar na tabela student_documents
       const documentName = documentType === 'idFront' ? 'RG/CNH (Frente)' :
                           documentType === 'idBack' ? 'RG (Verso)' : 
                           'Selfie com documento';
@@ -246,20 +191,6 @@ const DocumentationStep: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {isCreatingApplication && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 p-3 rounded-md mb-4 flex items-center gap-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-amber-700"></div>
-          <p className="text-sm">Preparando sistema para upload de documentos...</p>
-        </div>
-      )}
-      
-      {!applicationId && !isCreatingApplication && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4">
-          <p className="text-sm font-medium">Não foi possível inicializar o upload de documentos</p>
-          <p className="text-xs mt-1">Por favor, tente recarregar a página ou entre em contato com o suporte.</p>
-        </div>
-      )}
-
       <div className="space-y-2">
         <Label htmlFor="id-upload">RG ou CNH (Frente) *</Label>
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
@@ -275,14 +206,14 @@ const DocumentationStep: React.FC = () => {
               className="hidden" 
               onChange={(e) => handleFileChange(e, 'idFront')}
               accept=".jpg,.jpeg,.png,.pdf"
-              disabled={uploadStatus.idFront.isUploading || uploadStatus.idFront.success || !applicationId || isCreatingApplication}
+              disabled={uploadStatus.idFront.isUploading || uploadStatus.idFront.success}
             />
             <Button 
               type="button" 
               variant="outline" 
               size="sm" 
               onClick={() => document.getElementById('id-upload')?.click()}
-              disabled={uploadStatus.idFront.isUploading || uploadStatus.idFront.success || !applicationId || isCreatingApplication}
+              disabled={uploadStatus.idFront.isUploading || uploadStatus.idFront.success}
             >
               {uploadStatus.idFront.success ? "Documento enviado" : "Selecionar arquivo"}
             </Button>
@@ -305,14 +236,14 @@ const DocumentationStep: React.FC = () => {
               className="hidden" 
               onChange={(e) => handleFileChange(e, 'idBack')}
               accept=".jpg,.jpeg,.png,.pdf"
-              disabled={uploadStatus.idBack.isUploading || uploadStatus.idBack.success || !applicationId || isCreatingApplication}
+              disabled={uploadStatus.idBack.isUploading || uploadStatus.idBack.success}
             />
             <Button 
               type="button" 
               variant="outline" 
               size="sm" 
               onClick={() => document.getElementById('id-back-upload')?.click()}
-              disabled={uploadStatus.idBack.isUploading || uploadStatus.idBack.success || !applicationId || isCreatingApplication}
+              disabled={uploadStatus.idBack.isUploading || uploadStatus.idBack.success}
             >
               {uploadStatus.idBack.success ? "Documento enviado" : "Selecionar arquivo"}
             </Button>
@@ -335,14 +266,14 @@ const DocumentationStep: React.FC = () => {
               className="hidden" 
               onChange={(e) => handleFileChange(e, 'selfie')}
               accept=".jpg,.jpeg,.png"
-              disabled={uploadStatus.selfie.isUploading || uploadStatus.selfie.success || !applicationId || isCreatingApplication}
+              disabled={uploadStatus.selfie.isUploading || uploadStatus.selfie.success}
             />
             <Button 
               type="button" 
               variant="outline" 
               size="sm" 
               onClick={() => document.getElementById('selfie-upload')?.click()}
-              disabled={uploadStatus.selfie.isUploading || uploadStatus.selfie.success || !applicationId || isCreatingApplication}
+              disabled={uploadStatus.selfie.isUploading || uploadStatus.selfie.success}
             >
               {uploadStatus.selfie.success ? "Documento enviado" : "Selecionar arquivo"}
             </Button>
