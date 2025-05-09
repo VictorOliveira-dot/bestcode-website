@@ -31,10 +31,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
     );
 
-    // Get user data for the checkout
+    // Get user data and verify it's a student
     const { data: userData, error: userError } = await supabaseAdmin
       .from("users")
-      .select("email, name")
+      .select("email, name, role")
       .eq("id", userId)
       .single();
 
@@ -43,9 +43,22 @@ serve(async (req) => {
       throw new Error("User not found");
     }
 
-    let result;
+    // Check if user is a student
+    if (userData.role !== 'student') {
+      console.error("User is not a student:", userData.role);
+      throw new Error("Only students can make payments");
+    }
 
-    // Create a Stripe checkout session
+    // Get application data
+    const { data: applicationData } = await supabaseAdmin
+      .from("student_applications")
+      .select("id")
+      .eq("user_id", userId)
+      .single();
+
+    const applicationId = applicationData?.id;
+
+    // Create a Stripe checkout session - only support Stripe Checkout
     if (paymentMethod === "checkout") {
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -68,116 +81,27 @@ serve(async (req) => {
         cancel_url: `${req.headers.get("origin")}/checkout?canceled=true`,
         metadata: {
           userId: userId,
+          applicationId: applicationId || '',
         },
       });
 
-      result = { 
+      return new Response(JSON.stringify({ 
         success: true, 
         status: "pending",
         id: session.id,
         url: session.url
-      };
+      }), {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      });
     } 
-    else if (paymentMethod === "credit-card") {
-      // In real implementation, you would use Stripe to charge the card
-      // For this simulation, we'll assume the payment is successful
-      console.log("Processing credit card payment");
-      
-      // Update user to active status
-      const { error: updateUserError } = await supabaseAdmin
-        .from("users")
-        .update({ is_active: true })
-        .eq("id", userId);
-        
-      if (updateUserError) {
-        console.error("Error activating user:", updateUserError);
-        throw new Error("Failed to activate user account");
-      } else {
-        console.log("User activated:", userId);
-      }
-      
-      // Record payment in user_payments table
-      const { error: paymentError } = await supabaseAdmin
-        .from("user_payments")
-        .insert({
-          user_id: userId,
-          payment_status: "completed",
-          payment_method: paymentMethod,
-          stripe_payment_id: `sim_${Date.now()}`,
-          payment_amount: course.finalPrice,
-          payment_date: new Date().toISOString(),
-        });
-        
-      if (paymentError) {
-        console.error("Error recording payment:", paymentError);
-      }
-      
-      result = { 
-        success: true, 
-        status: "completed",
-        id: `sim_${Date.now()}`
-      };
-    } 
-    else if (paymentMethod === "pix") {
-      console.log("Generating PIX QR code");
-      
-      // Record pending payment in database
-      const { error: paymentError } = await supabaseAdmin
-        .from("user_payments")
-        .insert({
-          user_id: userId,
-          payment_status: "pending",
-          payment_method: "pix",
-          payment_amount: course.finalPrice,
-        });
-        
-      if (paymentError) {
-        console.error("Error recording pending PIX payment:", paymentError);
-      }
-      
-      result = { 
-        success: true, 
-        status: "pending",
-        id: `pix_${Date.now()}`,
-        pixQrCode: "https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
-      };
+    else {
+      // We no longer support other payment methods
+      throw new Error("Only Stripe Checkout payment method is supported");
     }
-    else if (paymentMethod === "bank-slip") {
-      console.log("Generating bank slip");
-      
-      // Record pending payment in database
-      const { error: paymentError } = await supabaseAdmin
-        .from("user_payments")
-        .insert({
-          user_id: userId,
-          payment_status: "pending",
-          payment_method: "bank-slip",
-          payment_amount: course.finalPrice,
-        });
-        
-      if (paymentError) {
-        console.error("Error recording pending bank slip payment:", paymentError);
-      }
-      
-      result = { 
-        success: true, 
-        status: "pending",
-        id: `boleto_${Date.now()}`,
-        boletoUrl: "https://example.com/boleto/123"
-      };
-    }
-    
-    console.log("Payment processed successfully");
-    
-    // Return successful response
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-      },
-    });
-    
   } catch (error) {
     console.error("Error processing payment:", error);
     

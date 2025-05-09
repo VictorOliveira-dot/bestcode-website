@@ -143,7 +143,8 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
       const [day, month, year] = formData.birthDate.split('/');
       const formattedBirthDate = `${year}-${month}-${day}`;
       
-      const { error } = await supabase
+      // 1. Save to user_profiles table
+      const { error: profileError } = await supabase
         .from('user_profiles')
         .upsert({
           id: user.id,
@@ -165,7 +166,21 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
           updated_at: new Date().toISOString()
         });
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+      
+      // 2. Save to student_applications table
+      const { error: applicationError } = await supabase
+        .from('student_applications')
+        .insert({
+          user_id: user.id,
+          full_name: `${formData.firstName} ${formData.lastName}`,
+          email: user.email,
+          phone: formData.phone,
+          course: 'Formação Completa em QA', // Default course or could be made dynamic
+          status: 'pending'
+        });
+
+      if (applicationError) throw applicationError;
       
       return true;
     } catch (error: any) {

@@ -265,8 +265,45 @@ export type Database = {
           },
         ]
       }
+      student_applications: {
+        Row: {
+          course: string
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          course: string
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          course?: string
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_payments: {
         Row: {
+          application_id: string | null
           created_at: string
           id: string
           payment_amount: number | null
@@ -278,6 +315,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          application_id?: string | null
           created_at?: string
           id?: string
           payment_amount?: number | null
@@ -289,6 +327,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          application_id?: string | null
           created_at?: string
           id?: string
           payment_amount?: number | null
@@ -299,7 +338,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_payments_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "student_applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_profiles: {
         Row: {

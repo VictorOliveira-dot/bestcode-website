@@ -56,35 +56,74 @@ serve(async (req) => {
         // Extract customer email and metadata
         const customerEmail = session.customer_email;
         const userId = session.metadata?.userId;
+        const applicationId = session.metadata?.applicationId;
         
-        console.log(`Payment successful for session ${session.id}. User ID from metadata: ${userId}`);
+        console.log(`Payment successful for session ${session.id}. User ID: ${userId}, Application ID: ${applicationId}`);
         
         if (userId) {
-          // Update user to active status
+          // Verificar se o usuário é um estudante
+          const { data: userData, error: userError } = await supabaseAdmin
+            .from("users")
+            .select("role")
+            .eq("id", userId)
+            .single();
+            
+          if (userError) {
+            console.error("Error fetching user role:", userError);
+          } else if (userData.role !== 'student') {
+            console.error(`User ${userId} is not a student. Role: ${userData.role}`);
+            return new Response(JSON.stringify({ 
+              received: true, 
+              message: "User is not a student, not activating account" 
+            }), {
+              headers: { "Content-Type": "application/json" },
+              status: 200,
+            });
+          }
+          
+          // Update user to active status (only for students)
           const { error: userUpdateError } = await supabaseAdmin
             .from("users")
-            .update({ 
-              is_active: true 
-            })
+            .update({ is_active: true })
             .eq("id", userId);
             
           if (userUpdateError) {
             console.error("Error updating user status:", userUpdateError);
           } else {
-            console.log(`User ${userId} activated successfully`);
+            console.log(`Student ${userId} activated successfully`);
           }
           
           // Update payment status
+          const paymentData = {
+            user_id: userId,
+            payment_status: "completed",
+            payment_method: "stripe", 
+            stripe_payment_id: session.id,
+            payment_amount: session.amount_total / 100,
+            payment_date: new Date().toISOString()
+          };
+          
+          // Add application_id if available
+          if (applicationId) {
+            paymentData.application_id = applicationId;
+            
+            // Also update the application status
+            const { error: applicationError } = await supabaseAdmin
+              .from("student_applications")
+              .update({ status: "approved" })
+              .eq("id", applicationId);
+              
+            if (applicationError) {
+              console.error("Error updating application status:", applicationError);
+            } else {
+              console.log(`Application ${applicationId} marked as approved`);
+            }
+          }
+          
+          // Record payment
           const { error: paymentUpdateError } = await supabaseAdmin
             .from("user_payments")
-            .insert({
-              user_id: userId,
-              payment_status: "completed",
-              payment_method: "stripe", 
-              stripe_payment_id: session.id,
-              payment_amount: session.amount_total / 100,
-              payment_date: new Date().toISOString(),
-            });
+            .insert(paymentData);
             
           if (paymentUpdateError) {
             console.error("Error recording payment:", paymentUpdateError);

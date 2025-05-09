@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -16,6 +15,7 @@ interface CreditCardFormProps {
   finalPrice: number;
 }
 
+// Este componente não é mais utilizado, mantido apenas para compatibilidade
 const CreditCardForm: React.FC<CreditCardFormProps> = ({ 
   cardData, 
   handleCardInputChange,
@@ -39,6 +39,11 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
 
   return (
     <div className="space-y-4">
+      <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-md mb-4">
+        <p className="font-medium">Este método de pagamento foi desativado</p>
+        <p className="text-sm mt-1">Por favor, utilize o Stripe Checkout para pagamentos.</p>
+      </div>
+      
       <div>
         <Label htmlFor="cardName">Nome no cartão</Label>
         <Input
@@ -47,6 +52,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
           value={cardData.cardName}
           onChange={(e) => handleCardInputChange("cardName", e.target.value)}
           className="mt-1"
+          disabled={true}
         />
       </div>
       
@@ -91,7 +97,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
       
       <div>
         <Label htmlFor="installments">Parcelamento</Label>
-        <Select onValueChange={(value) => console.log(value)}>
+        <Select onValueChange={(value) => console.log(value)} disabled={true}>
           <SelectTrigger id="installments" className="mt-1">
             <SelectValue placeholder="Selecione o parcelamento" />
           </SelectTrigger>

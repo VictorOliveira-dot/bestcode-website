@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -16,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 
 const Checkout = () => {
-  const [paymentMethod, setPaymentMethod] = useState("checkout"); // Default to Stripe Checkout
+  const [paymentMethod, setPaymentMethod] = useState("checkout"); // Hardcoded to Stripe Checkout
   const [isProcessing, setIsProcessing] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [cardData, setCardData] = useState({
@@ -69,12 +68,20 @@ const Checkout = () => {
         // Check if user is already active
         const { data: userData, error: userError } = await supabase
           .from("users")
-          .select("is_active")
+          .select("is_active, role")
           .eq("id", user.id)
           .single();
           
         if (userError) throw userError;
 
+        // Redirect non-students away
+        if (userData && userData.role !== 'student') {
+          toast.error("Apenas estudantes podem realizar pagamentos de cursos.");
+          navigate("/");
+          return;
+        }
+        
+        // Redirect already active students
         if (userData?.is_active) {
           toast.info("Sua conta já está ativa. Redirecionando para a área de alunos.");
           navigate("/student/dashboard");
@@ -103,7 +110,12 @@ const Checkout = () => {
       }
     };
 
-    checkUserStatus();
+    if (user) {
+      checkUserStatus();
+    } else {
+      toast.error("Você precisa estar logado para acessar esta página");
+      navigate("/login");
+    }
   }, [user, navigate, isCanceled, isSuccess]);
 
   const handleCardInputChange = (field: string, value: string) => {
@@ -125,85 +137,23 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
-      // If using Stripe Checkout, create a checkout session
-      if (paymentMethod === "checkout") {
-        const { data, error } = await supabase.functions.invoke('process-payment', {
-          body: {
-            paymentMethod: "checkout",
-            course,
-            userId: user.id
-          }
-        });
-        
-        if (error) throw new Error(error.message || "Ocorreu um erro ao processar o pagamento");
-        
-        // Redirect to Stripe Checkout
-        if (data?.url) {
-          window.location.href = data.url;
-          return;
-        } else {
-          throw new Error("URL de checkout não encontrada");
-        }
-      }
-      
-      // For other payment methods
-      if (paymentMethod === "credit-card") {
-        if (!cardData.cardName || !cardData.cardNumber || !cardData.cardExpiry || !cardData.cardCvc) {
-          toast.error("Por favor, preencha todos os campos do cartão de crédito");
-          setIsProcessing(false);
-          return;
-        }
-      }
-      
-      // Process payment through Supabase Edge Function
+      // We now only support Stripe Checkout
       const { data, error } = await supabase.functions.invoke('process-payment', {
         body: {
-          paymentMethod,
-          cardData: paymentMethod === "credit-card" ? cardData : undefined,
+          paymentMethod: "checkout",
           course,
           userId: user.id
         }
       });
       
-      if (error) {
-        throw new Error(error.message || "Ocorreu um erro ao processar o pagamento");
-      }
+      if (error) throw new Error(error.message || "Ocorreu um erro ao processar o pagamento");
       
-      if (!data.success) {
-        toast.error(`O pagamento não foi aprovado. Motivo: ${data.error || "erro desconhecido"}`);
-        setIsProcessing(false);
+      // Redirect to Stripe Checkout
+      if (data?.url) {
+        window.location.href = data.url;
         return;
-      }
-      
-      // Handle different payment methods
-      if (paymentMethod === "credit-card") {
-        toast.success("Pagamento processado com sucesso! Você será redirecionado para a plataforma.");
-        
-        setTimeout(() => {
-          navigate("/student/dashboard");
-        }, 2000);
-      } else if (paymentMethod === "pix") {
-        toast.success("PIX gerado com sucesso! Escaneie o QR code para finalizar o pagamento.");
-        
-        // Store PIX data in localStorage for display
-        localStorage.setItem("pixPayment", JSON.stringify({
-          qrCodeUrl: data.pixQrCode,
-          paymentId: data.id,
-        }));
-        
-        // Redirect to PIX page
-        navigate("/payment/pix");
-      } else if (paymentMethod === "bank-slip") {
-        toast.success("Boleto gerado com sucesso! Você será redirecionado para visualizar o boleto.");
-        
-        // Store boleto URL in localStorage
-        localStorage.setItem("boletoPayment", JSON.stringify({
-          boletoUrl: data.boletoUrl,
-          paymentId: data.id,
-        }));
-        
-        // Redirect to boleto page
-        navigate("/payment/boleto");
+      } else {
+        throw new Error("URL de checkout não encontrada");
       }
     } catch (error: any) {
       console.error("Erro ao processar pagamento:", error);

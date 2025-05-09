@@ -42,6 +42,7 @@ const RegisterForm = () => {
     try {
       setIsSubmitting(true);
       
+      // Always register as student - hardcoded
       const result = await registerUser({
         email: values.email,
         password: values.password,
