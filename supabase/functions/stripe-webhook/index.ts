@@ -36,9 +36,9 @@ serve(async (req) => {
     let event;
     
     // Verify webhook signature
-    if (endpointSecret) {
+    if (endpointSecret && signature) {
       try {
-        event = stripe.webhooks.constructEvent(body, signature!, endpointSecret);
+        event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
       } catch (error) {
         console.error(`Webhook signature verification failed: ${error.message}`);
         return new Response(`Webhook signature verification failed`, { status: 400 });
@@ -77,19 +77,19 @@ serve(async (req) => {
           // Update payment status
           const { error: paymentUpdateError } = await supabaseAdmin
             .from("user_payments")
-            .update({
+            .insert({
+              user_id: userId,
               payment_status: "completed",
               payment_method: "stripe", 
               stripe_payment_id: session.id,
+              payment_amount: session.amount_total / 100,
               payment_date: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq("user_id", userId);
+            });
             
           if (paymentUpdateError) {
-            console.error("Error updating payment record:", paymentUpdateError);
+            console.error("Error recording payment:", paymentUpdateError);
           } else {
-            console.log(`Payment record updated for user ${userId}`);
+            console.log(`Payment record created for user ${userId}`);
           }
         } else if (customerEmail) {
           // If no userId in metadata, try to find user by email
@@ -117,22 +117,22 @@ serve(async (req) => {
               console.log(`User with email ${customerEmail} activated successfully`);
             }
             
-            // Update payment status
-            const { error: paymentUpdateError } = await supabaseAdmin
+            // Record payment
+            const { error: paymentError } = await supabaseAdmin
               .from("user_payments")
-              .update({
+              .insert({
+                user_id: userId,
                 payment_status: "completed",
                 payment_method: "stripe", 
                 stripe_payment_id: session.id,
+                payment_amount: session.amount_total / 100,
                 payment_date: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              })
-              .eq("user_id", userId);
+              });
               
-            if (paymentUpdateError) {
-              console.error("Error updating payment record:", paymentUpdateError);
+            if (paymentError) {
+              console.error("Error recording payment:", paymentError);
             } else {
-              console.log(`Payment record updated for user with email ${customerEmail}`);
+              console.log(`Payment record created for user with email ${customerEmail}`);
             }
           }
         } else {

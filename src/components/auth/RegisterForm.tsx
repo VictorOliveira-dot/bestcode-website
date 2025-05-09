@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,21 +42,24 @@ const RegisterForm = () => {
     try {
       setIsSubmitting(true);
       
-      // Store registration data in localStorage for later use after payment
-      localStorage.setItem('pending_registration', JSON.stringify({
+      const result = await registerUser({
         email: values.email,
         password: values.password,
         name: values.name,
         role: 'student'
-      }));
-      
-      toast("Registro iniciado!", {
-        description: "Complete o pagamento para finalizar seu cadastro.",
       });
       
-      // Redirect directly to checkout
+      if (!result.success) {
+        throw new Error(result.message || "Erro no registro");
+      }
+      
+      toast("Registro iniciado!", {
+        description: "Complete seu perfil e pagamento para finalizar seu cadastro.",
+      });
+      
+      // Redirect to /inscricao route
       setTimeout(() => {
-        navigate('/checkout');
+        navigate('/inscricao');
       }, 1000);
     } catch (error: any) {
       console.error('Erro no registro:', error);
@@ -140,7 +144,7 @@ const RegisterForm = () => {
               className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Iniciando registro...' : 'Registrar e prosseguir para pagamento'}
+              {isSubmitting ? 'Processando...' : 'Registrar e prosseguir para inscrição'}
             </Button>
           </div>
         </form>

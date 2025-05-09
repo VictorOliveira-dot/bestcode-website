@@ -77,6 +77,13 @@ const PaymentForm = ({
 
       {paymentMethod === "pix" && <PixInfo />}
 
+      {paymentMethod === "checkout" && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-md">
+          <p className="font-medium">Você será redirecionado para o Stripe Checkout</p>
+          <p className="text-sm mt-1">Complete o pagamento de forma segura diretamente no ambiente do Stripe.</p>
+        </div>
+      )}
+
       <div className="flex items-center space-x-2 mt-4">
         <Checkbox 
           id="terms" 

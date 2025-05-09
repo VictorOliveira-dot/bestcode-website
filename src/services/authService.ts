@@ -46,7 +46,8 @@ export const fetchUserData = async (authUser: User) => {
               id: authUser.id,
               email: authUser.email,
               name: metaName,
-              role: metaRole
+              role: metaRole,
+              is_active: false // Default to inactive until payment is completed
             })
             .select()
             .single();
@@ -74,7 +75,6 @@ export const fetchUserData = async (authUser: User) => {
   }
 };
 
-// Modified to store registration data in localStorage instead of creating a user right away
 export const loginUser = async (email: string, password: string) => {
   try {
     console.log('Attempting login with:', email);
@@ -138,7 +138,6 @@ export const logoutUser = async () => {
   }
 };
 
-// Store registration data in localStorage for later use after payment
 export const registerUser = async (data: { 
   email: string; 
   password: string; 
@@ -146,14 +145,6 @@ export const registerUser = async (data: {
   role: string; 
 }) => {
   try {
-    // Store registration data in localStorage
-    localStorage.setItem('pending_registration', JSON.stringify({
-      email: data.email,
-      password: data.password,
-      name: data.name,
-      role: data.role
-    }));
-    
     // Directly sign up the user with Supabase auth
     const authResponse = await supabase.auth.signUp({
       email: data.email,

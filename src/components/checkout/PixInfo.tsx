@@ -1,18 +1,17 @@
 
 import React from "react";
-import { CheckCircle2 } from "lucide-react";
+import { QrCode } from "lucide-react";
 
-const PixInfo = () => {
+const PixInfo: React.FC = () => {
   return (
-    <div className="border border-gray-200 rounded-md p-4 mt-4">
-      <div className="flex items-center gap-3 mb-4">
-        <CheckCircle2 size={20} className="text-green-500" />
-        <p className="text-gray-700">
-          Pagamento instantâneo via PIX.
-        </p>
+    <div className="text-center p-4 border border-gray-200 rounded-md">
+      <div className="flex justify-center mb-3">
+        <QrCode size={48} className="text-bestcode-600" />
       </div>
+      <h3 className="text-lg font-medium mb-2">Pagamento via PIX</h3>
       <p className="text-gray-600">
-        Ao clicar em "Finalizar Compra", você receberá um QR Code para fazer o pagamento.
+        Ao confirmar, você receberá um código QR para fazer o pagamento via PIX.
+        O pagamento será processado instantaneamente.
       </p>
     </div>
   );

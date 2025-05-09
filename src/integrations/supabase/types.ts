@@ -265,6 +265,42 @@ export type Database = {
           },
         ]
       }
+      user_payments: {
+        Row: {
+          created_at: string
+          id: string
+          payment_amount: number | null
+          payment_date: string | null
+          payment_method: string | null
+          payment_status: string
+          stripe_payment_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_amount?: number | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          stripe_payment_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_amount?: number | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          stripe_payment_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           address: string | null
@@ -335,6 +371,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          is_active: boolean | null
           name: string
           role: string
           updated_at: string | null
@@ -345,6 +382,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          is_active?: boolean | null
           name: string
           role?: string
           updated_at?: string | null
@@ -355,6 +393,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          is_active?: boolean | null
           name?: string
           role?: string
           updated_at?: string | null

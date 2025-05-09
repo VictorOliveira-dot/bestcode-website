@@ -2,92 +2,108 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
-interface CardDataType {
-  cardName: string;
-  cardNumber: string;
-  cardExpiry: string;
-  cardCvc: string;
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CreditCardFormProps {
-  cardData: CardDataType;
+  cardData: {
+    cardName: string;
+    cardNumber: string;
+    cardExpiry: string;
+    cardCvc: string;
+  };
   handleCardInputChange: (field: string, value: string) => void;
   installments: number;
   finalPrice: number;
 }
 
-const CreditCardForm = ({ 
+const CreditCardForm: React.FC<CreditCardFormProps> = ({ 
   cardData, 
-  handleCardInputChange, 
-  installments, 
-  finalPrice 
-}: CreditCardFormProps) => {
+  handleCardInputChange,
+  installments,
+  finalPrice
+}) => {
+  const formatCardNumber = (value: string) => {
+    return value
+      .replace(/\s/g, '')
+      .replace(/(\d{4})/g, '$1 ')
+      .trim()
+      .slice(0, 19);
+  };
+
+  const formatExpiry = (value: string) => {
+    return value
+      .replace(/\s/g, '')
+      .replace(/(\d{2})(\d+)/, '$1/$2')
+      .slice(0, 5);
+  };
+
   return (
-    <div className="space-y-4 border border-gray-200 rounded-md p-4 mt-4">
-      <div className="space-y-2">
-        <Label htmlFor="card-name">Nome no cartão</Label>
-        <Input 
-          id="card-name" 
-          placeholder="Como está impresso no cartão" 
-          required 
-          mask={/^[A-Za-z\s]+$/}
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="cardName">Nome no cartão</Label>
+        <Input
+          id="cardName"
+          placeholder="Nome como aparece no cartão"
           value={cardData.cardName}
-          onAccept={(value) => handleCardInputChange('cardName', value)}
+          onChange={(e) => handleCardInputChange("cardName", e.target.value)}
+          className="mt-1"
         />
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="card-number">Número do cartão</Label>
-        <Input 
-          id="card-number" 
-          placeholder="0000 0000 0000 0000" 
-          required 
-          mask="0000 0000 0000 0000"
+      <div>
+        <Label htmlFor="cardNumber">Número do cartão</Label>
+        <Input
+          id="cardNumber"
+          placeholder="1234 5678 9012 3456"
           value={cardData.cardNumber}
-          onAccept={(value) => handleCardInputChange('cardNumber', value)}
+          onChange={(e) => handleCardInputChange("cardNumber", formatCardNumber(e.target.value))}
+          maxLength={19}
+          className="mt-1"
         />
       </div>
       
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="card-expiry">Data de validade</Label>
-          <Input 
-            id="card-expiry" 
-            placeholder="MM/AA" 
-            required 
-            mask="00/00"
+        <div>
+          <Label htmlFor="cardExpiry">Data de validade</Label>
+          <Input
+            id="cardExpiry"
+            placeholder="MM/AA"
             value={cardData.cardExpiry}
-            onAccept={(value) => handleCardInputChange('cardExpiry', value)}
+            onChange={(e) => handleCardInputChange("cardExpiry", formatExpiry(e.target.value))}
+            maxLength={5}
+            className="mt-1"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="card-cvc">Código de segurança</Label>
-          <Input 
-            id="card-cvc" 
-            placeholder="CVC" 
-            required 
-            mask="000"
+        
+        <div>
+          <Label htmlFor="cardCvc">Código de segurança (CVC)</Label>
+          <Input
+            id="cardCvc"
+            placeholder="123"
             value={cardData.cardCvc}
-            onAccept={(value) => handleCardInputChange('cardCvc', value)}
+            onChange={(e) => handleCardInputChange("cardCvc", e.target.value.slice(0, 3))}
+            maxLength={3}
+            type="password"
+            className="mt-1"
           />
         </div>
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="installments">Parcelas</Label>
-        <select 
-          id="installments" 
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="1">À vista - R$ {finalPrice.toFixed(2)}</option>
-          {[...Array(installments)].map((_, i) => (
-            <option key={i} value={i+1}>
-              {i+1}x de R$ {(finalPrice / (i+1)).toFixed(2)}
-              {i > 0 ? " sem juros" : ""}
-            </option>
-          ))}
-        </select>
+      <div>
+        <Label htmlFor="installments">Parcelamento</Label>
+        <Select onValueChange={(value) => console.log(value)}>
+          <SelectTrigger id="installments" className="mt-1">
+            <SelectValue placeholder="Selecione o parcelamento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1">À vista - R$ {finalPrice.toFixed(2)}</SelectItem>
+            {Array.from({ length: installments - 1 }, (_, i) => i + 2).map((i) => (
+              <SelectItem key={i} value={i.toString()}>
+                {i}x de R$ {(finalPrice / i).toFixed(2)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

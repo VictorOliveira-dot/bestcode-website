@@ -16,7 +16,7 @@ serve(async (req) => {
 
   try {
     // Get request body
-    const { paymentMethod, cardData, course, userId, registrationData } = await req.json();
+    const { paymentMethod, cardData, course, userId } = await req.json();
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -32,27 +32,15 @@ serve(async (req) => {
     );
 
     // Get user data for the checkout
-    let userEmail, userName;
-    if (userId) {
-      const { data: userData, error: userError } = await supabaseAdmin
-        .from("users")
-        .select("email, name")
-        .eq("id", userId)
-        .single();
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from("users")
+      .select("email, name")
+      .eq("id", userId)
+      .single();
 
-      if (!userError && userData) {
-        userEmail = userData.email;
-        userName = userData.name;
-      } else {
-        console.error("Error fetching user data:", userError);
-      }
-    } else if (registrationData) {
-      userEmail = registrationData.email;
-      userName = registrationData.name;
-    }
-
-    if (!userEmail) {
-      throw new Error("User email is required for payment processing");
+    if (userError) {
+      console.error("Error fetching user data:", userError);
+      throw new Error("User not found");
     }
 
     let result;
@@ -61,7 +49,7 @@ serve(async (req) => {
     if (paymentMethod === "checkout") {
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
-        customer_email: userEmail,
+        customer_email: userData.email,
         line_items: [
           {
             price_data: {
@@ -76,11 +64,10 @@ serve(async (req) => {
           },
         ],
         mode: 'payment',
-        success_url: `${req.headers.get("origin")}/enrollment?success=true`,
+        success_url: `${req.headers.get("origin")}/checkout?success=true`,
         cancel_url: `${req.headers.get("origin")}/checkout?canceled=true`,
         metadata: {
-          userId: userId || '',
-          registrationData: registrationData ? JSON.stringify(registrationData) : '',
+          userId: userId,
         },
       });
 
@@ -96,55 +83,35 @@ serve(async (req) => {
       // For this simulation, we'll assume the payment is successful
       console.log("Processing credit card payment");
       
-      // Handle user creation if registration data is provided
-      if (registrationData && !userId) {
-        // Create the user in auth
-        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-          email: registrationData.email,
-          password: registrationData.password,
-          email_confirm: true,
-          user_metadata: {
-            name: registrationData.name,
-            role: registrationData.role || 'student'
-          }
-        });
+      // Update user to active status
+      const { error: updateUserError } = await supabaseAdmin
+        .from("users")
+        .update({ is_active: true })
+        .eq("id", userId);
         
-        if (authError) {
-          console.error("Error creating auth user:", authError);
-          throw new Error(`Failed to create user: ${authError.message}`);
-        }
-        
-        userId = authData.user.id;
-        
-        // Create user in public.users table
-        const { error: insertError } = await supabaseAdmin
-          .from("users")
-          .insert({
-            id: userId,
-            email: registrationData.email,
-            name: registrationData.name,
-            role: registrationData.role || 'student',
-            is_active: true
-          });
-          
-        if (insertError) {
-          console.error("Error creating user record:", insertError);
-        }
-      } else if (userId) {
-        // Update user to active status
-        const { error: updateUserError } = await supabaseAdmin
-          .from("users")
-          .update({ is_active: true })
-          .eq("id", userId);
-          
-        if (updateUserError) {
-          console.error("Error activating user:", updateUserError);
-        } else {
-          console.log("User activated:", userId);
-        }
+      if (updateUserError) {
+        console.error("Error activating user:", updateUserError);
+        throw new Error("Failed to activate user account");
+      } else {
+        console.log("User activated:", userId);
       }
       
-      // Simulating success (in real case, use Stripe Checkout or PaymentIntent)
+      // Record payment in user_payments table
+      const { error: paymentError } = await supabaseAdmin
+        .from("user_payments")
+        .insert({
+          user_id: userId,
+          payment_status: "completed",
+          payment_method: paymentMethod,
+          stripe_payment_id: `sim_${Date.now()}`,
+          payment_amount: course.finalPrice,
+          payment_date: new Date().toISOString(),
+        });
+        
+      if (paymentError) {
+        console.error("Error recording payment:", paymentError);
+      }
+      
       result = { 
         success: true, 
         status: "completed",
@@ -154,8 +121,20 @@ serve(async (req) => {
     else if (paymentMethod === "pix") {
       console.log("Generating PIX QR code");
       
-      // Simulate PIX payment (in real case, use Stripe or local payment provider)
-      // Using a placeholder QR code image
+      // Record pending payment in database
+      const { error: paymentError } = await supabaseAdmin
+        .from("user_payments")
+        .insert({
+          user_id: userId,
+          payment_status: "pending",
+          payment_method: "pix",
+          payment_amount: course.finalPrice,
+        });
+        
+      if (paymentError) {
+        console.error("Error recording pending PIX payment:", paymentError);
+      }
+      
       result = { 
         success: true, 
         status: "pending",
@@ -166,35 +145,26 @@ serve(async (req) => {
     else if (paymentMethod === "bank-slip") {
       console.log("Generating bank slip");
       
-      // Simulate bank slip generation (in real case, use local payment provider)
+      // Record pending payment in database
+      const { error: paymentError } = await supabaseAdmin
+        .from("user_payments")
+        .insert({
+          user_id: userId,
+          payment_status: "pending",
+          payment_method: "bank-slip",
+          payment_amount: course.finalPrice,
+        });
+        
+      if (paymentError) {
+        console.error("Error recording pending bank slip payment:", paymentError);
+      }
+      
       result = { 
         success: true, 
         status: "pending",
         id: `boleto_${Date.now()}`,
         boletoUrl: "https://example.com/boleto/123"
       };
-    }
-    
-    // Update user payment status in Supabase if there's a userId
-    if (result.success && userId) {
-      const paymentData = {
-        user_id: userId,
-        payment_status: result.status,
-        payment_method: paymentMethod,
-        stripe_payment_id: result.id,
-        payment_date: result.status === "completed" ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString()
-      };
-      
-      const { error: paymentError } = await supabaseAdmin
-        .from("user_payments")
-        .upsert(paymentData);
-      
-      if (paymentError) {
-        console.error("Error updating payment status:", paymentError);
-      } else {
-        console.log("Payment status updated for user:", userId);
-      }
     }
     
     console.log("Payment processed successfully");
