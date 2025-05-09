@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -82,22 +81,36 @@ const DocumentationStep: React.FC = () => {
       const filePath = `${user.id}/${applicationId}/${documentType}_${Date.now()}.${fileExt}`;
       
       // 3. Upload para o Supabase Storage
+      // No Supabase v2, não há onUploadProgress no método upload
+      // Vamos simular o progresso para manter a UX
+      
+      // Iniciar intervalo para simular o progresso do upload
+      let progressCounter = 0;
+      const progressInterval = setInterval(() => {
+        progressCounter += 5;
+        if (progressCounter > 95) {
+          clearInterval(progressInterval);
+        }
+        
+        setUploadStatus(prev => ({
+          ...prev,
+          [documentType]: {
+            ...prev[documentType],
+            progress: progressCounter
+          }
+        }));
+      }, 100);
+      
+      // Realizar o upload sem callback de progresso
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('student-documents')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: (progress) => {
-            const calculatedProgress = Math.round((progress.loaded / progress.total) * 100);
-            setUploadStatus(prev => ({
-              ...prev,
-              [documentType]: {
-                ...prev[documentType],
-                progress: calculatedProgress
-              }
-            }));
-          }
+          upsert: false
         });
+      
+      // Limpar o intervalo após o upload concluir (com sucesso ou erro)
+      clearInterval(progressInterval);
       
       if (uploadError) {
         throw uploadError;
