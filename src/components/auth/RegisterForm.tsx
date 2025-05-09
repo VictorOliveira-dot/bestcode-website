@@ -27,7 +27,7 @@ type FormValues = z.infer<typeof formSchema>;
 const RegisterForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, login } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -43,25 +43,31 @@ const RegisterForm = () => {
       setIsSubmitting(true);
       
       // Always register as student - hardcoded
-      const result = await registerUser({
+      const registerResult = await registerUser({
         email: values.email,
         password: values.password,
         name: values.name,
         role: 'student'
       });
       
-      if (!result.success) {
-        throw new Error(result.message || "Erro no registro");
+      if (!registerResult.success) {
+        throw new Error(registerResult.message || "Erro no registro");
       }
       
-      toast("Registro iniciado!", {
-        description: "Complete seu perfil e pagamento para finalizar seu cadastro.",
+      // Após registro bem-sucedido, fazer login automaticamente
+      const loginResult = await login(values.email, values.password);
+      
+      if (!loginResult.success) {
+        throw new Error("Registro realizado, mas não foi possível fazer login automaticamente. Por favor, faça login manualmente.");
+      }
+      
+      toast.success("Registro realizado com sucesso!", {
+        description: "Complete seu perfil para continuar.",
       });
       
-      // Redirect to /enrollment route
-      setTimeout(() => {
-        navigate('/enrollment');
-      }, 1000);
+      // Redirecionar para a página de enrollment
+      navigate('/enrollment');
+      
     } catch (error: any) {
       console.error('Erro no registro:', error);
       toast.error(error.message || "Ocorreu um erro ao processar seu cadastro. Por favor, tente novamente.");

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -34,9 +35,9 @@ const Enrollment = () => {
           .from('user_profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
           
-        if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+        if (error) {
           throw error;
         }
         
@@ -69,7 +70,12 @@ const Enrollment = () => {
       }
     };
 
-    fetchProfileData();
+    // Pequeno delay para garantir que o estado de autenticação esteja atualizado
+    const timer = setTimeout(() => {
+      fetchProfileData();
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [user, navigate]);
   
   const goToNextStep = () => {
@@ -90,7 +96,7 @@ const Enrollment = () => {
   useEffect(() => {
     if (!user && !isLoading) {
       toast.error("Você precisa estar logado para acessar esta página");
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
   }, [user, isLoading, navigate]);
 
