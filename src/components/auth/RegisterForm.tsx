@@ -58,9 +58,9 @@ const RegisterForm = () => {
         description: "Complete seu perfil para finalizar seu cadastro.",
       });
       
-      // Redirect to profile completion route
+      // Redirect to the enrollment route which exists in the Router
       setTimeout(() => {
-        navigate('/perfil/completar');
+        navigate('/enrollment');
       }, 1000);
     } catch (error: any) {
       console.error('Erro no registro:', error);
