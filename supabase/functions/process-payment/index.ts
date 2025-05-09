@@ -85,6 +85,24 @@ serve(async (req) => {
         },
       });
 
+      // Salvar dados do checkout na tabela user_payments
+      const { error: paymentError } = await supabaseAdmin
+        .from("user_payments")
+        .insert({
+          user_id: userId,
+          application_id: applicationId,
+          stripe_session_id: session.id,
+          checkout_url: session.url,
+          amount: course.finalPrice || 1797,
+          status: "pending",
+          created_at: new Date().toISOString(),
+        });
+
+      if (paymentError) {
+        console.error("Erro ao salvar dados de pagamento:", paymentError);
+        // Continue mesmo com erro no salvamento para não interromper o fluxo
+      }
+
       return new Response(JSON.stringify({ 
         success: true, 
         status: "pending",
