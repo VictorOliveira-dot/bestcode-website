@@ -301,6 +301,38 @@ export type Database = {
         }
         Relationships: []
       }
+      student_documents: {
+        Row: {
+          application_id: string
+          file_url: string
+          id: string
+          name: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          application_id: string
+          file_url: string
+          id?: string
+          name: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          application_id?: string
+          file_url?: string
+          id?: string
+          name?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_documents_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "student_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_payments: {
         Row: {
           application_id: string | null

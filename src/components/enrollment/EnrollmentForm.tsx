@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -117,6 +116,51 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     return true;
   };
   
+  const validateDocumentation = async () => {
+    try {
+      // Verificar se existem documentos enviados para o usuário atual
+      if (!user) return false;
+
+      const { data: applicationData } = await supabase
+        .from('student_applications')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!applicationData) {
+        toast.error("Perfil incompleto. Complete seu perfil primeiro.");
+        return false;
+      }
+
+      const { data: documents, error } = await supabase
+        .from('student_documents')
+        .select('name')
+        .eq('application_id', applicationData.id);
+
+      if (error) throw error;
+
+      // Verificar se os documentos obrigatórios foram enviados
+      const hasIdFront = documents?.some(doc => 
+        doc.name === "RG/CNH (Frente)" || doc.name.includes("Frente")
+      );
+      
+      const hasSelfie = documents?.some(doc => 
+        doc.name === "Selfie com documento" || doc.name.includes("Selfie")
+      );
+
+      if (!hasIdFront || !hasSelfie) {
+        toast.error("Por favor, envie os documentos obrigatórios antes de prosseguir");
+        return false;
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error("Erro ao verificar documentos:", error);
+      toast.error(`Erro ao verificar documentos: ${error.message}`);
+      return false;
+    }
+  };
+  
   const validateStudyPreferences = () => {
     // Check if required fields for the last step are filled
     const requiredStep3Fields = ['education', 'professionalArea', 'experienceLevel', 'studyAvailability'];
@@ -200,6 +244,8 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     
     if (currentStep === 1) {
       isValid = validatePersonalInfo();
+    } else if (currentStep === 2) {
+      isValid = await validateDocumentation();
     } else if (currentStep === totalSteps) {
       isValid = validateStudyPreferences();
     }
