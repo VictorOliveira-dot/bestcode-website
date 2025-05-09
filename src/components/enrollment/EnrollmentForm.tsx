@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -121,15 +122,23 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
       // Verificar se existem documentos enviados para o usuário atual
       if (!user) return false;
 
-      const { data: applicationData } = await supabase
+      // Primeiro verificar se já existe uma application
+      const { data: applicationData, error: appError } = await supabase
         .from('student_applications')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (!applicationData) {
-        toast.error("Perfil incompleto. Complete seu perfil primeiro.");
+      if (appError) {
+        console.error("Erro ao verificar inscrição:", appError);
+        toast.error("Erro ao verificar sua inscrição. Por favor, tente novamente.");
         return false;
+      }
+      
+      // Se não houver application, vamos considerar que é porque a etapa anterior está OK
+      // e a application será criada no componente DocumentationStep
+      if (!applicationData) {
+        return true;
       }
 
       const { data: documents, error } = await supabase
