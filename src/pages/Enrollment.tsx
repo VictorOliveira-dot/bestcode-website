@@ -70,10 +70,11 @@ const Enrollment = () => {
       }
     };
 
-    // Pequeno delay para garantir que o estado de autenticação esteja atualizado
+    // Delay slightly longer to ensure auth state is updated
     const timer = setTimeout(() => {
+      console.log("Checking auth state for enrollment:", user);
       fetchProfileData();
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [user, navigate]);
@@ -92,9 +93,12 @@ const Enrollment = () => {
     }
   };
 
-  // If user is not logged in, redirect to login
+  // If user is not logged in, redirect to login - add debugging to help identify issues
   useEffect(() => {
+    console.log("Enrollment page auth state:", { user, isLoading });
+    
     if (!user && !isLoading) {
+      console.log("Redirecting to login from enrollment page");
       toast.error("Você precisa estar logado para acessar esta página");
       navigate('/login', { replace: true });
     }

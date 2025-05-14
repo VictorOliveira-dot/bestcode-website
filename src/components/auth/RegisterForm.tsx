@@ -65,8 +65,10 @@ const RegisterForm = () => {
         description: "Complete seu perfil para continuar.",
       });
       
-      // Redirecionar para a página de enrollment
-      navigate('/enrollment');
+      // Redirecionar para a página de enrollment com um pequeno delay para garantir que o estado de autenticação esteja atualizado
+      setTimeout(() => {
+        navigate('/enrollment');
+      }, 800);
       
     } catch (error: any) {
       console.error('Erro no registro:', error);
