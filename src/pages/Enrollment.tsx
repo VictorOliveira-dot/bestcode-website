@@ -19,7 +19,7 @@ const Enrollment = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Check for existing profile data in Supabase and localStorage
+  // Check for existing profile data in Supabase
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!user) {
@@ -59,6 +59,8 @@ const Enrollment = () => {
             }
           } catch (error) {
             console.error("Error parsing saved enrollment data:", error);
+            // Clear corrupted data
+            localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
           }
         }
         
@@ -70,11 +72,11 @@ const Enrollment = () => {
       }
     };
 
-    // Delay slightly longer to ensure auth state is updated
+    // Delay slightly to ensure auth state is updated
     const timer = setTimeout(() => {
       console.log("Checking auth state for enrollment:", user);
       fetchProfileData();
-    }, 1500); // Increased delay to ensure auth state is properly updated
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [user, navigate]);

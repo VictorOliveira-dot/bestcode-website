@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -9,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -68,18 +67,14 @@ const RegisterForm = () => {
         if (error) {
           console.error("Auto-login error:", error);
           // Still redirect to enrollment even if auto-login fails
-          setTimeout(() => {
-            navigate("/enrollment", { replace: true });
-          }, 1000);
+          navigate("/enrollment", { replace: true });
           return;
         }
 
         console.log("Auto-login successful, redirecting to enrollment");
         
-        // Give the UI a moment to update before redirecting
-        setTimeout(() => {
-          navigate("/enrollment", { replace: true });
-        }, 1000);
+        // Redirect immediately to enrollment, without any delay
+        navigate("/enrollment", { replace: true });
       } else {
         console.error("Registration error:", result.message);
         toast({

@@ -94,6 +94,8 @@ export const loginUser = async (email: string, password: string) => {
 
     if (data?.user) {
       console.log('Login successful for:', data.user.email);
+      // Clear any local storage cache for enrollment data to ensure fresh start if needed
+      localStorage.removeItem('enrollment_form_data');
       return { success: true };
     }
 
@@ -116,6 +118,7 @@ export const logoutUser = async () => {
     
     // Clear any session data in localStorage first
     localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('enrollment_form_data');
     
     // Use global scope to ensure all sessions are terminated
     const { error } = await supabase.auth.signOut({
@@ -145,6 +148,9 @@ export const registerUser = async (data: {
   role: string; 
 }) => {
   try {
+    // Clear any potential cached enrollment data
+    localStorage.removeItem('enrollment_form_data');
+    
     // Directly sign up the user with Supabase auth
     const authResponse = await supabase.auth.signUp({
       email: data.email,

@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/auth";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
@@ -17,62 +17,77 @@ const Login = () => {
       console.log("Login page - User authenticated:", user);
       console.log("Login page - User role from public.users table:", user.role);
       
-      // Check if the user has completed their enrollment
-      const checkEnrollmentStatus = async () => {
-        try {
-          // Check if user profile exists and is complete
-          const { data: profileData, error: profileError } = await supabase
-            .from('user_profiles')
-            .select('is_profile_complete')
-            .eq('id', user.id)
-            .maybeSingle();
-          
-          if (profileError) {
-            console.error("Error fetching profile data:", profileError);
+      // Only check enrollment status for students
+      if (user.role === 'student') {
+        // Check if the user has completed their enrollment
+        const checkEnrollmentStatus = async () => {
+          try {
+            // Check if user profile exists and is complete
+            const { data: profileData, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('is_profile_complete')
+              .eq('id', user.id)
+              .maybeSingle();
+            
+            if (profileError) {
+              console.error("Error fetching profile data:", profileError);
+            }
+            
+            // If profile doesn't exist or is not complete, redirect to enrollment
+            if (!profileData || !profileData.is_profile_complete) {
+              console.log("Profile not complete, redirecting to enrollment");
+              toast({
+                title: "Complete seu cadastro",
+                description: "Por favor, complete seu perfil para continuar.",
+              });
+              navigate('/enrollment', { replace: true });
+              return;
+            }
+            
+            // Otherwise redirect based on user role
+            redirectBasedOnRole();
+          } catch (error) {
+            console.error("Error checking enrollment status:", error);
+            // In case of error, try regular redirection
+            redirectBasedOnRole();
           }
-          
-          // If profile doesn't exist or is not complete, redirect to enrollment
-          if (!profileData || !profileData.is_profile_complete) {
-            console.log("Profile not complete, redirecting to enrollment");
-            toast({
-              title: "Complete seu cadastro",
-              description: "Por favor, complete seu perfil para continuar.",
-            });
-            navigate('/enrollment', { replace: true });
-            return;
-          }
-          
-          // Otherwise redirect based on user role
-          let redirectPath = "/";
-          
-          if (user.role === "admin") {
-            redirectPath = "/admin/dashboard";
-            console.log("Redirecting to admin dashboard");
-          } else if (user.role === "teacher") {
-            redirectPath = "/teacher/dashboard";
-            console.log("Redirecting to teacher dashboard");
-          } else if (user.role === "student") {
-            redirectPath = "/student/dashboard";
-            console.log("Redirecting to student dashboard");
-          }
-          
-          // Show success message
-          toast({
-            title: "Login bem-sucedido!",
-            description: `Bem-vindo de volta, ${user.name}!`,
-          });
-          
-          // Navigate to dashboard
-          console.log("Final redirect path:", redirectPath);
-          navigate(redirectPath, { replace: true });
-        } catch (error) {
-          console.error("Error checking enrollment status:", error);
-        }
-      };
-      
-      checkEnrollmentStatus();
+        };
+        
+        checkEnrollmentStatus();
+      } else {
+        // For non-students, just redirect based on role
+        redirectBasedOnRole();
+      }
     }
   }, [user, loading, navigate]);
+
+  // Helper function to redirect based on user role
+  const redirectBasedOnRole = () => {
+    if (!user) return;
+    
+    let redirectPath = "/";
+    
+    if (user.role === "admin") {
+      redirectPath = "/admin/dashboard";
+      console.log("Redirecting to admin dashboard");
+    } else if (user.role === "teacher") {
+      redirectPath = "/teacher/dashboard";
+      console.log("Redirecting to teacher dashboard");
+    } else if (user.role === "student") {
+      redirectPath = "/student/dashboard";
+      console.log("Redirecting to student dashboard");
+    }
+    
+    // Show success message
+    toast({
+      title: "Login bem-sucedido!",
+      description: `Bem-vindo de volta, ${user.name}!`,
+    });
+    
+    // Navigate to dashboard
+    console.log("Final redirect path:", redirectPath);
+    navigate(redirectPath, { replace: true });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
