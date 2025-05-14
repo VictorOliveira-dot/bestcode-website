@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -9,13 +10,14 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import PaymentForm from "@/components/checkout/PaymentForm";
+import OrderSummary from "@/components/checkout/OrderSummary";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 
 const Checkout = () => {
-  const [paymentMethod, setPaymentMethod] = useState("checkout"); // Hardcoded to Stripe Checkout
+  const [paymentMethod, setPaymentMethod] = useState("pix"); // Default to PIX (cheapest option)
   const [isProcessing, setIsProcessing] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [cardData, setCardData] = useState({
@@ -32,19 +34,40 @@ const Checkout = () => {
   const isCanceled = new URLSearchParams(location.search).get("canceled") === "true";
   const isSuccess = new URLSearchParams(location.search).get("success") === "true";
 
-  // Course information
-  const course = {
+  // Course information with dynamic pricing based on payment method
+  const [course, setCourse] = useState({
     title: "Formação Completa em QA",
-    price: 1997.00,
-    discount: 200.00,
-    finalPrice: 1797.00,
+    price: 4999.00,
+    discount: 999.00,
+    finalPrice: 4000.00, // Default to PIX price (4000)
     installments: 12,
-    installmentPrice: 149.75
-  };
+    installmentPrice: 374.91
+  });
+
+  // Update pricing based on payment method
+  useEffect(() => {
+    if (paymentMethod === "pix" || paymentMethod === "credit-full") {
+      setCourse(prev => ({
+        ...prev,
+        discount: 999.00,
+        finalPrice: 4000.00
+      }));
+    } else if (paymentMethod === "credit-installments" || paymentMethod === "boleto") {
+      setCourse(prev => ({
+        ...prev,
+        discount: 0.00,
+        finalPrice: 4499.00 // Total price for installments (12 × 374.91 = 4,498.92)
+      }));
+    }
+  }, [paymentMethod]);
 
   useEffect(() => {
     if (isSuccess) {
-      toast.success("Pagamento realizado com sucesso! Redirecionando para a plataforma...");
+      toast({
+        title: "Pagamento realizado com sucesso!",
+        description: "Redirecionando para a plataforma...",
+        variant: "success"
+      });
       setTimeout(() => {
         navigate("/student/dashboard");
       }, 3000);
@@ -52,12 +75,20 @@ const Checkout = () => {
     }
 
     if (isCanceled) {
-      toast.error("Pagamento cancelado. Você pode tentar novamente quando quiser.");
+      toast({
+        title: "Pagamento cancelado",
+        description: "Você pode tentar novamente quando quiser.",
+        variant: "destructive"
+      });
     }
 
     // If no user, redirect to registration
     if (!user) {
-      toast.error("Você precisa estar registrado para acessar esta página");
+      toast({
+        title: "Acesso restrito",
+        description: "Você precisa estar registrado para acessar esta página",
+        variant: "destructive"
+      });
       navigate("/register");
       return;
     }
@@ -76,14 +107,22 @@ const Checkout = () => {
 
         // Redirect non-students away
         if (userData && userData.role !== 'student') {
-          toast.error("Apenas estudantes podem realizar pagamentos de cursos.");
+          toast({
+            title: "Acesso restrito",
+            description: "Apenas estudantes podem realizar pagamentos de cursos.",
+            variant: "destructive"
+          });
           navigate("/");
           return;
         }
         
         // Redirect already active students
         if (userData?.is_active) {
-          toast.info("Sua conta já está ativa. Redirecionando para a área de alunos.");
+          toast({
+            title: "Conta já ativa",
+            description: "Sua conta já está ativa. Redirecionando para a área de alunos.",
+            variant: "default"
+          });
           navigate("/student/dashboard");
           return;
         }
@@ -102,7 +141,11 @@ const Checkout = () => {
         setIsProfileComplete(!!profileData?.is_profile_complete);
         
         if (!profileData?.is_profile_complete) {
-          toast.info("Por favor, complete seu perfil antes de prosseguir");
+          toast({
+            title: "Perfil incompleto",
+            description: "Por favor, complete seu perfil antes de prosseguir",
+            variant: "default"
+          });
           navigate("/inscricao");
         }
       } catch (error) {
@@ -113,7 +156,11 @@ const Checkout = () => {
     if (user) {
       checkUserStatus();
     } else {
-      toast.error("Você precisa estar logado para acessar esta página");
+      toast({
+        title: "Acesso restrito",
+        description: "Você precisa estar logado para acessar esta página",
+        variant: "destructive"
+      });
       navigate("/login");
     }
   }, [user, navigate, isCanceled, isSuccess]);
@@ -129,7 +176,11 @@ const Checkout = () => {
     e.preventDefault();
     
     if (!user) {
-      toast.error("Você precisa estar registrado para completar a compra");
+      toast({
+        title: "Acesso restrito",
+        description: "Você precisa estar registrado para completar a compra",
+        variant: "destructive"
+      });
       navigate("/register");
       return;
     }
@@ -137,65 +188,75 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
-      // We now only support Stripe Checkout
+      // Get application ID if available
+      const { data: applicationData } = await supabase
+        .from("student_applications")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+      
+      const applicationId = applicationData?.id;
+
+      // Process payment based on selected method
       const { data, error } = await supabase.functions.invoke('process-payment', {
         body: {
-          paymentMethod: "checkout",
-          course,
-          userId: user.id
+          paymentMethod,
+          cardData: (paymentMethod === "credit-full" || paymentMethod === "credit-installments") ? cardData : undefined,
+          course: {
+            ...course,
+            paymentMethod
+          },
+          userId: user.id,
+          applicationId
         }
       });
       
       if (error) throw new Error(error.message || "Ocorreu um erro ao processar o pagamento");
       
-      // Redirect to Stripe Checkout
+      // Redirect to Stripe Checkout or show success based on payment method
       if (data?.url) {
+        // Store email data for checkout recovery
+        localStorage.setItem('checkout_session', JSON.stringify({
+          sessionId: data.id,
+          email: user.email,
+          course: course.title,
+          amount: course.finalPrice,
+          paymentMethod
+        }));
+        
         window.location.href = data.url;
         return;
+      } else if (data?.success) {
+        toast({
+          title: "Pagamento iniciado",
+          description: "Siga as instruções para completar o pagamento",
+          variant: "default"
+        });
+        // For non-redirect methods like PIX or boleto
+        if (data.pixCode) {
+          // Handle PIX code display
+          // Could redirect to a PIX instructions page
+          navigate(`/payment-pix?code=${data.pixCode}`);
+          return;
+        } else if (data.boleto) {
+          // Handle boleto URL
+          navigate(`/payment-boleto?url=${data.boleto}`);
+          return;
+        }
       } else {
         throw new Error("URL de checkout não encontrada");
       }
     } catch (error: any) {
       console.error("Erro ao processar pagamento:", error);
-      toast.error(error.message || "Ocorreu um erro ao processar o pagamento");
+      toast({
+        title: "Erro no pagamento",
+        description: error.message || "Ocorreu um erro ao processar o pagamento",
+        variant: "destructive"
+      });
     } finally {
       setIsProcessing(false);
     }
   };
-
-  // Order summary component
-  const OrderSummary = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Resumo do Pedido</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex justify-between">
-            <span>Curso</span>
-            <span>{course.title}</span>
-          </div>
-          <div className="flex justify-between text-gray-500">
-            <span>Valor original</span>
-            <span>R$ {course.price.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-green-600">
-            <span>Desconto</span>
-            <span>- R$ {course.discount.toFixed(2)}</span>
-          </div>
-          <div className="border-t pt-2 mt-2">
-            <div className="flex justify-between font-bold">
-              <span>Total</span>
-              <span>R$ {course.finalPrice.toFixed(2)}</span>
-            </div>
-            <div className="text-sm text-gray-500 mt-1">
-              <span>ou até {course.installments}x de R$ {course.installmentPrice.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
 
   // If still checking profile status, show loading
   if (!isProfileComplete && user) {
@@ -224,7 +285,7 @@ const Checkout = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Order Summary */}
               <div className="lg:col-span-1 order-2 lg:order-1">
-                <OrderSummary />
+                <OrderSummary course={course} />
               </div>
 
               {/* Payment Form */}

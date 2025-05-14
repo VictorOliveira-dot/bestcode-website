@@ -48,6 +48,8 @@ serve(async (req) => {
       event = JSON.parse(body);
     }
     
+    console.log(`Received event: ${event.type}`);
+    
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -57,8 +59,9 @@ serve(async (req) => {
         const customerEmail = session.customer_email;
         const userId = session.metadata?.userId;
         const applicationId = session.metadata?.applicationId;
+        const paymentMethod = session.metadata?.paymentMethod;
         
-        console.log(`Payment successful for session ${session.id}. User ID: ${userId}, Application ID: ${applicationId}`);
+        console.log(`Payment successful for session ${session.id}. User ID: ${userId}, Payment Method: ${paymentMethod}`);
         
         if (userId) {
           // Verificar se o usuário é um estudante
@@ -81,7 +84,7 @@ serve(async (req) => {
             });
           }
           
-          // Update user to active status (only for students)
+          // Update user to active status (only for students) - CRITICAL STEP
           const { error: userUpdateError } = await supabaseAdmin
             .from("users")
             .update({ is_active: true })
@@ -91,23 +94,56 @@ serve(async (req) => {
             console.error("Error updating user status:", userUpdateError);
           } else {
             console.log(`Student ${userId} activated successfully`);
+            
+            // Send confirmation email to student
+            try {
+              const { data: emailData, error: emailError } = await supabaseAdmin
+                .from("users")
+                .select("email, name")
+                .eq("id", userId)
+                .single();
+                
+              if (!emailError && emailData) {
+                // Send an email notification about account activation
+                // Note: You need to implement email sending functionality here
+                console.log(`Should send activation email to ${emailData.email}`);
+                
+                // Add notification to the student's notifications
+                const { error: notificationError } = await supabaseAdmin
+                  .from("notifications")
+                  .insert({
+                    user_id: userId,
+                    title: "Pagamento Confirmado",
+                    message: `Seu pagamento foi confirmado! Bem-vindo ao curso ${session.metadata?.courseTitle || 'Formação Completa em QA'}.`,
+                    read: false
+                  });
+                  
+                if (notificationError) {
+                  console.error("Error creating notification:", notificationError);
+                }
+              }
+            } catch (emailErr) {
+              console.error("Error sending confirmation email:", emailErr);
+            }
           }
           
-          // Update payment status
-          const paymentData = {
-            user_id: userId,
-            payment_status: "completed",
-            payment_method: "stripe", 
-            stripe_payment_id: session.id,
-            payment_amount: session.amount_total / 100,
-            payment_date: new Date().toISOString()
-          };
-          
-          // Add application_id if available
-          if (applicationId) {
-            paymentData.application_id = applicationId;
+          // Update payment status to completed
+          const { error: paymentUpdateError } = await supabaseAdmin
+            .from("user_payments")
+            .update({ 
+              payment_status: "completed",
+              payment_date: new Date().toISOString()
+            })
+            .eq("stripe_payment_id", session.id);
             
-            // Also update the application status
+          if (paymentUpdateError) {
+            console.error("Error updating payment status:", paymentUpdateError);
+          } else {
+            console.log(`Payment status updated for session ${session.id}`);
+          }
+          
+          // If application ID is provided, update application status
+          if (applicationId) {
             const { error: applicationError } = await supabaseAdmin
               .from("student_applications")
               .update({ status: "approved" })
@@ -118,17 +154,6 @@ serve(async (req) => {
             } else {
               console.log(`Application ${applicationId} marked as approved`);
             }
-          }
-          
-          // Record payment
-          const { error: paymentUpdateError } = await supabaseAdmin
-            .from("user_payments")
-            .insert(paymentData);
-            
-          if (paymentUpdateError) {
-            console.error("Error recording payment:", paymentUpdateError);
-          } else {
-            console.log(`Payment record created for user ${userId}`);
           }
         } else if (customerEmail) {
           // If no userId in metadata, try to find user by email
@@ -154,6 +179,20 @@ serve(async (req) => {
               console.error("Error updating user status:", userUpdateError);
             } else {
               console.log(`User with email ${customerEmail} activated successfully`);
+              
+              // Add notification
+              const { error: notificationError } = await supabaseAdmin
+                .from("notifications")
+                .insert({
+                  user_id: userId,
+                  title: "Pagamento Confirmado",
+                  message: "Seu pagamento foi confirmado! Bem-vindo ao curso.",
+                  read: false
+                });
+                
+              if (notificationError) {
+                console.error("Error creating notification:", notificationError);
+              }
             }
             
             // Record payment
@@ -183,12 +222,91 @@ serve(async (req) => {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
         console.log(`PaymentIntent for ${paymentIntent.amount} succeeded.`);
+        
+        // If the payment intent has metadata with user ID, update user status
+        const userId = paymentIntent.metadata?.userId;
+        
+        if (userId) {
+          // Check if this is a payment for our course
+          // Update user to active status (only for students)
+          const { error: userUpdateError } = await supabaseAdmin
+            .from("users")
+            .update({ is_active: true })
+            .eq("id", userId);
+            
+          if (userUpdateError) {
+            console.error("Error updating user status from payment intent:", userUpdateError);
+          } else {
+            console.log(`User ${userId} activated successfully from payment intent`);
+            
+            // Update payment status
+            const { error: paymentUpdateError } = await supabaseAdmin
+              .from("user_payments")
+              .update({ 
+                payment_status: "completed",
+                payment_date: new Date().toISOString()
+              })
+              .eq("user_id", userId)
+              .eq("payment_status", "pending");
+              
+            if (paymentUpdateError) {
+              console.error("Error updating payment status from payment intent:", paymentUpdateError);
+            }
+          }
+        }
         break;
       }
       
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object;
         console.log(`Payment failed: ${paymentIntent.last_payment_error?.message}`);
+        
+        // If the payment intent has metadata with user ID, update payment status
+        const userId = paymentIntent.metadata?.userId;
+        
+        if (userId) {
+          const { error: paymentUpdateError } = await supabaseAdmin
+            .from("user_payments")
+            .update({ 
+              payment_status: "failed",
+              updated_at: new Date().toISOString()
+            })
+            .eq("user_id", userId)
+            .eq("payment_status", "pending");
+            
+          if (paymentUpdateError) {
+            console.error("Error updating payment status to failed:", paymentUpdateError);
+          }
+        }
+        break;
+      }
+      
+      // Handle PIX-specific events
+      case 'payment_intent.processing': {
+        const paymentIntent = event.data.object;
+        console.log(`Payment processing: ${paymentIntent.id}`);
+        
+        // Check if this is a PIX payment
+        const paymentMethod = paymentIntent.payment_method_types?.includes('pix') ? 'pix' : '';
+        
+        if (paymentMethod === 'pix') {
+          const userId = paymentIntent.metadata?.userId;
+          
+          if (userId) {
+            const { error: paymentUpdateError } = await supabaseAdmin
+              .from("user_payments")
+              .update({ 
+                payment_status: "processing",
+                updated_at: new Date().toISOString()
+              })
+              .eq("user_id", userId)
+              .eq("payment_status", "pending");
+              
+            if (paymentUpdateError) {
+              console.error("Error updating PIX payment status to processing:", paymentUpdateError);
+            }
+          }
+        }
         break;
       }
       

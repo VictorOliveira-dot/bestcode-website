@@ -7,7 +7,7 @@ import CreditCardForm from "./CreditCardForm";
 import BankSlipInfo from "./BankSlipInfo";
 import PixInfo from "./PixInfo";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 
 interface CardDataType {
   cardName: string;
@@ -50,7 +50,11 @@ const PaymentForm = ({
     e.preventDefault();
     
     if (!acceptTerms) {
-      toast.error("Você precisa aceitar os termos de serviço para continuar.");
+      toast({
+        variant: "destructive",
+        title: "Termos não aceitos",
+        description: "Você precisa aceitar os termos de serviço para continuar."
+      });
       return;
     }
     
@@ -64,25 +68,16 @@ const PaymentForm = ({
         setPaymentMethod={setPaymentMethod} 
       />
 
-      {paymentMethod === "credit-card" && (
-        <CreditCardForm 
-          cardData={cardData}
-          handleCardInputChange={handleCardInputChange}
-          installments={course.installments}
-          finalPrice={course.finalPrice}
-        />
-      )}
-
-      {paymentMethod === "bank-slip" && <BankSlipInfo />}
-
-      {paymentMethod === "pix" && <PixInfo />}
-
-      {paymentMethod === "checkout" && (
+      {(paymentMethod === "credit-full" || paymentMethod === "credit-installments") && (
         <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-md">
           <p className="font-medium">Você será redirecionado para o Stripe Checkout</p>
           <p className="text-sm mt-1">Complete o pagamento de forma segura diretamente no ambiente do Stripe.</p>
         </div>
       )}
+
+      {paymentMethod === "boleto" && <BankSlipInfo />}
+
+      {paymentMethod === "pix" && <PixInfo />}
 
       <div className="flex items-center space-x-2 mt-4">
         <Checkbox 

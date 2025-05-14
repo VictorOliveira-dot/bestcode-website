@@ -44,18 +44,22 @@ const OrderSummary = ({ course }: OrderSummaryProps) => {
             <span className="text-gray-600">Preço original</span>
             <span>R$ {course.price.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-green-600">
-            <span>Desconto</span>
-            <span>- R$ {course.discount.toFixed(2)}</span>
-          </div>
+          {course.discount > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Desconto</span>
+              <span>- R$ {course.discount.toFixed(2)}</span>
+            </div>
+          )}
           <Separator />
           <div className="flex justify-between font-medium text-lg">
             <span>Total</span>
             <span>R$ {course.finalPrice.toFixed(2)}</span>
           </div>
-          <div className="text-sm text-gray-500 text-right">
-            ou {course.installments}x de R$ {course.installmentPrice.toFixed(2)}
-          </div>
+          {course.installments > 1 && (
+            <div className="text-sm text-gray-500 text-right">
+              ou {course.installments}x de R$ {course.installmentPrice.toFixed(2)}
+            </div>
+          )}
         </div>
       </CardContent>
       <CardFooter className="flex-col space-y-4">

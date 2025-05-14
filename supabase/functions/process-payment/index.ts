@@ -16,7 +16,7 @@ serve(async (req) => {
 
   try {
     // Get request body
-    const { paymentMethod, cardData, course, userId } = await req.json();
+    const { paymentMethod, cardData, course, userId, applicationId } = await req.json();
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -49,59 +49,122 @@ serve(async (req) => {
       throw new Error("Only students can make payments");
     }
 
-    // Get application data
-    const { data: applicationData } = await supabaseAdmin
-      .from("student_applications")
-      .select("id")
-      .eq("user_id", userId)
-      .single();
-
-    const applicationId = applicationData?.id;
-
-    // Create a Stripe checkout session - only support Stripe Checkout
-    if (paymentMethod === "checkout") {
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        customer_email: userData.email,
-        line_items: [
-          {
-            price_data: {
-              currency: 'brl',
-              product_data: {
-                name: course.title || 'Formação Completa em QA',
-                description: 'Curso completo de formação em Quality Assurance',
-              },
-              unit_amount: Math.round((course.finalPrice || 1797) * 100), // Convert to cents
-            },
-            quantity: 1,
+    // Set payment amount based on payment method
+    let amount = 0;
+    let paymentType = "payment";
+    
+    // Configure line items based on payment method
+    let lineItems = [];
+    
+    if (paymentMethod === "pix" || paymentMethod === "credit-full") {
+      // PIX or credit card one-time full payment
+      amount = 400000; // R$4,000.00 in cents
+      paymentType = "payment";
+      
+      lineItems.push({
+        price_data: {
+          currency: 'brl',
+          product_data: {
+            name: course.title || 'Formação Completa em QA',
+            description: 'Curso completo de formação em Quality Assurance',
           },
-        ],
-        mode: 'payment',
-        success_url: `${req.headers.get("origin")}/checkout?success=true`,
-        cancel_url: `${req.headers.get("origin")}/checkout?canceled=true`,
+          unit_amount: amount, // R$4,000.00 in cents
+        },
+        quantity: 1,
+      });
+    } 
+    else if (paymentMethod === "credit-installments") {
+      // Credit card installments (handled by Stripe)
+      amount = 449900; // R$4,499.00 in cents (12x R$374.91)
+      paymentType = "payment";
+      
+      lineItems.push({
+        price_data: {
+          currency: 'brl',
+          product_data: {
+            name: course.title || 'Formação Completa em QA',
+            description: 'Curso completo de formação em Quality Assurance - Parcelado',
+          },
+          unit_amount: amount,
+        },
+        quantity: 1,
+      });
+    }
+    else if (paymentMethod === "boleto") {
+      // Boleto installments (handled by Stripe)
+      amount = 449900; // R$4,499.00 in cents
+      paymentType = "payment";
+      
+      lineItems.push({
+        price_data: {
+          currency: 'brl',
+          product_data: {
+            name: course.title || 'Formação Completa em QA',
+            description: 'Curso completo de formação em Quality Assurance - Boleto Parcelado',
+          },
+          unit_amount: amount,
+        },
+        quantity: 1,
+      });
+    }
+
+    // Create a Stripe checkout session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: getPaymentMethodTypes(paymentMethod),
+      customer_email: userData.email,
+      line_items: lineItems,
+      mode: paymentType,
+      payment_intent_data: {
+        setup_future_usage: paymentMethod.includes('credit') ? 'on_session' : undefined,
         metadata: {
           userId: userId,
           applicationId: applicationId || '',
+          paymentMethod: paymentMethod,
         },
-      });
+      },
+      success_url: `${req.headers.get("origin")}/checkout?success=true`,
+      cancel_url: `${req.headers.get("origin")}/checkout?canceled=true`,
+      metadata: {
+        userId: userId,
+        applicationId: applicationId || '',
+        paymentMethod: paymentMethod,
+      },
+    });
 
-      return new Response(JSON.stringify({ 
-        success: true, 
-        status: "pending",
-        id: session.id,
-        url: session.url
-      }), {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      });
-    } 
-    else {
-      // We no longer support other payment methods
-      throw new Error("Only Stripe Checkout payment method is supported");
+    // Record the pending payment
+    const paymentData = {
+      user_id: userId,
+      payment_status: "pending",
+      payment_method: getPaymentMethodTypeForDB(paymentMethod),
+      stripe_payment_id: session.id,
+      payment_amount: amount / 100, // Convert from cents to real
+      payment_date: new Date().toISOString(),
+      application_id: applicationId || null
+    };
+    
+    // Insert payment record
+    const { error: paymentUpdateError } = await supabaseAdmin
+      .from("user_payments")
+      .insert(paymentData);
+    
+    if (paymentUpdateError) {
+      console.error("Error recording payment:", paymentUpdateError);
+    } else {
+      console.log(`Payment record created for user ${userId}`);
     }
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      status: "pending",
+      id: session.id,
+      url: session.url
+    }), {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     console.error("Error processing payment:", error);
     
@@ -118,3 +181,32 @@ serve(async (req) => {
     });
   }
 });
+
+// Helper functions
+function getPaymentMethodTypes(paymentMethod: string): string[] {
+  switch (paymentMethod) {
+    case "pix":
+      return ['pix'];
+    case "credit-full":
+    case "credit-installments":
+      return ['card'];
+    case "boleto":
+      return ['boleto'];
+    default:
+      return ['card'];
+  }
+}
+
+function getPaymentMethodTypeForDB(paymentMethod: string): string {
+  switch (paymentMethod) {
+    case "pix":
+      return "pix";
+    case "credit-full":
+    case "credit-installments":
+      return "credit_card";
+    case "boleto":
+      return "boleto";
+    default:
+      return "other";
+  }
+}
