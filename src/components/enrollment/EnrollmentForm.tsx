@@ -49,34 +49,20 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // Load saved data from localStorage on component mount
-  useEffect(() => {
-    const savedData = localStorage.getItem(ENROLLMENT_STORAGE_KEY);
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setFormData(parsedData);
-        toast.info("Dados do seu formulário foram carregados", {
-          description: "Continue de onde você parou"
-        });
-      } catch (error) {
-        console.error("Error parsing saved enrollment data:", error);
-      }
-    }
-  }, []);
-  
-  // Save form data to localStorage whenever it changes
-  useEffect(() => {
-    if (Object.values(formData).some(value => value !== "")) {
-      localStorage.setItem(ENROLLMENT_STORAGE_KEY, JSON.stringify(formData));
-    }
-  }, [formData]);
+  // We're intentionally NOT loading saved data from localStorage on component mount
+  // to avoid using cached data
   
   const handleInputChange = (field: string, value: any) => {
     setFormData({
       ...formData,
       [field]: value
     });
+    
+    // Save current form state temporarily
+    localStorage.setItem(ENROLLMENT_STORAGE_KEY, JSON.stringify({
+      ...formData,
+      [field]: value
+    }));
   };
   
   const validatePersonalInfo = () => {

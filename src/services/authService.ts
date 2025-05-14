@@ -79,6 +79,9 @@ export const loginUser = async (email: string, password: string) => {
   try {
     console.log('Attempting login with:', email);
     
+    // Clear any local storage cache
+    localStorage.removeItem('enrollment_form_data');
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -94,8 +97,6 @@ export const loginUser = async (email: string, password: string) => {
 
     if (data?.user) {
       console.log('Login successful for:', data.user.email);
-      // Clear any local storage cache for enrollment data to ensure fresh start if needed
-      localStorage.removeItem('enrollment_form_data');
       return { success: true };
     }
 

@@ -48,21 +48,8 @@ const Enrollment = () => {
           return;
         }
         
-        // Otherwise, continue with loading saved form data if available
-        const savedData = localStorage.getItem(ENROLLMENT_STORAGE_KEY);
-        if (savedData) {
-          try {
-            const parsedData = JSON.parse(savedData);
-            // If user has completed personal info, start at step 2
-            if (parsedData.firstName && parsedData.lastName && parsedData.cpf && parsedData.phone) {
-              setCurrentStep(2);
-            }
-          } catch (error) {
-            console.error("Error parsing saved enrollment data:", error);
-            // Clear corrupted data
-            localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
-          }
-        }
+        // Clear any previous enrollment data from localStorage to avoid cached data issues
+        localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
         
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -95,7 +82,7 @@ const Enrollment = () => {
     }
   };
 
-  // If user is not logged in, redirect to login - add debugging to help identify issues
+  // If user is not logged in, redirect to login
   useEffect(() => {
     console.log("Enrollment page auth state:", { user, isLoading });
     
@@ -126,11 +113,6 @@ const Enrollment = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Matrícula</h1>
             <p className="text-gray-600 mt-1">Complete seu cadastro para iniciar o curso</p>
-            {localStorage.getItem(ENROLLMENT_STORAGE_KEY) && (
-              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-md mt-2">
-                Você tem dados salvos. Continue de onde parou.
-              </div>
-            )}
           </div>
 
           <EnrollmentProgressBar 
