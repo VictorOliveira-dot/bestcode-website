@@ -20,19 +20,6 @@ export const useAuthState = () => {
     console.log("Auth Provider: Initializing authentication...");
     setLoading(true);
 
-    // Clear any existing session on initial load
-    const clearSession = async () => {
-      try {
-        await supabase.auth.signOut();
-        console.log("Previous session cleared");
-      } catch (error) {
-        console.error("Error clearing session:", error);
-      }
-    };
-
-    // Clear session right away
-    clearSession();
-    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -55,6 +42,32 @@ export const useAuthState = () => {
                   name: userData.name,
                   role: userData.role as 'admin' | 'teacher' | 'student',
                 });
+
+                // Ensure a profile record exists for this user
+                const { data: profileData, error: profileError } = await supabase
+                  .from('user_profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .maybeSingle();
+
+                if (profileError) {
+                  console.error("Error checking user profile:", profileError);
+                }
+
+                // If no profile exists, create one
+                if (!profileData) {
+                  console.log("Creating initial profile record for user");
+                  const { error: insertError } = await supabase
+                    .from('user_profiles')
+                    .insert({
+                      id: session.user.id,
+                      is_profile_complete: false
+                    });
+
+                  if (insertError) {
+                    console.error("Error creating initial profile:", insertError);
+                  }
+                }
               } else {
                 console.error("Could not get or create user data in database");
                 setUser(null);
@@ -73,6 +86,16 @@ export const useAuthState = () => {
         }
       }
     );
+
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        console.log("Initial session check: User is logged in");
+      } else {
+        console.log("Initial session check: No active session");
+        setLoading(false);
+      }
+    });
 
     // Clean up subscription
     return () => {

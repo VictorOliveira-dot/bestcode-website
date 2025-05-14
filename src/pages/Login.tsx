@@ -1,45 +1,76 @@
-
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/auth";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Check if user is authenticated and redirect to appropriate dashboard
+  // Check if user is authenticated and redirect to appropriate page
   useEffect(() => {
     if (!loading && user) {
       console.log("Login page - User authenticated:", user);
       console.log("Login page - User role from public.users table:", user.role);
       
-      // Properly redirect based on user role from public.users table
-      let redirectPath = "/";
+      // Check if the user has completed their enrollment
+      const checkEnrollmentStatus = async () => {
+        try {
+          // Check if user profile exists and is complete
+          const { data: profileData, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('is_profile_complete')
+            .eq('id', user.id)
+            .maybeSingle();
+          
+          if (profileError) {
+            console.error("Error fetching profile data:", profileError);
+          }
+          
+          // If profile doesn't exist or is not complete, redirect to enrollment
+          if (!profileData || !profileData.is_profile_complete) {
+            console.log("Profile not complete, redirecting to enrollment");
+            toast({
+              title: "Complete seu cadastro",
+              description: "Por favor, complete seu perfil para continuar.",
+            });
+            navigate('/enrollment', { replace: true });
+            return;
+          }
+          
+          // Otherwise redirect based on user role
+          let redirectPath = "/";
+          
+          if (user.role === "admin") {
+            redirectPath = "/admin/dashboard";
+            console.log("Redirecting to admin dashboard");
+          } else if (user.role === "teacher") {
+            redirectPath = "/teacher/dashboard";
+            console.log("Redirecting to teacher dashboard");
+          } else if (user.role === "student") {
+            redirectPath = "/student/dashboard";
+            console.log("Redirecting to student dashboard");
+          }
+          
+          // Show success message
+          toast({
+            title: "Login bem-sucedido!",
+            description: `Bem-vindo de volta, ${user.name}!`,
+          });
+          
+          // Navigate to dashboard
+          console.log("Final redirect path:", redirectPath);
+          navigate(redirectPath, { replace: true });
+        } catch (error) {
+          console.error("Error checking enrollment status:", error);
+        }
+      };
       
-      if (user.role === "admin") {
-        redirectPath = "/admin/dashboard";
-        console.log("Redirecting to admin dashboard");
-      } else if (user.role === "teacher") {
-        redirectPath = "/teacher/dashboard";
-        console.log("Redirecting to teacher dashboard");
-      } else if (user.role === "student") {
-        redirectPath = "/student/dashboard";
-        console.log("Redirecting to student dashboard");
-      }
-      
-      // Show success message
-      toast({
-        title: "Login bem-sucedido!",
-        description: `Bem-vindo de volta, ${user.name}!`,
-      });
-      
-      // Navigate to dashboard
-      console.log("Final redirect path:", redirectPath);
-      navigate(redirectPath, { replace: true });
+      checkEnrollmentStatus();
     }
   }, [user, loading, navigate]);
 

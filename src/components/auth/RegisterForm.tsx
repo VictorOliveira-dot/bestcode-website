@@ -1,111 +1,129 @@
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { toast } from 'sonner';
-import { useAuth } from '@/contexts/auth';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-const formSchema = z.object({
-  name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
-  email: z.string().email('Endereço de e-mail inválido'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+import { Card, CardContent } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/toast";
+import { useAuth } from "@/contexts/auth";
+import { supabase } from "@/integrations/supabase/client";
+
+// Define form schema
+const registerSchema = z.object({
+  name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type RegisterFormValues = z.infer<typeof registerSchema>;
+
+// Default values
+const defaultValues: RegisterFormValues = {
+  name: "",
+  email: "",
+  password: "",
+};
 
 const RegisterForm = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { register } = useAuth();
   const navigate = useNavigate();
-  const { register: registerUser, login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-    },
+  // Define form
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues,
   });
 
-  const onSubmit = async (values: FormValues) => {
+  // Handle form submission
+  const onSubmit = async (values: RegisterFormValues) => {
+    setIsLoading(true);
+    
     try {
-      setIsSubmitting(true);
-      
-      // Always register as student - hardcoded
-      const registerResult = await registerUser({
+      // Register user
+      const result = await register({
         email: values.email,
         password: values.password,
         name: values.name,
-        role: 'student'
+        role: "student", // Default role for new users
       });
-      
-      if (!registerResult.success) {
-        throw new Error(registerResult.message || "Erro no registro");
+
+      if (result.success) {
+        toast({
+          title: "Registration successful!",
+          description: "Your account has been created.",
+        });
+
+        // Log in the user immediately after registration
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: values.email,
+          password: values.password,
+        });
+
+        if (error) {
+          console.error("Auto-login error:", error);
+          // Still redirect to enrollment even if auto-login fails
+          setTimeout(() => {
+            navigate("/enrollment", { replace: true });
+          }, 1000);
+          return;
+        }
+
+        console.log("Auto-login successful, redirecting to enrollment");
+        
+        // Give the UI a moment to update before redirecting
+        setTimeout(() => {
+          navigate("/enrollment", { replace: true });
+        }, 1000);
+      } else {
+        console.error("Registration error:", result.message);
+        toast({
+          variant: "destructive",
+          title: "Registration failed",
+          description: result.message || "An error occurred during registration",
+        });
       }
-      
-      // Após registro bem-sucedido, fazer login automaticamente
-      const loginResult = await login(values.email, values.password);
-      
-      if (!loginResult.success) {
-        throw new Error("Registro realizado, mas não foi possível fazer login automaticamente. Por favor, faça login manualmente.");
-      }
-      
-      toast.success("Registro realizado com sucesso!", {
-        description: "Complete seu perfil para continuar.",
-      });
-      
-      // Redirecionar para a página de enrollment com um pequeno delay para garantir que o estado de autenticação esteja atualizado
-      setTimeout(() => {
-        navigate('/enrollment');
-      }, 800);
-      
     } catch (error: any) {
-      console.error('Erro no registro:', error);
-      toast.error(error.message || "Ocorreu um erro ao processar seu cadastro. Por favor, tente novamente.");
+      console.error("Unexpected registration error:", error);
+      toast({
+        variant: "destructive",
+        title: "Registration error",
+        description: error.message || "An unexpected error occurred",
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      <Form {...form}>
-        <form 
-          onSubmit={form.handleSubmit(onSubmit)} 
-          className="space-y-4"
-        >
-          <div>
+    <Card className="w-full max-w-md mx-auto">
+      <CardContent className="pt-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome Completo</FormLabel>
+                  <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <input 
-                      placeholder="Seu nome" 
+                    <Input 
+                      placeholder="Enter your full name" 
                       {...field} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
+                      autoComplete="name"
+                      disabled={isLoading} 
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-          
-          <div>
+            
             <FormField
               control={form.control}
               name="email"
@@ -113,52 +131,56 @@ const RegisterForm = () => {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <input 
-                      type="email" 
-                      placeholder="seu@email.com" 
+                    <Input 
+                      placeholder="example@email.com" 
                       {...field} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
+                      type="email"
+                      autoComplete="email"
+                      disabled={isLoading} 
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-          
-          <div>
+            
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Senha</FormLabel>
+                  <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <input 
-                      type="password" 
-                      placeholder="Senha segura" 
+                    <Input 
+                      placeholder="••••••••" 
                       {...field} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bestcode-500 focus:border-transparent" 
+                      type="password"
+                      autoComplete="new-password"
+                      disabled={isLoading} 
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-          
-          <div>
-            <Button 
-              type="submit" 
-              className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Processando...' : 'Registrar e prosseguir para inscrição'}
+            
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 };
 

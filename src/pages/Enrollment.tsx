@@ -74,7 +74,7 @@ const Enrollment = () => {
     const timer = setTimeout(() => {
       console.log("Checking auth state for enrollment:", user);
       fetchProfileData();
-    }, 1000);
+    }, 1500); // Increased delay to ensure auth state is properly updated
 
     return () => clearTimeout(timer);
   }, [user, navigate]);
