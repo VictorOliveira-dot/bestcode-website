@@ -11,6 +11,7 @@ export interface AuthUser {
   role: 'admin' | 'teacher' | 'student';
 }
 
+// Convert this hook to a function component to properly access React hooks
 export const useAuthState = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);

@@ -66,7 +66,7 @@ const Checkout = () => {
       toast({
         title: "Pagamento realizado com sucesso!",
         description: "Redirecionando para a plataforma...",
-        variant: "success"
+        variant: "default"
       });
       setTimeout(() => {
         navigate("/student/dashboard");

@@ -6,9 +6,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import AuthProvider from "./contexts/auth";
 import App from "./App";
+import React from "react";
 
 const AppWithAuth = () => {
-  // Instancia o QueryClient dentro do componente
+  // Create a new QueryClient instance for each component mount
   const queryClient = new QueryClient();
   
   return (
