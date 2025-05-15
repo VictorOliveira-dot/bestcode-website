@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
-import { supabase } from "@/integrations/supabase/client";
 
 // Define form schema
 const registerSchema = z.object({
@@ -54,37 +53,24 @@ const RegisterForm = () => {
       });
 
       if (result.success) {
-        toast.success("Registration successful!", {
-          description: "Your account has been created.",
+        toast.success("Conta criada com sucesso!", {
+          description: "Você será redirecionado para completar seu cadastro.",
         });
 
-        // Log in the user immediately after registration
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: values.email,
-          password: values.password,
-        });
-
-        if (error) {
-          console.error("Auto-login error:", error);
-          // Still redirect to enrollment even if auto-login fails
-          navigate("/enrollment", { replace: true });
-          return;
-        }
-
-        console.log("Auto-login successful, redirecting to enrollment");
-        
-        // Redirect immediately to enrollment, without any delay
-        navigate("/enrollment", { replace: true });
+        // Let's wait a moment to ensure auth state is updated properly
+        setTimeout(() => {
+          navigate("/inscricao", { replace: true });
+        }, 1500);
       } else {
         console.error("Registration error:", result.message);
-        toast.error("Registration failed", {
-          description: result.message || "An error occurred during registration",
+        toast.error("Falha no cadastro", {
+          description: result.message || "Ocorreu um erro durante o cadastro",
         });
       }
     } catch (error: any) {
       console.error("Unexpected registration error:", error);
-      toast.error("Registration error", {
-        description: error.message || "An unexpected error occurred",
+      toast.error("Erro no cadastro", {
+        description: error.message || "Ocorreu um erro inesperado",
       });
     } finally {
       setIsLoading(false);
@@ -101,10 +87,10 @@ const RegisterForm = () => {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Nome Completo</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Enter your full name" 
+                      placeholder="Digite seu nome completo" 
                       {...field} 
                       autoComplete="name"
                       disabled={isLoading} 
@@ -123,7 +109,7 @@ const RegisterForm = () => {
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="example@email.com" 
+                      placeholder="exemplo@email.com" 
                       {...field} 
                       type="email"
                       autoComplete="email"
@@ -140,7 +126,7 @@ const RegisterForm = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Senha</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="••••••••" 
@@ -162,10 +148,10 @@ const RegisterForm = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Creating account...
+                  Criando conta...
                 </>
               ) : (
-                "Create Account"
+                "Criar Conta"
               )}
             </Button>
           </form>

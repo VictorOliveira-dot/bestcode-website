@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PersonalInfoStep from "./PersonalInfoStep";
@@ -47,7 +47,61 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // We load data from the server when needed, not using localStorage
+  // Load existing data from the database upon component mount
+  useEffect(() => {
+    if (!user) return;
+    
+    const loadUserProfile = async () => {
+      try {
+        // Check for existing profile data
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("Error fetching user profile:", profileError);
+          return;
+        }
+        
+        if (profileData) {
+          console.log("Loaded existing profile data", profileData);
+          
+          // Format date from YYYY-MM-DD to DD/MM/YYYY if it exists
+          let formattedBirthDate = '';
+          if (profileData.birth_date) {
+            const dateParts = new Date(profileData.birth_date)
+              .toISOString()
+              .slice(0, 10)
+              .split('-');
+            formattedBirthDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+          }
+          
+          setFormData({
+            firstName: profileData.first_name || '',
+            lastName: profileData.last_name || '',
+            birthDate: formattedBirthDate,
+            gender: profileData.gender || '',
+            cpf: profileData.cpf || '',
+            phone: profileData.phone || '',
+            whatsapp: profileData.whatsapp || '',
+            address: profileData.address || '',
+            education: profileData.education || '',
+            professionalArea: profileData.professional_area || '',
+            experienceLevel: profileData.experience_level || '',
+            studyAvailability: profileData.study_availability || '',
+            goals: profileData.goals || '',
+            referral: profileData.referral || ''
+          });
+        }
+      } catch (error) {
+        console.error("Error loading profile data:", error);
+      }
+    };
+    
+    loadUserProfile();
+  }, [user]);
   
   const handleInputChange = (field: string, value: any) => {
     setFormData({
@@ -151,7 +205,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
         .eq('user_id', user.id)
         .maybeSingle();
         
-      if (checkError) throw checkError;
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
       
       let applicationId;
       
@@ -281,7 +335,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
         .eq('user_id', user.id)
         .maybeSingle();
         
-      if (checkError) throw checkError;
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
       
       // Save or update application with pending status
       if (existingApp) {

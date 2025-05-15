@@ -43,30 +43,35 @@ export const useAuthState = () => {
                   role: userData.role as 'admin' | 'teacher' | 'student',
                 });
 
-                // Ensure a profile record exists for this user
-                const { data: profileData, error: profileError } = await supabase
-                  .from('user_profiles')
-                  .select('*')
-                  .eq('id', session.user.id)
-                  .maybeSingle();
-
-                if (profileError) {
-                  console.error("Error checking user profile:", profileError);
-                }
-
-                // If no profile exists, create one
-                if (!profileData) {
-                  console.log("Creating initial profile record for user");
-                  const { error: insertError } = await supabase
+                // Create user profile if it doesn't exist
+                try {
+                  // Check if profile record exists
+                  const { data: profileData, error: profileError } = await supabase
                     .from('user_profiles')
-                    .insert({
-                      id: session.user.id,
-                      is_profile_complete: false
-                    });
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
 
-                  if (insertError) {
-                    console.error("Error creating initial profile:", insertError);
+                  if (profileError && profileError.code !== 'PGRST116') {
+                    console.error("Error checking user profile:", profileError);
                   }
+
+                  // If no profile exists, create one
+                  if (!profileData) {
+                    console.log("Creating initial profile record for user");
+                    const { error: insertError } = await supabase
+                      .from('user_profiles')
+                      .upsert({
+                        id: session.user.id,
+                        is_profile_complete: false
+                      });
+
+                    if (insertError) {
+                      console.error("Error creating initial profile:", insertError);
+                    }
+                  }
+                } catch (profileError) {
+                  console.error('Error handling user profile:', profileError);
                 }
               } else {
                 console.error("Could not get or create user data in database");

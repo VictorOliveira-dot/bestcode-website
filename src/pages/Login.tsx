@@ -38,7 +38,7 @@ const Login = () => {
             if (!applicationData || applicationData.status === 'pending') {
               console.log("Application not complete, redirecting to enrollment");
               toast.info("Por favor, complete seu cadastro para continuar.");
-              navigate('/enrollment', { replace: true });
+              navigate('/inscricao', { replace: true });
               return;
             }
             
@@ -56,7 +56,7 @@ const Login = () => {
             if (!profileData || !profileData.is_profile_complete) {
               console.log("Profile not complete, redirecting to enrollment");
               toast.info("Por favor, complete seu perfil para continuar.");
-              navigate('/enrollment', { replace: true });
+              navigate('/inscricao', { replace: true });
               return;
             }
             
@@ -65,7 +65,7 @@ const Login = () => {
               .from('users')
               .select('is_active')
               .eq('id', user.id)
-              .single();
+              .maybeSingle();
               
             if (userError) {
               console.error("Error fetching user active status:", userError);
@@ -129,11 +129,11 @@ const Login = () => {
         <div className="container-custom">
           <div className="flex flex-col items-center mb-8">
             <Link to="/" className="text-bestcode-600 hover:text-bestcode-700 mb-8">
-              ← Back to home page
+              ← Voltar para a página inicial
             </Link>
-            <h1 className="text-3xl font-bold text-center">Access your account</h1>
+            <h1 className="text-3xl font-bold text-center">Acesse sua conta</h1>
             <p className="text-gray-600 mt-2 text-center">
-              Enter your credentials to access the platform
+              Digite suas credenciais para acessar a plataforma
             </p>
           </div>
           

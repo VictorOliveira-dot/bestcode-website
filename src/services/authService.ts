@@ -11,60 +11,61 @@ export const fetchUserData = async (authUser: User) => {
       .from('users')
       .select('*')
       .eq('id', authUser.id)
-      .single();
+      .maybeSingle();  // Use maybeSingle instead of single to avoid the "multiple (or no) rows returned" error
 
-    if (selectError) {
+    if (selectError && selectError.code !== 'PGRST116') {
       console.error('Error fetching user data:', selectError);
+      return null;
+    }
+    
+    // If user is not found, create a new user record
+    if (!userData) {
+      console.log("User not found in public.users table, creating record for:", authUser.email);
       
-      // If user is not found, create a new user record
-      if (selectError.code === 'PGRST116') {
-        console.log("User not found in public.users table, creating record for:", authUser.email);
-        
-        // Extract metadata from auth user or use defaults
-        const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
-        
-        // Determine role - first try metadata, then default to student
-        let metaRole = authUser.user_metadata?.role || 'student';
-        // Ensure role is one of the valid types
-        if (!['admin', 'teacher', 'student'].includes(metaRole)) {
-          metaRole = 'student';
-        }
-        
-        // If email is admin@bestcode.com, set role to admin regardless of metadata
-        if (authUser.email === 'admin@bestcode.com') {
-          metaRole = 'admin';
-        } else if (authUser.email === 'professor@bestcode.com') {
-          metaRole = 'teacher';
-        } else if (authUser.email === 'aluno@bestcode.com') {
-          metaRole = 'student';
-        }
-        
-        try {
-          const { data: newUser, error: insertError } = await supabase
-            .from('users')
-            .insert({
-              id: authUser.id,
-              email: authUser.email,
-              name: metaName,
-              role: metaRole,
-              is_active: false // Default to inactive until payment is completed
-            })
-            .select()
-            .single();
+      // Extract metadata from auth user or use defaults
+      const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
+      
+      // Determine role - first try metadata, then default to student
+      let metaRole = authUser.user_metadata?.role || 'student';
+      // Ensure role is one of the valid types
+      if (!['admin', 'teacher', 'student'].includes(metaRole)) {
+        metaRole = 'student';
+      }
+      
+      // If email is admin@bestcode.com, set role to admin regardless of metadata
+      if (authUser.email === 'admin@bestcode.com') {
+        metaRole = 'admin';
+      } else if (authUser.email === 'professor@bestcode.com') {
+        metaRole = 'teacher';
+      } else if (authUser.email === 'aluno@bestcode.com') {
+        metaRole = 'student';
+      }
+      
+      try {
+        // Use upsert instead of insert to avoid duplicate key errors
+        const { data: newUser, error: upsertError } = await supabase
+          .from('users')
+          .upsert({
+            id: authUser.id,
+            email: authUser.email,
+            name: metaName,
+            role: metaRole,
+            is_active: false // Default to inactive until payment is completed
+          })
+          .select()
+          .single();
             
-          if (insertError) {
-            console.error('Error creating user record:', insertError);
-            return null;
-          }
-          
-          console.log('Created new user record with role:', newUser.role);
-          return newUser;
-        } catch (error) {
-          console.error('Error in user creation:', error);
+        if (upsertError) {
+          console.error('Error creating user record:', upsertError);
           return null;
         }
+        
+        console.log('Created/updated user record with role:', newUser.role);
+        return newUser;
+      } catch (error) {
+        console.error('Error in user creation/update:', error);
+        return null;
       }
-      return null;
     }
 
     console.log("Found user data in public.users with role:", userData.role);
@@ -142,6 +143,20 @@ export const registerUser = async (data: {
   role: string; 
 }) => {
   try {
+    // First check if user already exists to avoid duplicate key errors
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', data.email)
+      .maybeSingle();
+
+    if (existingUser) {
+      return {
+        success: false,
+        message: 'Este email já está em uso'
+      };
+    }
+
     // Directly sign up the user with Supabase auth
     const authResponse = await supabase.auth.signUp({
       email: data.email,
@@ -163,7 +178,8 @@ export const registerUser = async (data: {
 
     return { 
       success: true,
-      message: 'Registration successful'
+      message: 'Registration successful',
+      user: authResponse.data.user
     };
   } catch (error: any) {
     return {

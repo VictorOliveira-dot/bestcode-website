@@ -1,36 +1,33 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import PaymentOptions from "./PaymentOptions";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import CreditCardForm from "./CreditCardForm";
-import BankSlipInfo from "./BankSlipInfo";
 import PixInfo from "./PixInfo";
-import { Checkbox } from "@/components/ui/checkbox";
+import BankSlipInfo from "./BankSlipInfo";
+import PaymentOptions from "./PaymentOptions";
 import { toast } from "@/components/ui/use-toast";
-
-interface CardDataType {
-  cardName: string;
-  cardNumber: string;
-  cardExpiry: string;
-  cardCvc: string;
-}
-
-interface CourseType {
-  title: string;
-  price: number;
-  discount: number;
-  finalPrice: number;
-  installments: number;
-  installmentPrice: number;
-}
 
 interface PaymentFormProps {
   paymentMethod: string;
-  setPaymentMethod: (value: string) => void;
-  cardData: CardDataType;
+  setPaymentMethod: React.Dispatch<React.SetStateAction<string>>;
+  cardData: {
+    cardName: string;
+    cardNumber: string;
+    cardExpiry: string;
+    cardCvc: string;
+  };
   handleCardInputChange: (field: string, value: string) => void;
-  course: CourseType;
+  course: {
+    title: string;
+    price: number;
+    discount: number;
+    finalPrice: number;
+    installments: number;
+    installmentPrice: number;
+  };
   isProcessing: boolean;
   handleSubmit: (e: React.FormEvent) => void;
 }
@@ -42,19 +39,55 @@ const PaymentForm = ({
   handleCardInputChange,
   course,
   isProcessing,
-  handleSubmit
+  handleSubmit,
 }: PaymentFormProps) => {
-  const [acceptTerms, setAcceptTerms] = React.useState(false);
 
-  const validateAndSubmit = (e: React.FormEvent) => {
+  const validateForm = (): boolean => {
+    if (paymentMethod === "credit-full" || paymentMethod === "credit-installments") {
+      if (!cardData.cardName || cardData.cardName.trim().length < 3) {
+        toast({
+          title: "Nome inválido",
+          description: "Por favor, informe o nome do titular como consta no cartão",
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      if (!cardData.cardNumber || cardData.cardNumber.replace(/\s/g, "").length !== 16) {
+        toast({
+          title: "Número de cartão inválido",
+          description: "Por favor, informe um número de cartão válido",
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      if (!cardData.cardExpiry || cardData.cardExpiry.length !== 5) {
+        toast({
+          title: "Data de expiração inválida",
+          description: "Por favor, informe a data de validade no formato MM/AA",
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      if (!cardData.cardCvc || cardData.cardCvc.length < 3) {
+        toast({
+          title: "Código de segurança inválido",
+          description: "Por favor, informe o código de segurança do cartão",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!acceptTerms) {
-      toast({
-        variant: "destructive",
-        title: "Termos não aceitos",
-        description: "Você precisa aceitar os termos de serviço para continuar."
-      });
+    if (!validateForm()) {
       return;
     }
     
@@ -62,57 +95,53 @@ const PaymentForm = ({
   };
 
   return (
-    <form onSubmit={validateAndSubmit} className="space-y-6">
-      <PaymentOptions 
-        paymentMethod={paymentMethod} 
-        setPaymentMethod={setPaymentMethod} 
-      />
-
-      {(paymentMethod === "credit-full" || paymentMethod === "credit-installments") && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-md">
-          <p className="font-medium">Você será redirecionado para o Stripe Checkout</p>
-          <p className="text-sm mt-1">Complete o pagamento de forma segura diretamente no ambiente do Stripe.</p>
-        </div>
-      )}
-
-      {paymentMethod === "boleto" && <BankSlipInfo />}
-
-      {paymentMethod === "pix" && <PixInfo />}
-
-      <div className="flex items-center space-x-2 mt-4">
-        <Checkbox 
-          id="terms" 
-          checked={acceptTerms}
-          onCheckedChange={(checked) => setAcceptTerms(checked === true)}
-          required
-        />
-        <label
-          htmlFor="terms"
-          className="text-sm text-gray-500 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <Label className="text-base font-medium">Método de pagamento</Label>
+        
+        <RadioGroup
+          value={paymentMethod}
+          onValueChange={(value) => setPaymentMethod(value)}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          Aceito os{" "}
-          <Link to="/terms" className="text-bestcode-600 hover:text-bestcode-800">
-            termos de serviço
-          </Link>{" "}
-          e a{" "}
-          <Link to="/privacy" className="text-bestcode-600 hover:text-bestcode-800">
-            política de privacidade
-          </Link>
-        </label>
+          <PaymentOptions />
+        </RadioGroup>
       </div>
 
-      <Button 
-        type="submit" 
-        className="w-full bg-bestcode-600 hover:bg-bestcode-700 mt-6" 
-        size="lg"
-        disabled={isProcessing || !acceptTerms}
-      >
-        {isProcessing ? "Processando..." : "Finalizar Compra"}
-      </Button>
+      <Separator />
+
+      {/* Payment method specific details */}
+      {(paymentMethod === "credit-full" || paymentMethod === "credit-installments") && (
+        <CreditCardForm
+          cardData={cardData}
+          handleCardInputChange={handleCardInputChange}
+          installments={course.installments}
+          installmentPrice={course.installmentPrice}
+          showInstallments={paymentMethod === "credit-installments"}
+        />
+      )}
+
+      {paymentMethod === "pix" && <PixInfo price={course.finalPrice} />}
       
-      <p className="text-sm text-gray-500 text-center mt-4">
-        Pagamento 100% seguro e criptografado
-      </p>
+      {paymentMethod === "boleto" && <BankSlipInfo price={course.finalPrice} />}
+
+      <Button
+        type="submit"
+        disabled={isProcessing}
+        className="w-full font-semibold py-6 text-lg"
+      >
+        {isProcessing ? (
+          <>
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Processando...
+          </>
+        ) : (
+          `Finalizar Compra - R$ ${course.finalPrice.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
+        )}
+      </Button>
     </form>
   );
 };

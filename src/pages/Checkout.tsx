@@ -65,8 +65,7 @@ const Checkout = () => {
     if (isSuccess) {
       toast({
         title: "Pagamento realizado com sucesso!",
-        description: "Redirecionando para a plataforma...",
-        variant: "default"
+        description: "Redirecionando para a plataforma..."
       });
       setTimeout(() => {
         navigate("/student/dashboard");
@@ -101,16 +100,18 @@ const Checkout = () => {
           .from("users")
           .select("is_active, role")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
           
-        if (userError) throw userError;
+        if (userError && userError.code !== 'PGRST116') {
+          console.error("Error fetching user data:", userError);
+          throw userError;
+        }
 
         // Redirect non-students away
         if (userData && userData.role !== 'student') {
           toast({
             title: "Acesso restrito",
-            description: "Apenas estudantes podem realizar pagamentos de cursos.",
-            variant: "destructive"
+            description: "Apenas estudantes podem realizar pagamentos de cursos."
           });
           navigate("/");
           return;
@@ -120,36 +121,61 @@ const Checkout = () => {
         if (userData?.is_active) {
           toast({
             title: "Conta já ativa",
-            description: "Sua conta já está ativa. Redirecionando para a área de alunos.",
-            variant: "default"
+            description: "Sua conta já está ativa. Redirecionando para a área de alunos."
           });
           navigate("/student/dashboard");
           return;
         }
           
-        // Check if profile exists in user_profiles
+        // Check if student application is complete
+        const { data: applicationData, error: applicationError } = await supabase
+          .from("student_applications")
+          .select("status")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (applicationError && applicationError.code !== 'PGRST116') {
+          console.error("Error checking student application:", applicationError);
+        }
+        
+        // If application doesn't exist or is pending, redirect to enrollment
+        if (!applicationData || applicationData.status !== 'completed') {
+          toast({
+            title: "Cadastro incompleto",
+            description: "Por favor, complete seu cadastro antes de prosseguir"
+          });
+          navigate("/inscricao");
+          return;
+        }
+        
+        // Check if profile exists and is complete
         const { data: profileData, error: profileError } = await supabase
           .from("user_profiles")
           .select("is_profile_complete")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileError && profileError.code !== "PGRST116") {
-          throw profileError;
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("Error checking user profile:", profileError);
         }
 
-        setIsProfileComplete(!!profileData?.is_profile_complete);
-        
         if (!profileData?.is_profile_complete) {
           toast({
             title: "Perfil incompleto",
-            description: "Por favor, complete seu perfil antes de prosseguir",
-            variant: "default"
+            description: "Por favor, complete seu perfil antes de prosseguir"
           });
           navigate("/inscricao");
+          return;
         }
+
+        setIsProfileComplete(true);
       } catch (error) {
         console.error("Error checking user status:", error);
+        toast({
+          title: "Erro",
+          description: "Ocorreu um erro ao verificar o status do usuário",
+          variant: "destructive"
+        });
       }
     };
 
@@ -158,8 +184,7 @@ const Checkout = () => {
     } else {
       toast({
         title: "Acesso restrito",
-        description: "Você precisa estar logado para acessar esta página",
-        variant: "destructive"
+        description: "Você precisa estar logado para acessar esta página"
       });
       navigate("/login");
     }
@@ -178,8 +203,7 @@ const Checkout = () => {
     if (!user) {
       toast({
         title: "Acesso restrito",
-        description: "Você precisa estar registrado para completar a compra",
-        variant: "destructive"
+        description: "Você precisa estar registrado para completar a compra"
       });
       navigate("/register");
       return;
@@ -189,11 +213,15 @@ const Checkout = () => {
     
     try {
       // Get application ID if available
-      const { data: applicationData } = await supabase
+      const { data: applicationData, error: appError } = await supabase
         .from("student_applications")
         .select("id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+      
+      if (appError && appError.code !== 'PGRST116') {
+        console.error("Error fetching application data:", appError);
+      }
       
       const applicationId = applicationData?.id;
 
@@ -229,8 +257,7 @@ const Checkout = () => {
       } else if (data?.success) {
         toast({
           title: "Pagamento iniciado",
-          description: "Siga as instruções para completar o pagamento",
-          variant: "default"
+          description: "Siga as instruções para completar o pagamento"
         });
         // For non-redirect methods like PIX or boleto
         if (data.pixCode) {

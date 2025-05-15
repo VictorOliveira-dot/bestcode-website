@@ -35,7 +35,7 @@ const Enrollment = () => {
           .eq('user_id', user.id)
           .maybeSingle();
           
-        if (applicationError) {
+        if (applicationError && applicationError.code !== 'PGRST116') {
           console.error("Error checking application status:", applicationError);
         }
         
@@ -53,8 +53,8 @@ const Enrollment = () => {
           .eq('id', user.id)
           .maybeSingle();
           
-        if (profileError) {
-          throw profileError;
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("Error checking profile status:", profileError);
         }
         
         // If profile is complete, check if user is active (has paid)
@@ -63,7 +63,7 @@ const Enrollment = () => {
             .from('users')
             .select('is_active')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
             
           if (userError) {
             console.error("Error checking if user is active:", userError);
