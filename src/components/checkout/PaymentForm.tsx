@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup } from "@/components/ui/radio-group";
 import CreditCardForm from "./CreditCardForm";
 import PixInfo from "./PixInfo";
 import BankSlipInfo from "./BankSlipInfo";
@@ -104,7 +103,10 @@ const PaymentForm = ({
           onValueChange={(value) => setPaymentMethod(value)}
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          <PaymentOptions />
+          <PaymentOptions 
+            paymentMethod={paymentMethod} 
+            setPaymentMethod={setPaymentMethod} 
+          />
         </RadioGroup>
       </div>
 
@@ -116,7 +118,7 @@ const PaymentForm = ({
           cardData={cardData}
           handleCardInputChange={handleCardInputChange}
           installments={course.installments}
-          installmentPrice={course.installmentPrice}
+          finalPrice={course.finalPrice}
           showInstallments={paymentMethod === "credit-installments"}
         />
       )}

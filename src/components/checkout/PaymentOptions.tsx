@@ -1,8 +1,8 @@
 
 import React from "react";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CreditCard, Banknote, QrCode, Receipt } from "lucide-react";
+import { RadioGroupItem } from "@/components/ui/radio-group";
+import { CreditCard, QrCode, Receipt } from "lucide-react";
 
 interface PaymentOptionsProps {
   paymentMethod: string;
@@ -11,11 +11,7 @@ interface PaymentOptionsProps {
 
 const PaymentOptions = ({ paymentMethod, setPaymentMethod }: PaymentOptionsProps) => {
   return (
-    <RadioGroup
-      value={paymentMethod}
-      onValueChange={setPaymentMethod}
-      className="space-y-4"
-    >
+    <>
       <div className="flex items-center space-x-2">
         <RadioGroupItem value="pix" id="pix" />
         <Label htmlFor="pix" className="flex items-center gap-2 cursor-pointer">
@@ -47,7 +43,7 @@ const PaymentOptions = ({ paymentMethod, setPaymentMethod }: PaymentOptionsProps
           <span>Boleto parcelado (até 12x de R$374,91)</span>
         </Label>
       </div>
-    </RadioGroup>
+    </>
   );
 };
 

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -12,15 +13,16 @@ interface CreditCardFormProps {
   };
   handleCardInputChange: (field: string, value: string) => void;
   installments: number;
-  finalPrice: number;
+  finalPrice?: number;
+  showInstallments?: boolean;
 }
 
-// Este componente não é mais utilizado, mantido apenas para compatibilidade
 const CreditCardForm: React.FC<CreditCardFormProps> = ({ 
   cardData, 
   handleCardInputChange,
   installments,
-  finalPrice
+  finalPrice = 0,
+  showInstallments = false
 }) => {
   const formatCardNumber = (value: string) => {
     return value
@@ -95,22 +97,24 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
         </div>
       </div>
       
-      <div>
-        <Label htmlFor="installments">Parcelamento</Label>
-        <Select onValueChange={(value) => console.log(value)} disabled={true}>
-          <SelectTrigger id="installments" className="mt-1">
-            <SelectValue placeholder="Selecione o parcelamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">À vista - R$ {finalPrice.toFixed(2)}</SelectItem>
-            {Array.from({ length: installments - 1 }, (_, i) => i + 2).map((i) => (
-              <SelectItem key={i} value={i.toString()}>
-                {i}x de R$ {(finalPrice / i).toFixed(2)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {showInstallments && (
+        <div>
+          <Label htmlFor="installments">Parcelamento</Label>
+          <Select onValueChange={(value) => console.log(value)} disabled={true}>
+            <SelectTrigger id="installments" className="mt-1">
+              <SelectValue placeholder="Selecione o parcelamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">À vista - R$ {finalPrice?.toFixed(2)}</SelectItem>
+              {Array.from({ length: installments - 1 }, (_, i) => i + 2).map((i) => (
+                <SelectItem key={i} value={i.toString()}>
+                  {i}x de R$ {finalPrice && (finalPrice / i).toFixed(2)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,7 +2,11 @@
 import React from "react";
 import { FileText } from "lucide-react";
 
-const BankSlipInfo: React.FC = () => {
+interface BankSlipInfoProps {
+  price: number;
+}
+
+const BankSlipInfo: React.FC<BankSlipInfoProps> = ({ price }) => {
   return (
     <div className="text-center p-4 border border-gray-200 rounded-md">
       <div className="flex justify-center mb-3">
@@ -15,6 +19,9 @@ const BankSlipInfo: React.FC = () => {
       </p>
       <p className="text-gray-600 mt-2 text-sm">
         Após o pagamento, seu acesso será automaticamente liberado.
+      </p>
+      <p className="font-semibold mt-3">
+        Total a pagar: R$ {price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
       </p>
     </div>
   );
