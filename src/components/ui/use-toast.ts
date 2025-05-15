@@ -1,5 +1,11 @@
 
-// Re-export the toast hook and toast function from our local hook
-import { useToast, toast } from "@/hooks/use-toast";
+// Re-export the toast hook and toast function from Sonner
+import { toast as sonnerToast } from "sonner";
 
-export { useToast, toast };
+export const useToast = () => {
+  return {
+    toast: sonnerToast,
+  };
+};
+
+export const toast = sonnerToast;

@@ -9,8 +9,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 
-const ENROLLMENT_STORAGE_KEY = 'enrollment_form_data';
-
 const Enrollment = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,9 +17,9 @@ const Enrollment = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Check for existing profile data in Supabase
+  // Check for existing profile data and application status in Supabase
   useEffect(() => {
-    const fetchProfileData = async () => {
+    const checkApplicationStatus = async () => {
       if (!user) {
         setIsLoading(false);
         return;
@@ -30,42 +28,67 @@ const Enrollment = () => {
       try {
         setIsLoading(true);
         
-        // Check if profile exists and is complete in Supabase
-        const { data: profileData, error } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', user.id)
+        // Check if user has an application and its status
+        const { data: applicationData, error: applicationError } = await supabase
+          .from('student_applications')
+          .select('status')
+          .eq('user_id', user.id)
           .maybeSingle();
           
-        if (error) {
-          throw error;
+        if (applicationError) {
+          console.error("Error checking application status:", applicationError);
         }
         
-        // If profile is complete, redirect to checkout
-        if (profileData?.is_profile_complete) {
-          toast.info("Seu perfil já está completo. Redirecionando para o checkout...");
+        // If application exists and is completed/approved, redirect to checkout
+        if (applicationData && ['completed', 'approved'].includes(applicationData.status)) {
+          toast.info("Sua inscrição já está completa. Redirecionando para o checkout...");
           navigate('/checkout');
           return;
         }
         
-        // Clear any previous enrollment data from localStorage to avoid cached data issues
-        localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
+        // Check if profile exists and is complete
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('is_profile_complete')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (profileError) {
+          throw profileError;
+        }
+        
+        // If profile is complete, check if user is active (has paid)
+        if (profileData?.is_profile_complete) {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('is_active')
+            .eq('id', user.id)
+            .single();
+            
+          if (userError) {
+            console.error("Error checking if user is active:", userError);
+          } else if (userData?.is_active) {
+            // If user has paid, redirect to dashboard
+            toast.info("Sua conta já está ativa. Redirecionando para o dashboard...");
+            navigate('/student/dashboard');
+            return;
+          } else {
+            // If profile is complete but user hasn't paid, redirect to checkout
+            toast.info("Seu perfil está completo. Redirecionando para o checkout...");
+            navigate('/checkout');
+            return;
+          }
+        }
         
       } catch (error) {
-        console.error("Error fetching profile data:", error);
-        toast.error("Erro ao carregar dados do perfil");
+        console.error("Error checking application status:", error);
+        toast.error("Erro ao verificar status da inscrição");
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Delay slightly to ensure auth state is updated
-    const timer = setTimeout(() => {
-      console.log("Checking auth state for enrollment:", user);
-      fetchProfileData();
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    checkApplicationStatus();
   }, [user, navigate]);
   
   const goToNextStep = () => {

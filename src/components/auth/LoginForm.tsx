@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import LoginFormHeader from "./LoginFormHeader";
 import EmailField from "./EmailField";
 import PasswordField from "./PasswordField";
@@ -32,9 +32,7 @@ const LoginForm = () => {
       if (!result.success) {
         console.log("Login error:", result.message);
         setErrorMessage(result.message || "Login inválido. Tente novamente.");
-        toast({
-          variant: "destructive",
-          title: "Não foi possível fazer login",
+        toast.error("Não foi possível fazer login", {
           description: result.message || "Login inválido. Tente novamente.",
         });
       }
@@ -42,9 +40,7 @@ const LoginForm = () => {
     } catch (error: any) {
       console.error("Login error:", error);
       setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
-      toast({
-        variant: "destructive",
-        title: "Erro de autenticação",
+      toast.error("Erro de autenticação", {
         description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
       });
     } finally {

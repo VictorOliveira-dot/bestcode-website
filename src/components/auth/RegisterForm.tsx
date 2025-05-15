@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -8,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -53,8 +54,7 @@ const RegisterForm = () => {
       });
 
       if (result.success) {
-        toast({
-          title: "Registration successful!",
+        toast.success("Registration successful!", {
           description: "Your account has been created.",
         });
 
@@ -77,17 +77,13 @@ const RegisterForm = () => {
         navigate("/enrollment", { replace: true });
       } else {
         console.error("Registration error:", result.message);
-        toast({
-          variant: "destructive",
-          title: "Registration failed",
+        toast.error("Registration failed", {
           description: result.message || "An error occurred during registration",
         });
       }
     } catch (error: any) {
       console.error("Unexpected registration error:", error);
-      toast({
-        variant: "destructive",
-        title: "Registration error",
+      toast.error("Registration error", {
         description: error.message || "An unexpected error occurred",
       });
     } finally {

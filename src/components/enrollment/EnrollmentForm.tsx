@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PersonalInfoStep from "./PersonalInfoStep";
@@ -19,8 +19,6 @@ interface EnrollmentFormProps {
   goToNextStep: () => void;
   goToPreviousStep: () => void;
 }
-
-const ENROLLMENT_STORAGE_KEY = 'enrollment_form_data';
 
 const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
   currentStep,
@@ -49,20 +47,13 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // We're intentionally NOT loading saved data from localStorage on component mount
-  // to avoid using cached data
+  // We load data from the server when needed, not using localStorage
   
   const handleInputChange = (field: string, value: any) => {
     setFormData({
       ...formData,
       [field]: value
     });
-    
-    // Save current form state temporarily
-    localStorage.setItem(ENROLLMENT_STORAGE_KEY, JSON.stringify({
-      ...formData,
-      [field]: value
-    }));
   };
   
   const validatePersonalInfo = () => {
@@ -153,19 +144,50 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
 
       if (profileError) throw profileError;
       
-      // 2. Save to student_applications table
-      const { error: applicationError } = await supabase
+      // 2. Check if application already exists
+      const { data: existingApp, error: checkError } = await supabase
         .from('student_applications')
-        .insert({
-          user_id: user.id,
-          full_name: `${formData.firstName} ${formData.lastName}`,
-          email: user.email,
-          phone: formData.phone,
-          course: 'Formação Completa em QA', // Default course or could be made dynamic
-          status: 'pending'
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+        
+      if (checkError) throw checkError;
+      
+      let applicationId;
+      
+      if (existingApp) {
+        // Update existing application
+        applicationId = existingApp.id;
+        const { error: updateError } = await supabase
+          .from('student_applications')
+          .update({
+            full_name: `${formData.firstName} ${formData.lastName}`,
+            email: user.email,
+            phone: formData.phone,
+            status: 'completed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', applicationId);
+          
+        if (updateError) throw updateError;
+      } else {
+        // Create new application
+        const { data: newApp, error: applicationError } = await supabase
+          .from('student_applications')
+          .insert({
+            user_id: user.id,
+            full_name: `${formData.firstName} ${formData.lastName}`,
+            email: user.email,
+            phone: formData.phone,
+            course: 'Formação Completa em QA', // Default course or could be made dynamic
+            status: 'completed'
+          })
+          .select()
+          .single();
 
-      if (applicationError) throw applicationError;
+        if (applicationError) throw applicationError;
+        applicationId = newApp.id;
+      }
       
       return true;
     } catch (error: any) {
@@ -197,9 +219,6 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
       const saveSuccess = await saveProfileToSupabase();
       
       if (saveSuccess) {
-        // Clear saved data after successful submission
-        localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
-        
         toast.success("Perfil salvo com sucesso! Redirecionando para o checkout...");
         
         // Redirect to checkout
@@ -213,35 +232,162 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
     }
   };
   
-  const handleSaveProgress = () => {
-    localStorage.setItem(ENROLLMENT_STORAGE_KEY, JSON.stringify(formData));
-    toast.success("Progresso salvo com sucesso!", {
-      description: "Você pode continuar mais tarde usando este dispositivo"
-    });
+  const handleSaveProgress = async () => {
+    if (!user) {
+      toast.error("Você precisa estar logado para salvar seu progresso");
+      return;
+    }
+    
+    try {
+      setSaving(true);
+      
+      // Save the current progress to the database with pending status
+      // Prepare birth date in YYYY-MM-DD format for database if it exists
+      let formattedBirthDate = null;
+      if (formData.birthDate) {
+        const [day, month, year] = formData.birthDate.split('/');
+        formattedBirthDate = `${year}-${month}-${day}`;
+      }
+      
+      // Save partial data to user_profiles
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          first_name: formData.firstName || null,
+          last_name: formData.lastName || null,
+          birth_date: formattedBirthDate,
+          gender: formData.gender || null,
+          cpf: formData.cpf || null,
+          phone: formData.phone || null,
+          whatsapp: formData.whatsapp || null,
+          address: formData.address || null,
+          education: formData.education || null,
+          professional_area: formData.professionalArea || null,
+          experience_level: formData.experienceLevel || null,
+          study_availability: formData.studyAvailability || null,
+          goals: formData.goals || null,
+          referral: formData.referral || null,
+          is_profile_complete: false,
+          updated_at: new Date().toISOString()
+        });
+
+      if (profileError) throw profileError;
+      
+      // Check if student application exists
+      const { data: existingApp, error: checkError } = await supabase
+        .from('student_applications')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+        
+      if (checkError) throw checkError;
+      
+      // Save or update application with pending status
+      if (existingApp) {
+        const { error: updateError } = await supabase
+          .from('student_applications')
+          .update({
+            full_name: formData.firstName && formData.lastName ? 
+              `${formData.firstName} ${formData.lastName}` : null,
+            phone: formData.phone || null,
+            status: 'pending',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingApp.id);
+          
+        if (updateError) throw updateError;
+      } else if (formData.firstName || formData.lastName || formData.phone) {
+        // Only create application if we have at least some basic info
+        const { error: createError } = await supabase
+          .from('student_applications')
+          .insert({
+            user_id: user.id,
+            full_name: formData.firstName && formData.lastName ? 
+              `${formData.firstName} ${formData.lastName}` : user.name,
+            email: user.email,
+            phone: formData.phone || null,
+            course: 'Formação Completa em QA',
+            status: 'pending'
+          });
+          
+        if (createError) throw createError;
+      }
+      
+      toast.success("Progresso salvo com sucesso!", {
+        description: "Você pode continuar mais tarde"
+      });
+    } catch (error: any) {
+      console.error("Error saving progress:", error);
+      toast.error(`Erro ao salvar progresso: ${error.message}`);
+    } finally {
+      setSaving(false);
+    }
   };
   
-  const handleClearProgress = () => {
+  const handleClearProgress = async () => {
     if (window.confirm("Tem certeza que deseja limpar todo o progresso? Esta ação não pode ser desfeita.")) {
-      localStorage.removeItem(ENROLLMENT_STORAGE_KEY);
-      setFormData({
-        firstName: "",
-        lastName: "",
-        birthDate: "",
-        gender: "",
-        cpf: "",
-        phone: "",
-        whatsapp: "",
-        address: "",
-        education: "",
-        professionalArea: "",
-        experienceLevel: "",
-        studyAvailability: "",
-        goals: "",
-        referral: ""
-      });
-      toast.info("Progresso removido", {
-        description: "Todos os dados do formulário foram apagados"
-      });
+      try {
+        setSaving(true);
+        
+        if (user) {
+          // Delete application if exists
+          await supabase
+            .from('student_applications')
+            .delete()
+            .eq('user_id', user.id);
+            
+          // Reset profile data
+          await supabase
+            .from('user_profiles')
+            .update({
+              first_name: null,
+              last_name: null,
+              birth_date: null,
+              gender: null,
+              cpf: null,
+              phone: null,
+              whatsapp: null,
+              address: null,
+              education: null,
+              professional_area: null,
+              experience_level: null,
+              study_availability: null,
+              goals: null,
+              referral: null,
+              is_profile_complete: false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', user.id);
+        }
+        
+        // Reset form state
+        setFormData({
+          firstName: "",
+          lastName: "",
+          birthDate: "",
+          gender: "",
+          cpf: "",
+          phone: "",
+          whatsapp: "",
+          address: "",
+          education: "",
+          professionalArea: "",
+          experienceLevel: "",
+          studyAvailability: "",
+          goals: "",
+          referral: ""
+        });
+        
+        toast.info("Progresso removido", {
+          description: "Todos os dados do formulário foram apagados"
+        });
+      } catch (error: any) {
+        console.error("Error clearing progress:", error);
+        toast.error(`Erro ao limpar progresso: ${error.message}`);
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
@@ -267,7 +413,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
             />
           )}
 
-          {/* Step 2: Study Preferences (was Step 3 before) */}
+          {/* Step 2: Study Preferences */}
           {currentStep === 2 && (
             <StudyPreferencesStep 
               formData={formData} 
@@ -290,9 +436,10 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
               variant="secondary" 
               onClick={handleSaveProgress}
               className="flex items-center"
+              disabled={saving}
             >
               <Save className="mr-2 h-4 w-4" />
-              Salvar Progresso
+              {saving ? "Salvando..." : "Salvar Progresso"}
             </Button>
           </div>
 

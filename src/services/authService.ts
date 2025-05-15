@@ -79,9 +79,6 @@ export const loginUser = async (email: string, password: string) => {
   try {
     console.log('Attempting login with:', email);
     
-    // Clear any local storage cache
-    localStorage.removeItem('enrollment_form_data');
-    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -117,10 +114,6 @@ export const logoutUser = async () => {
   try {
     console.log('Iniciando processo de logout...');
     
-    // Clear any session data in localStorage first
-    localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('enrollment_form_data');
-    
     // Use global scope to ensure all sessions are terminated
     const { error } = await supabase.auth.signOut({
       scope: 'global' // Garante que todas as sessões sejam encerradas
@@ -149,9 +142,6 @@ export const registerUser = async (data: {
   role: string; 
 }) => {
   try {
-    // Clear any potential cached enrollment data
-    localStorage.removeItem('enrollment_form_data');
-    
     // Directly sign up the user with Supabase auth
     const authResponse = await supabase.auth.signUp({
       email: data.email,

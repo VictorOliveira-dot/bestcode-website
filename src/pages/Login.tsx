@@ -1,10 +1,11 @@
+
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/auth";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
@@ -22,29 +23,62 @@ const Login = () => {
         // Check if the user has completed their enrollment
         const checkEnrollmentStatus = async () => {
           try {
-            // Check if user profile exists and is complete
+            // Check if student application exists and its status
+            const { data: applicationData, error: applicationError } = await supabase
+              .from('student_applications')
+              .select('status')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            
+            if (applicationError) {
+              console.error("Error fetching application data:", applicationError);
+            }
+            
+            // If application doesn't exist or status is pending, redirect to enrollment
+            if (!applicationData || applicationData.status === 'pending') {
+              console.log("Application not complete, redirecting to enrollment");
+              toast.info("Por favor, complete seu cadastro para continuar.");
+              navigate('/enrollment', { replace: true });
+              return;
+            }
+            
+            // Check if profile is complete as an extra verification
             const { data: profileData, error: profileError } = await supabase
               .from('user_profiles')
               .select('is_profile_complete')
               .eq('id', user.id)
               .maybeSingle();
-            
+              
             if (profileError) {
               console.error("Error fetching profile data:", profileError);
             }
             
-            // If profile doesn't exist or is not complete, redirect to enrollment
             if (!profileData || !profileData.is_profile_complete) {
               console.log("Profile not complete, redirecting to enrollment");
-              toast({
-                title: "Complete seu cadastro",
-                description: "Por favor, complete seu perfil para continuar.",
-              });
+              toast.info("Por favor, complete seu perfil para continuar.");
               navigate('/enrollment', { replace: true });
               return;
             }
             
-            // Otherwise redirect based on user role
+            // Check if user is active (payment completed)
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('is_active')
+              .eq('id', user.id)
+              .single();
+              
+            if (userError) {
+              console.error("Error fetching user active status:", userError);
+            }
+            
+            if (!userData?.is_active) {
+              console.log("User not active, redirecting to checkout");
+              toast.info("Por favor, complete o pagamento para acessar o curso.");
+              navigate('/checkout', { replace: true });
+              return;
+            }
+            
+            // If all checks pass, redirect based on user role
             redirectBasedOnRole();
           } catch (error) {
             console.error("Error checking enrollment status:", error);
@@ -79,8 +113,7 @@ const Login = () => {
     }
     
     // Show success message
-    toast({
-      title: "Login bem-sucedido!",
+    toast.success("Login bem-sucedido!", {
       description: `Bem-vindo de volta, ${user.name}!`,
     });
     
