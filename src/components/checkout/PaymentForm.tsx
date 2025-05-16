@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -42,42 +43,13 @@ const PaymentForm = ({
 }: PaymentFormProps) => {
 
   const validateForm = (): boolean => {
-    if (paymentMethod === "credit-full" || paymentMethod === "credit-installments") {
-      if (!cardData.cardName || cardData.cardName.trim().length < 3) {
-        toast({
-          title: "Nome inválido",
-          description: "Por favor, informe o nome do titular como consta no cartão",
-          variant: "destructive"
-        });
-        return false;
-      }
-      
-      if (!cardData.cardNumber || cardData.cardNumber.replace(/\s/g, "").length !== 16) {
-        toast({
-          title: "Número de cartão inválido",
-          description: "Por favor, informe um número de cartão válido",
-          variant: "destructive"
-        });
-        return false;
-      }
-      
-      if (!cardData.cardExpiry || cardData.cardExpiry.length !== 5) {
-        toast({
-          title: "Data de expiração inválida",
-          description: "Por favor, informe a data de validade no formato MM/AA",
-          variant: "destructive"
-        });
-        return false;
-      }
-      
-      if (!cardData.cardCvc || cardData.cardCvc.length < 3) {
-        toast({
-          title: "Código de segurança inválido",
-          description: "Por favor, informe o código de segurança do cartão",
-          variant: "destructive"
-        });
-        return false;
-      }
+    if (paymentMethod === '') {
+      toast({
+        title: "Selecione um método de pagamento",
+        description: "Por favor, escolha uma forma de pagamento para continuar",
+        variant: "destructive"
+      });
+      return false;
     }
     
     return true;
@@ -141,7 +113,7 @@ const PaymentForm = ({
             Processando...
           </>
         ) : (
-          `Finalizar Compra - R$ ${course.finalPrice.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
+          `Prosseguir para pagamento - R$ ${course.finalPrice.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
         )}
       </Button>
     </form>

@@ -14,7 +14,7 @@ const PixInfo: React.FC<PixInfoProps> = ({ price }) => {
       </div>
       <h3 className="text-lg font-medium mb-2">Pagamento via PIX</h3>
       <p className="text-gray-600">
-        Ao finalizar o pagamento, você receberá um código PIX para pagamento imediato.
+        Ao prosseguir, você será redirecionado para o Stripe Checkout onde receberá um código PIX para pagamento.
         Seu acesso à plataforma será liberado automaticamente após confirmação.
       </p>
       <p className="font-semibold mt-3">

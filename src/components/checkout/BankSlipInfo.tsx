@@ -14,7 +14,7 @@ const BankSlipInfo: React.FC<BankSlipInfoProps> = ({ price }) => {
       </div>
       <h3 className="text-lg font-medium mb-2">Pagamento via Boleto</h3>
       <p className="text-gray-600">
-        Ao confirmar, você receberá um boleto bancário para pagamento.
+        Ao prosseguir, você será redirecionado para o Stripe Checkout onde receberá um boleto bancário para pagamento.
         A compensação do boleto pode levar até 3 dias úteis.
       </p>
       <p className="text-gray-600 mt-2 text-sm">
