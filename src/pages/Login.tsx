@@ -18,23 +18,23 @@ const Login = () => {
       console.log("Login page - User authenticated:", user);
       console.log("Login page - User role from public.users table:", user.role);
       
-      // Only check enrollment status for students
+      // Verificar o papel do usuário e redirecionar de acordo
       if (user.role === 'student') {
-        // Check if the user has completed their enrollment
-        const checkEnrollmentStatus = async () => {
+        // Verificar o status da inscrição e pagamento para estudantes
+        const checkStudentStatus = async () => {
           try {
-            // Check if student application exists and its status
+            // Verificar se a aplicação do estudante existe e seu status
             const { data: applicationData, error: applicationError } = await supabase
               .from('student_applications')
               .select('status')
               .eq('user_id', user.id)
               .maybeSingle();
             
-            if (applicationError) {
+            if (applicationError && applicationError.code !== 'PGRST116') {
               console.error("Error fetching application data:", applicationError);
             }
             
-            // If application doesn't exist or status is pending, redirect to enrollment
+            // Se a aplicação não existe ou está pendente, redirecionar para inscrição
             if (!applicationData || applicationData.status === 'pending') {
               console.log("Application not complete, redirecting to enrollment");
               toast.info("Por favor, complete seu cadastro para continuar.");
@@ -42,14 +42,14 @@ const Login = () => {
               return;
             }
             
-            // Check if profile is complete as an extra verification
+            // Verificar se o perfil está completo como verificação adicional
             const { data: profileData, error: profileError } = await supabase
               .from('user_profiles')
               .select('is_profile_complete')
               .eq('id', user.id)
               .maybeSingle();
               
-            if (profileError) {
+            if (profileError && profileError.code !== 'PGRST116') {
               console.error("Error fetching profile data:", profileError);
             }
             
@@ -60,7 +60,7 @@ const Login = () => {
               return;
             }
             
-            // Check if user is active (payment completed)
+            // Verificar se o usuário está ativo (pagamento concluído)
             const { data: userData, error: userError } = await supabase
               .from('users')
               .select('is_active')
@@ -78,18 +78,18 @@ const Login = () => {
               return;
             }
             
-            // If all checks pass, redirect based on user role
+            // Se todas as verificações passarem, redirecionar com base na função do usuário
             redirectBasedOnRole();
           } catch (error) {
-            console.error("Error checking enrollment status:", error);
-            // In case of error, try regular redirection
+            console.error("Error checking student status:", error);
+            // Em caso de erro, tentar redirecionamento regular
             redirectBasedOnRole();
           }
         };
         
-        checkEnrollmentStatus();
+        checkStudentStatus();
       } else {
-        // For non-students, just redirect based on role
+        // Para não-estudantes, apenas redirecionar com base na função
         redirectBasedOnRole();
       }
     }

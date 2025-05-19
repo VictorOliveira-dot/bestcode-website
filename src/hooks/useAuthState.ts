@@ -31,7 +31,7 @@ export const useAuthState = () => {
             try {
               console.log("User authenticated in state change event:", session.user.email);
               
-              // Fetch or create user data from public.users table
+              // Fetch or create user data from public.users table - SEMPRE verifica no Supabase em tempo real
               const userData = await fetchUserData(session.user);
               
               if (userData) {

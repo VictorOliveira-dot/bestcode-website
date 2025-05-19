@@ -50,7 +50,7 @@ export const fetchUserData = async (authUser: User) => {
             email: authUser.email,
             name: metaName,
             role: metaRole,
-            is_active: false // Default to inactive until payment is completed
+            is_active: metaRole !== 'student' // Only students need to be activated through payment
           })
           .select()
           .single();

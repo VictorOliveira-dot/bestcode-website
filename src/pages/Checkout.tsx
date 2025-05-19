@@ -63,13 +63,45 @@ const Checkout = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      toast({
-        title: "Pagamento realizado com sucesso!",
-        description: "Redirecionando para a plataforma..."
-      });
-      setTimeout(() => {
-        navigate("/student/dashboard");
-      }, 3000);
+      // Quando o pagamento for bem-sucedido, atualizar o status is_active do usuário
+      const updateUserStatus = async () => {
+        try {
+          if (user) {
+            const { error } = await supabase
+              .from('users')
+              .update({ is_active: true })
+              .eq('id', user.id);
+              
+            if (error) {
+              console.error("Error updating user status:", error);
+              toast({
+                title: "Erro na ativação da conta",
+                description: "Ocorreu um problema ao ativar sua conta, mas seu pagamento foi processado com sucesso.",
+                variant: "destructive"
+              });
+            } else {
+              toast({
+                title: "Pagamento realizado com sucesso!",
+                description: "Sua conta foi ativada. Redirecionando para a plataforma..."
+              });
+            }
+          }
+          
+          // Redirect to dashboard regardless of update success
+          setTimeout(() => {
+            navigate("/student/dashboard");
+          }, 3000);
+        } catch (error) {
+          console.error("Error in payment success handler:", error);
+          toast({
+            title: "Erro no processamento",
+            description: "Ocorreu um erro ao finalizar seu pagamento.",
+            variant: "destructive"
+          });
+        }
+      };
+      
+      updateUserStatus();
       return;
     }
 
@@ -263,11 +295,11 @@ const Checkout = () => {
         if (data.pixCode) {
           // Handle PIX code display
           // Could redirect to a PIX instructions page
-          navigate(`/payment-pix?code=${data.pixCode}`);
+          navigate(`/payment/pix?code=${data.pixCode}`);
           return;
         } else if (data.boleto) {
           // Handle boleto URL
-          navigate(`/payment-boleto?url=${data.boleto}`);
+          navigate(`/payment/boleto?url=${data.boleto}`);
           return;
         }
       } else {

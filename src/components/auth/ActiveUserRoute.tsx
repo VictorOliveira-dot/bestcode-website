@@ -23,15 +23,21 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
       }
 
       try {
-        const { data, error } = await supabase
-          .from("users")
-          .select("is_active")
-          .eq("id", user.id)
-          .single();
+        // Apenas verificar is_active para estudantes
+        if (user.role === 'student') {
+          const { data, error } = await supabase
+            .from("users")
+            .select("is_active")
+            .eq("id", user.id)
+            .single();
 
-        if (error) throw error;
-        
-        setIsActive(data?.is_active || false);
+          if (error) throw error;
+          
+          setIsActive(data?.is_active || false);
+        } else {
+          // Não-estudantes sempre são considerados "ativos"
+          setIsActive(true);
+        }
       } catch (error) {
         console.error("Error checking user status:", error);
         setIsActive(false);
@@ -58,7 +64,7 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (isActive === false) {
+  if (user.role === 'student' && isActive === false) {
     toast.error("Sua conta está pendente de ativação. Conclua o pagamento para acessar.");
     return <Navigate to="/checkout" state={{ from: location }} replace />;
   }
