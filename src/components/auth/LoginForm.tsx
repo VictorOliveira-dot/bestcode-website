@@ -10,6 +10,7 @@ import LoginFormActions from "./LoginFormActions";
 import { useAuth } from "@/contexts/auth";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchUserData } from "@/services/authService";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -41,28 +42,20 @@ const LoginForm = () => {
       } else {
         // Login bem-sucedido, vamos verificar o status do usuário e redirecionar
         
-        // Definir o usuário no contexto de autenticação
-        if (result.user) {
-          setUser(result.user);
-          
-          // Verificar o status do usuário e redirecionar adequadamente
-          await checkUserStatusAndRedirect(result.user);
-        } else {
-          // Se não tiver dados de usuário no resultado, buscar diretamente
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
-            const userData = await fetchUserData(session.user);
-            if (userData) {
-              const authUser = {
-                id: session.user.id,
-                email: session.user.email || '',
-                name: userData.name,
-                role: userData.role as 'admin' | 'teacher' | 'student',
-              };
-              
-              setUser(authUser);
-              await checkUserStatusAndRedirect(authUser);
-            }
+        // Buscar dados do usuário após login bem-sucedido
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const userData = await fetchUserData(session.user);
+          if (userData) {
+            const authUser = {
+              id: session.user.id,
+              email: session.user.email || '',
+              name: userData.name,
+              role: userData.role as 'admin' | 'teacher' | 'student',
+            };
+            
+            setUser(authUser);
+            await checkUserStatusAndRedirect(authUser);
           }
         }
       }
