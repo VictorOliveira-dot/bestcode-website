@@ -40,6 +40,13 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
 }) => {
   const isFormValid = newClass.name.trim() !== '' && newClass.description.trim() !== '' && newClass.startDate !== '';
   
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isFormValid && !isLoading) {
+      handleAddClass();
+    }
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!isLoading) { // Prevent closing the dialog while loading
@@ -51,7 +58,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
           <DialogTitle>Nova Turma</DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="name">Nome da Turma</Label>
             <Input
@@ -60,6 +67,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
               value={newClass.name}
               onChange={(e) => setNewClass({...newClass, name: e.target.value})}
               disabled={isLoading}
+              required
             />
           </div>
           
@@ -71,6 +79,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
               value={newClass.description}
               onChange={(e) => setNewClass({...newClass, description: e.target.value})}
               disabled={isLoading}
+              required
             />
           </div>
           
@@ -82,32 +91,34 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({
               value={newClass.startDate}
               onChange={(e) => setNewClass({...newClass, startDate: e.target.value})}
               disabled={isLoading}
+              required
             />
           </div>
-        </div>
-        
-        <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleAddClass}
-            disabled={isLoading || !isFormValid}
-          >
-            {isLoading ? (
-              <>
-                <Loader className="h-4 w-4 animate-spin mr-2" />
-                Salvando...
-              </>
-            ) : (
-              "Salvar"
-            )}
-          </Button>
-        </DialogFooter>
+          
+          <DialogFooter>
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isLoading}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="submit"
+              disabled={isLoading || !isFormValid}
+            >
+              {isLoading ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin mr-2" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

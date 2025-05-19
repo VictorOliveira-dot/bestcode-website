@@ -19,7 +19,7 @@ const ClassManagement = () => {
     startDate: '',
   });
   
-  // Usando o hook useTeacherData para obter as classes e refetchClasses
+  // Using useTeacherData hook to get classes and refetchClasses
   const { classes, refetchClasses, isLoading: isLoadingTeacherData } = useTeacherData();
 
   const {
@@ -30,7 +30,7 @@ const ClassManagement = () => {
     handleDeleteClass
   } = useClassManagement();
 
-  // Combinando os estados de carregamento
+  // Combining loading states
   const isLoading = isLoadingTeacherData || isLoadingManagement;
 
   const openEditDialog = (classInfo: ClassInfo) => {
@@ -44,7 +44,7 @@ const ClassManagement = () => {
       if (success) {
         setNewClass({ name: '', description: '', startDate: '' });
         setIsAddClassOpen(false);
-        // Recarregar a lista de turmas após adicionar
+        // Reload the list of classes after adding
         await refetchClasses();
         toast({
           title: "Sucesso",
@@ -67,7 +67,7 @@ const ClassManagement = () => {
         const success = await handleEditClass(selectedClass);
         if (success) {
           setIsEditClassOpen(false);
-          // Recarregar a lista de turmas após editar
+          // Reload the list of classes after editing
           await refetchClasses();
           toast({
             title: "Sucesso",
@@ -88,7 +88,7 @@ const ClassManagement = () => {
   const handleDelete = async (classId: string) => {
     const success = await handleDeleteClass(classId);
     if (success) {
-      // Recarregar a lista de turmas após excluir
+      // Reload the list of classes after deleting
       await refetchClasses();
     }
   };

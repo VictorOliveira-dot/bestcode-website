@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/auth';
 import { ClassInfo } from '@/components/teacher/ClassItem';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
+import { validateClassData } from '@/utils/teacher/classValidation';
 
 export const useClassManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,14 +13,34 @@ export const useClassManagement = () => {
 
   const handleAddClass = async (classData: { name: string; description: string; startDate: string }) => {
     setIsLoading(true);
+    
+    // Validate class data
+    if (!validateClassData(classData)) {
+      setIsLoading(false);
+      return false;
+    }
+    
     try {
+      console.log("Creating class with data:", classData);
+      console.log("Current user:", user);
+      
+      if (!user?.id) {
+        throw new Error("Usuário não autenticado ou ID não disponível");
+      }
+      
+      // Call the Supabase RPC function to create a teacher class
       const { data, error } = await supabase.rpc('create_teacher_class', {
         p_name: classData.name,
         p_description: classData.description,
         p_start_date: classData.startDate
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating class:", error);
+        throw error;
+      }
+      
+      console.log("Class created successfully:", data);
       
       toast({
         title: 'Turma criada',
@@ -28,6 +49,8 @@ export const useClassManagement = () => {
       
       return true;
     } catch (err: any) {
+      console.error("Error in handleAddClass:", err);
+      setError(err.message || 'Falha ao criar turma');
       toast({
         title: 'Erro ao criar turma',
         description: err.message || 'Falha ao criar turma',
@@ -41,16 +64,33 @@ export const useClassManagement = () => {
 
   const handleEditClass = async (classData: ClassInfo) => {
     setIsLoading(true);
+    
+    // Validate class data
+    if (!validateClassData(classData)) {
+      setIsLoading(false);
+      return false;
+    }
+    
     try {
+      console.log("Updating class with data:", classData);
+      
+      if (!user?.id) {
+        throw new Error("Usuário não autenticado ou ID não disponível");
+      }
+      
+      // Call the Supabase RPC function to update a class
       const { error } = await supabase.rpc('update_class', {
         p_class_id: classData.id,
         p_name: classData.name,
         p_description: classData.description,
         p_start_date: classData.startDate,
-        p_teacher_id: user?.id
+        p_teacher_id: user.id
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating class:", error);
+        throw error;
+      }
       
       toast({
         title: 'Turma atualizada',
@@ -59,6 +99,8 @@ export const useClassManagement = () => {
       
       return true;
     } catch (err: any) {
+      console.error("Error in handleEditClass:", err);
+      setError(err.message || 'Falha ao atualizar turma');
       toast({
         title: 'Erro ao atualizar turma',
         description: err.message || 'Falha ao atualizar turma',
@@ -77,12 +119,22 @@ export const useClassManagement = () => {
     
     setIsLoading(true);
     try {
+      console.log("Deleting class ID:", classId);
+      
+      if (!user?.id) {
+        throw new Error("Usuário não autenticado ou ID não disponível");
+      }
+      
+      // Call the Supabase RPC function to delete a class
       const { error } = await supabase.rpc('delete_class', {
         p_class_id: classId,
-        p_teacher_id: user?.id
+        p_teacher_id: user.id
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting class:", error);
+        throw error;
+      }
       
       toast({
         title: 'Turma excluída',
@@ -91,6 +143,8 @@ export const useClassManagement = () => {
       
       return true;
     } catch (err: any) {
+      console.error("Error in handleDeleteClass:", err);
+      setError(err.message || 'Falha ao excluir turma');
       toast({
         title: 'Erro ao excluir turma',
         description: err.message || 'Falha ao excluir turma',

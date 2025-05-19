@@ -15,16 +15,28 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["teacherClasses", user?.id],
     queryFn: async () => {
+      if (!user?.id) {
+        console.error("No user ID available for querying classes");
+        return [];
+      }
+      
+      console.log("Fetching classes for teacher ID:", user.id);
+      
       const { data, error } = await supabase.rpc('get_teacher_classes', {
-        teacher_id: user?.id
+        teacher_id: user.id
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching teacher classes:", error);
+        throw error;
+      }
+      
+      console.log("Fetched classes:", data);
       return data || [];
     },
     enabled: !!user?.id,
     staleTime: 30000, // Consider data fresh for 30 seconds
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes (renamed from cacheTime)
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
   });
 
   const { 
@@ -33,16 +45,28 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["teacherStudentCount", user?.id],
     queryFn: async () => {
+      if (!user?.id) {
+        console.error("No user ID available for querying student count");
+        return 0;
+      }
+      
+      console.log("Fetching student count for teacher ID:", user.id);
+      
       const { data, error } = await supabase.rpc('get_teacher_student_count', {
-        teacher_id: user?.id
+        teacher_id: user.id
       });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching teacher student count:", error);
+        throw error;
+      }
+      
+      console.log("Fetched student count:", data);
+      return data || 0;
     },
     enabled: !!user?.id,
     staleTime: 30000,
-    gcTime: 1000 * 60 * 5, // Renamed from cacheTime
+    gcTime: 1000 * 60 * 5,
   });
 
   const {
@@ -53,16 +77,28 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["teacherLessons", user?.id],
     queryFn: async () => {
+      if (!user?.id) {
+        console.error("No user ID available for querying lessons");
+        return [];
+      }
+      
+      console.log("Fetching lessons for teacher ID:", user.id);
+      
       const { data, error } = await supabase.rpc('get_teacher_lessons', {
-        teacher_id: user?.id
+        teacher_id: user.id
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching teacher lessons:", error);
+        throw error;
+      }
+      
+      console.log("Fetched lessons:", data);
       return data || [];
     },
     enabled: !!user?.id,
     staleTime: 30000,
-    gcTime: 1000 * 60 * 5, // Renamed from cacheTime
+    gcTime: 1000 * 60 * 5,
   });
 
   return {

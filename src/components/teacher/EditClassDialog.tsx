@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ClassInfo } from "./ClassItem";
+import { Loader } from "lucide-react";
 
 interface EditClassDialogProps {
   isOpen: boolean;
@@ -30,25 +31,39 @@ const EditClassDialog: React.FC<EditClassDialogProps> = ({
   handleEditClass,
   isLoading = false
 }) => {
-  if (!selectedClass) return null;
+  const isFormValid = selectedClass?.name?.trim() !== '' && 
+                     selectedClass?.description?.trim() !== '' && 
+                     selectedClass?.startDate !== '';
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isFormValid && !isLoading) {
+      handleEditClass();
+    }
+  };
+                     
+  if (!selectedClass) return null;
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!isLoading) {
+        onOpenChange(open);
+      }
+    }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Editar Turma</DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="edit-name">Nome da Turma</Label>
             <Input
               id="edit-name"
               value={selectedClass.name}
-              onChange={(e) => setSelectedClass({
-                ...selectedClass,
-                name: e.target.value
-              })}
+              onChange={(e) => setSelectedClass({...selectedClass, name: e.target.value})}
+              disabled={isLoading}
+              required
             />
           </div>
           
@@ -57,10 +72,9 @@ const EditClassDialog: React.FC<EditClassDialogProps> = ({
             <Textarea
               id="edit-description"
               value={selectedClass.description}
-              onChange={(e) => setSelectedClass({
-                ...selectedClass,
-                description: e.target.value
-              })}
+              onChange={(e) => setSelectedClass({...selectedClass, description: e.target.value})}
+              disabled={isLoading}
+              required
             />
           </div>
           
@@ -70,29 +84,36 @@ const EditClassDialog: React.FC<EditClassDialogProps> = ({
               id="edit-date"
               type="date"
               value={selectedClass.startDate}
-              onChange={(e) => setSelectedClass({
-                ...selectedClass,
-                startDate: e.target.value
-              })}
+              onChange={(e) => setSelectedClass({...selectedClass, startDate: e.target.value})}
+              disabled={isLoading}
+              required
             />
           </div>
-        </div>
-        
-        <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleEditClass}
-            disabled={isLoading}
-          >
-            {isLoading ? "Salvando..." : "Salvar"}
-          </Button>
-        </DialogFooter>
+          
+          <DialogFooter>
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isLoading}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="submit"
+              disabled={isLoading || !isFormValid}
+            >
+              {isLoading ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin mr-2" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
