@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { AuthUser } from "@/hooks/useAuthState";
 
 export const fetchUserData = async (authUser: User) => {
   try {
@@ -95,6 +95,23 @@ export const loginUser = async (email: string, password: string) => {
 
     if (data?.user) {
       console.log('Login successful for:', data.user.email);
+      
+      // Agora, após login bem-sucedido, buscar os dados do usuário do banco de dados
+      const userData = await fetchUserData(data.user);
+      
+      if (userData) {
+        // Retornar os dados completos do usuário junto com a mensagem de sucesso
+        return { 
+          success: true, 
+          user: {
+            id: data.user.id,
+            email: data.user.email || '',
+            name: userData.name,
+            role: userData.role as 'admin' | 'teacher' | 'student',
+          }
+        };
+      }
+      
       return { success: true };
     }
 

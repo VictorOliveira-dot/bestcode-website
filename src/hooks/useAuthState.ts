@@ -22,82 +22,28 @@ export const useAuthState = () => {
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
         
-        if (session?.user) {
-          // Use setTimeout to avoid potential deadlocks
-          setTimeout(async () => {
-            try {
-              console.log("User authenticated in state change event:", session.user.email);
-              
-              // Fetch or create user data from public.users table - SEMPRE verifica no Supabase em tempo real
-              const userData = await fetchUserData(session.user);
-              
-              if (userData) {
-                console.log("Setting user state with role from DB:", userData.role);
-                setUser({
-                  id: session.user.id,
-                  email: session.user.email || '',
-                  name: userData.name,
-                  role: userData.role as 'admin' | 'teacher' | 'student',
-                });
-
-                // Create user profile if it doesn't exist
-                try {
-                  // Check if profile record exists
-                  const { data: profileData, error: profileError } = await supabase
-                    .from('user_profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .maybeSingle();
-
-                  if (profileError && profileError.code !== 'PGRST116') {
-                    console.error("Error checking user profile:", profileError);
-                  }
-
-                  // If no profile exists, create one
-                  if (!profileData) {
-                    console.log("Creating initial profile record for user");
-                    const { error: insertError } = await supabase
-                      .from('user_profiles')
-                      .upsert({
-                        id: session.user.id,
-                        is_profile_complete: false
-                      });
-
-                    if (insertError) {
-                      console.error("Error creating initial profile:", insertError);
-                    }
-                  }
-                } catch (profileError) {
-                  console.error('Error handling user profile:', profileError);
-                }
-              } else {
-                console.error("Could not get or create user data in database");
-                setUser(null);
-              }
-            } catch (error) {
-              console.error('Error processing authenticated user:', error);
-              setUser(null);
-            } finally {
-              setLoading(false);
-            }
-          }, 0);
-        } else {
-          console.log("No session detected in state change");
+        // Apenas atualize o estado do usuário para NULL quando o evento for SIGNED_OUT
+        // Não faça o processo de login automático com SIGNED_IN
+        if (event === 'SIGNED_OUT') {
+          console.log("User signed out, clearing state");
           setUser(null);
           setLoading(false);
         }
       }
     );
 
-    // Check initial session
+    // Verificar sessão inicial apenas para determinar se há loading ou não
+    // Não configura o usuário automaticamente
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        console.log("Initial session check: User is logged in");
-      } else {
+      if (!session) {
         console.log("Initial session check: No active session");
+        setLoading(false);
+      } else {
+        console.log("Initial session check: Session exists, but not auto-logging in");
+        // Apenas marcar que não está mais carregando, mas não define o usuário
         setLoading(false);
       }
     });
@@ -109,5 +55,5 @@ export const useAuthState = () => {
     };
   }, []);
 
-  return { user, loading };
+  return { user, loading, setUser };
 };

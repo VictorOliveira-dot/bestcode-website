@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<{ success: boolean }>;
   register: (data: { email: string; password: string; name: string; role: string }) => Promise<{ success: boolean; message?: string }>;
+  setUser: (user: AuthUser | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,12 +18,13 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => ({ success: false }),
   logout: async () => ({ success: false }),
   register: async () => ({ success: false }),
+  setUser: () => {}
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuthState();
+  const { user, loading, setUser } = useAuthState();
 
   return (
     <AuthContext.Provider value={{
@@ -31,6 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       login: loginUser,
       logout: logoutUser,
       register: registerUser,
+      setUser
     }}>
       {children}
     </AuthContext.Provider>
