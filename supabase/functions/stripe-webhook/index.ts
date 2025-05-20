@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@12.4.0";
@@ -39,13 +38,15 @@ serve(async (req) => {
     if (endpointSecret && signature) {
       try {
         event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
+        console.log("✅ Webhook signature verified successfully");
       } catch (error) {
-        console.error(`Webhook signature verification failed: ${error.message}`);
+        console.error(`❌ Webhook signature verification failed: ${error.message}`);
         return new Response(`Webhook signature verification failed`, { status: 400 });
       }
     } else {
       // For development without signature verification
       event = JSON.parse(body);
+      console.log("⚠️ Using webhook without signature verification (development mode)");
     }
     
     console.log(`Received event: ${event.type}`);
@@ -60,8 +61,9 @@ serve(async (req) => {
         const userId = session.metadata?.userId;
         const applicationId = session.metadata?.applicationId;
         const paymentMethod = session.metadata?.paymentMethod;
+        const testMode = session.metadata?.testMode === "true";
         
-        console.log(`Payment successful for session ${session.id}. User ID: ${userId}, Payment Method: ${paymentMethod}`);
+        console.log(`💰 Payment successful for session ${session.id}. User ID: ${userId}, Payment Method: ${paymentMethod}, Test Mode: ${testMode ? 'Yes' : 'No'}`);
         
         if (userId) {
           // Verificar se o usuário é um estudante
@@ -72,9 +74,9 @@ serve(async (req) => {
             .single();
             
           if (userError) {
-            console.error("Error fetching user role:", userError);
+            console.error("❌ Error fetching user role:", userError);
           } else if (userData.role !== 'student') {
-            console.error(`User ${userId} is not a student. Role: ${userData.role}`);
+            console.error(`⚠️ User ${userId} is not a student. Role: ${userData.role}`);
             return new Response(JSON.stringify({ 
               received: true, 
               message: "User is not a student, not activating account" 
@@ -84,16 +86,17 @@ serve(async (req) => {
             });
           }
           
-          // Update user to active status (only for students) - CRITICAL STEP
+          // CRITICAL: Update user to active status (only for students)
           const { error: userUpdateError } = await supabaseAdmin
             .from("users")
             .update({ is_active: true })
             .eq("id", userId);
             
           if (userUpdateError) {
-            console.error("Error updating user status:", userUpdateError);
+            console.error("❌ Error updating user status:", userUpdateError);
+            throw new Error(`Failed to activate student account: ${userUpdateError.message}`);
           } else {
-            console.log(`Student ${userId} activated successfully`);
+            console.log(`✅ Student ${userId} activated successfully`);
             
             // Send confirmation email to student
             try {
@@ -104,26 +107,24 @@ serve(async (req) => {
                 .single();
                 
               if (!emailError && emailData) {
-                // Send an email notification about account activation
-                // Note: You need to implement email sending functionality here
-                console.log(`Should send activation email to ${emailData.email}`);
-                
                 // Add notification to the student's notifications
                 const { error: notificationError } = await supabaseAdmin
                   .from("notifications")
                   .insert({
                     user_id: userId,
                     title: "Pagamento Confirmado",
-                    message: `Seu pagamento foi confirmado! Bem-vindo ao curso ${session.metadata?.courseTitle || 'Formação Completa em QA'}.`,
+                    message: `Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso ${session.metadata?.courseTitle || 'Formação Completa em QA'}.`,
                     read: false
                   });
                   
                 if (notificationError) {
-                  console.error("Error creating notification:", notificationError);
+                  console.error("❌ Error creating notification:", notificationError);
+                } else {
+                  console.log(`✉️ Notification sent to user ${userId} about payment confirmation`);
                 }
               }
             } catch (emailErr) {
-              console.error("Error sending confirmation email:", emailErr);
+              console.error("❌ Error sending confirmation notification:", emailErr);
             }
           }
           
@@ -137,9 +138,9 @@ serve(async (req) => {
             .eq("stripe_payment_id", session.id);
             
           if (paymentUpdateError) {
-            console.error("Error updating payment status:", paymentUpdateError);
+            console.error("❌ Error updating payment status:", paymentUpdateError);
           } else {
-            console.log(`Payment status updated for session ${session.id}`);
+            console.log(`✅ Payment status updated for session ${session.id}`);
           }
           
           // If application ID is provided, update application status
@@ -150,21 +151,23 @@ serve(async (req) => {
               .eq("id", applicationId);
               
             if (applicationError) {
-              console.error("Error updating application status:", applicationError);
+              console.error("❌ Error updating application status:", applicationError);
             } else {
-              console.log(`Application ${applicationId} marked as approved`);
+              console.log(`✅ Application ${applicationId} marked as approved`);
             }
           }
         } else if (customerEmail) {
           // If no userId in metadata, try to find user by email
           const { data: userData, error: userFetchError } = await supabaseAdmin
             .from("users")
-            .select("id")
+            .select("id, role")
             .eq("email", customerEmail)
             .single();
             
           if (userFetchError || !userData) {
-            console.error("Error finding user by email:", userFetchError);
+            console.error("❌ Error finding user by email:", userFetchError);
+          } else if (userData.role !== 'student') {
+            console.log(`⚠️ User with email ${customerEmail} is not a student. Not activating.`);
           } else {
             // Update user to active status
             const userId = userData.id;
@@ -176,9 +179,9 @@ serve(async (req) => {
               .eq("id", userId);
               
             if (userUpdateError) {
-              console.error("Error updating user status:", userUpdateError);
+              console.error("❌ Error updating user status:", userUpdateError);
             } else {
-              console.log(`User with email ${customerEmail} activated successfully`);
+              console.log(`✅ User with email ${customerEmail} activated successfully`);
               
               // Add notification
               const { error: notificationError } = await supabaseAdmin
@@ -186,12 +189,14 @@ serve(async (req) => {
                 .insert({
                   user_id: userId,
                   title: "Pagamento Confirmado",
-                  message: "Seu pagamento foi confirmado! Bem-vindo ao curso.",
+                  message: "Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso.",
                   read: false
                 });
                 
               if (notificationError) {
-                console.error("Error creating notification:", notificationError);
+                console.error("❌ Error creating notification:", notificationError);
+              } else {
+                console.log(`✉️ Notification sent to user ${userId} about payment confirmation`);
               }
             }
             
@@ -208,13 +213,13 @@ serve(async (req) => {
               });
               
             if (paymentError) {
-              console.error("Error recording payment:", paymentError);
+              console.error("❌ Error recording payment:", paymentError);
             } else {
-              console.log(`Payment record created for user with email ${customerEmail}`);
+              console.log(`✅ Payment record created for user with email ${customerEmail}`);
             }
           }
         } else {
-          console.error("No user identifier found in session");
+          console.error("❌ No user identifier found in session");
         }
         break;
       }
@@ -319,7 +324,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    console.error(`Error processing webhook: ${error.message}`);
+    console.error(`❌ Error processing webhook: ${error.message}`);
     return new Response(`Webhook Error: ${error.message}`, { status: 400 });
   }
 });

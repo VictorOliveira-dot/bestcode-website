@@ -33,6 +33,7 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
 
           if (error) throw error;
           
+          console.log("User active status:", data?.is_active);
           setIsActive(data?.is_active || false);
         } else {
           // Não-estudantes sempre são considerados "ativos"
