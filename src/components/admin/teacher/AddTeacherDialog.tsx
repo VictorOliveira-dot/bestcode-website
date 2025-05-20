@@ -72,7 +72,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      // Criar o professor usando a função RPC atualizada
+      // Criar o professor usando a função RPC admin_create_professor
       console.log("Chamando RPC admin_create_professor para criar professor com email:", data.email);
       
       const { data: teacherId, error: rpcError } = await supabase.rpc('admin_create_professor', {

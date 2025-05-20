@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
 import { ClassFormValues } from "@/components/admin/class/ClassForm";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useClassCreation = (onSuccess?: () => void) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,8 +21,22 @@ export const useClassCreation = (onSuccess?: () => void) => {
         throw new Error("Only admins can create classes");
       }
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log("Creating class with data:", data);
+      
+      // Call the admin_create_class function to create the class
+      const { data: classId, error } = await supabase.rpc('admin_create_class', {
+        p_name: data.name,
+        p_description: data.description,
+        p_start_date: data.startDate,
+        p_teacher_id: data.teacherId
+      });
+      
+      if (error) {
+        console.error("Error creating class:", error);
+        throw new Error(error.message || "Failed to create class");
+      }
+      
+      console.log("Class created successfully with ID:", classId);
       
       toast({
         title: "Class created",
