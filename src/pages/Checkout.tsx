@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -15,6 +14,7 @@ import PaymentForm from "@/components/checkout/PaymentForm";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
+import { AlertTriangle } from "lucide-react";
 
 const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("pix"); // Default to PIX (cheapest option)
@@ -273,6 +273,11 @@ const Checkout = () => {
       
       if (error) throw new Error(error.message || "Ocorreu um erro ao processar o pagamento");
       
+      // Store testMode flag in localStorage
+      if (data.testMode) {
+        localStorage.setItem('payment_test_mode', 'true');
+      }
+      
       // Redirect to Stripe Checkout or show success based on payment method
       if (data?.url) {
         // Store email data for checkout recovery
@@ -281,7 +286,8 @@ const Checkout = () => {
           email: user.email,
           course: course.title,
           amount: course.finalPrice,
-          paymentMethod
+          paymentMethod,
+          testMode: data.testMode
         }));
         
         window.location.href = data.url;
@@ -335,6 +341,17 @@ const Checkout = () => {
       <Navbar />
       <main className="flex-grow bg-gray-50 py-12">
         <div className="container-custom">
+          {/* Test mode banner */}
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-center gap-2">
+            <AlertTriangle className="text-amber-500" size={20} />
+            <div>
+              <p className="font-medium text-amber-800">Ambiente de Testes</p>
+              <p className="text-sm text-amber-700">
+                Este é um ambiente de teste do Stripe. Nenhuma cobrança real será processada.
+              </p>
+            </div>
+          </div>
+          
           <div>
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Checkout</h1>

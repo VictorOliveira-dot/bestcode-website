@@ -8,6 +8,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const isTestMode = true; // Forçando modo de teste
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -23,7 +25,7 @@ serve(async (req) => {
       apiVersion: "2022-11-15",
     });
 
-    console.log(`Processing payment with method: ${paymentMethod}`);
+    console.log(`[TEST MODE] Processing payment with method: ${paymentMethod}`);
 
     // Create Supabase client with service role key to update user status
     const supabaseAdmin = createClient(
@@ -128,6 +130,7 @@ serve(async (req) => {
         userId: userId,
         applicationId: applicationId || '',
         paymentMethod: paymentMethod,
+        testMode: isTestMode.toString(),
       },
     });
 
@@ -139,7 +142,8 @@ serve(async (req) => {
       stripe_payment_id: session.id,
       payment_amount: amount / 100, // Convert from cents to real
       payment_date: new Date().toISOString(),
-      application_id: applicationId || null
+      application_id: applicationId || null,
+      is_test: isTestMode
     };
     
     // Insert payment record
@@ -150,14 +154,15 @@ serve(async (req) => {
     if (paymentUpdateError) {
       console.error("Error recording payment:", paymentUpdateError);
     } else {
-      console.log(`Payment record created for user ${userId}`);
+      console.log(`[TEST MODE] Payment record created for user ${userId}`);
     }
 
     return new Response(JSON.stringify({ 
       success: true, 
       status: "pending",
       id: session.id,
-      url: session.url
+      url: session.url,
+      testMode: isTestMode
     }), {
       status: 200,
       headers: {
