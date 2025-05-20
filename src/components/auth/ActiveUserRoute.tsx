@@ -23,6 +23,8 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
       }
 
       try {
+        console.log("Checking active status for user:", user.id, "with role:", user.role);
+        
         // Apenas verificar is_active para estudantes
         if (user.role === 'student') {
           const { data, error } = await supabase
@@ -31,12 +33,16 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
             .eq("id", user.id)
             .single();
 
-          if (error) throw error;
+          if (error) {
+            console.error("Error fetching user status:", error);
+            throw error;
+          }
           
           console.log("User active status:", data?.is_active);
           setIsActive(data?.is_active || false);
         } else {
           // Não-estudantes sempre são considerados "ativos"
+          console.log("Non-student user, setting active to true");
           setIsActive(true);
         }
       } catch (error) {
@@ -52,6 +58,17 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
     }
   }, [user, loading]);
 
+  useEffect(() => {
+    // Log current state for debugging purposes
+    console.log("ActiveUserRoute state:", {
+      user: user ? { id: user.id, role: user.role } : null,
+      isActive,
+      loading,
+      checkingStatus,
+      location: location.pathname
+    });
+  }, [user, isActive, loading, checkingStatus, location]);
+
   if (loading || checkingStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -66,10 +83,12 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
   }
 
   if (user.role === 'student' && isActive === false) {
+    console.log("Student account is not active, redirecting to checkout");
     toast.error("Sua conta está pendente de ativação. Conclua o pagamento para acessar.");
     return <Navigate to="/checkout" state={{ from: location }} replace />;
   }
 
+  console.log("Access granted to user:", user.id);
   return <>{children}</>;
 };
 

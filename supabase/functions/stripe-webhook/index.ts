@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@12.4.0";
@@ -94,9 +95,23 @@ serve(async (req) => {
             
           if (userUpdateError) {
             console.error("❌ Error updating user status:", userUpdateError);
+            console.error("Error details:", JSON.stringify(userUpdateError));
             throw new Error(`Failed to activate student account: ${userUpdateError.message}`);
           } else {
             console.log(`✅ Student ${userId} activated successfully`);
+            
+            // Add more detailed logging about the user being activated
+            const { data: updatedUser, error: checkError } = await supabaseAdmin
+              .from("users")
+              .select("id, email, is_active")
+              .eq("id", userId)
+              .single();
+              
+            if (!checkError && updatedUser) {
+              console.log(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id}) is_active=${updatedUser.is_active}`);
+            } else {
+              console.error("❌ Could not verify user activation:", checkError);
+            }
             
             // Send confirmation email to student
             try {
@@ -180,8 +195,22 @@ serve(async (req) => {
               
             if (userUpdateError) {
               console.error("❌ Error updating user status:", userUpdateError);
+              console.error("Error details:", JSON.stringify(userUpdateError));
             } else {
               console.log(`✅ User with email ${customerEmail} activated successfully`);
+              
+              // Add more detailed logging about the user being activated
+              const { data: updatedUser, error: checkError } = await supabaseAdmin
+                .from("users")
+                .select("id, email, is_active")
+                .eq("id", userId)
+                .single();
+                
+              if (!checkError && updatedUser) {
+                console.log(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id}) is_active=${updatedUser.is_active}`);
+              } else {
+                console.error("❌ Could not verify user activation:", checkError);
+              }
               
               // Add notification
               const { error: notificationError } = await supabaseAdmin
