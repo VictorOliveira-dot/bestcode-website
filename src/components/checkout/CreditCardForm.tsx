@@ -22,16 +22,16 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <div className="bg-amber-50 border-2 border-amber-300 text-amber-800 p-4 rounded-md mb-4">
+      <div className="bg-red-50 border-2 border-red-300 text-red-800 p-4 rounded-md mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <AlertCircle size={20} className="text-amber-600" />
-          <p className="font-medium">MODO DE TESTE</p>
+          <AlertCircle size={20} className="text-red-600" />
+          <p className="font-medium text-red-600">AMBIENTE DE TESTE STRIPE</p>
         </div>
         <p className="text-sm">
           Este é um ambiente de teste. Nenhum pagamento real será processado.
         </p>
-        <p className="text-sm mt-2 font-medium">
-          Importante: Use apenas cartões de teste ou você receberá um erro.
+        <p className="text-sm mt-2 font-bold">
+          IMPORTANTE: Use apenas os cartões de teste listados abaixo ou ocorrerá um erro!
         </p>
       </div>
     
@@ -51,12 +51,12 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
         
         <div className="mt-3 bg-gray-100 p-2 rounded-md border border-gray-200">
           <p className="text-sm flex items-center gap-1 font-medium">
-            <AlertCircle size={16} className="text-amber-500" />
-            Cartões de teste:
+            <AlertCircle size={16} className="text-red-500" />
+            SOMENTE CARTÕES DE TESTE:
           </p>
           <ul className="text-xs mt-1 space-y-1 pl-5 list-disc">
-            <li>Visa: <span className="font-mono">4242 4242 4242 4242</span></li>
-            <li>Mastercard: <span className="font-mono">5555 5555 5555 4444</span></li>
+            <li>Visa (sucesso): <span className="font-mono font-bold">4242 4242 4242 4242</span></li>
+            <li>Mastercard (sucesso): <span className="font-mono font-bold">5555 5555 5555 4444</span></li>
             <li>Para PIX, use qualquer CPF válido</li>
             <li>Para Boleto, qualquer CPF válido será aceito</li>
           </ul>

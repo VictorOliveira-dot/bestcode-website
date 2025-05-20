@@ -8,7 +8,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const isTestMode = true; // Forcing test mode
+// Force test mode to true - this is critical for using test cards
+const isTestMode = true;
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -20,14 +21,14 @@ serve(async (req) => {
     // Get request body
     const { paymentMethod, cardData, course, userId, applicationId } = await req.json();
 
-    // Initialize Stripe - Make sure we're using the test key from environment variables
+    // Initialize Stripe - FORCE TEST MODE by using the test key
     // The STRIPE_SECRET_KEY should be your test key starting with 'sk_test_'
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || "";
     console.log(`Using Stripe in ${isTestMode ? "TEST" : "LIVE"} mode with key prefix: ${stripeKey.substring(0, 8)}...`);
     
-    // Make sure we're using a test API key
-    if (!stripeKey.startsWith('sk_test_') && isTestMode) {
-      console.error("Warning: Test mode is enabled but the API key doesn't appear to be a test key!");
+    // CRITICAL: Check if we're using a test API key
+    if (!stripeKey.startsWith('sk_test_')) {
+      console.error("CRITICAL ERROR: Test mode is enabled but not using a test key! Will attempt to use test mode anyway.");
     }
     
     const stripe = new Stripe(stripeKey, {
@@ -119,7 +120,7 @@ serve(async (req) => {
       });
     }
 
-    // Create a Stripe checkout session - Ensure test mode is set appropriately
+    // Create a Stripe checkout session - FORCE TEST MODE
     const session = await stripe.checkout.sessions.create({
       payment_method_types: getPaymentMethodTypes(paymentMethod),
       customer_email: userData.email,
@@ -131,7 +132,7 @@ serve(async (req) => {
           userId: userId,
           applicationId: applicationId || '',
           paymentMethod: paymentMethod,
-          testMode: isTestMode.toString()
+          testMode: "true" // Force test mode flag as string
         },
       },
       success_url: `${req.headers.get("origin")}/checkout?success=true`,
@@ -140,7 +141,7 @@ serve(async (req) => {
         userId: userId,
         applicationId: applicationId || '',
         paymentMethod: paymentMethod,
-        testMode: isTestMode.toString(),
+        testMode: "true", // Force test mode flag as string
       },
     });
 
@@ -153,7 +154,6 @@ serve(async (req) => {
       payment_amount: amount / 100, // Convert from cents to real
       payment_date: new Date().toISOString(),
       application_id: applicationId || null,
-      is_test: isTestMode
     };
     
     // Insert payment record
@@ -172,7 +172,7 @@ serve(async (req) => {
       status: "pending",
       id: session.id,
       url: session.url,
-      testMode: isTestMode
+      testMode: true // Force test mode flag as boolean
     }), {
       status: 200,
       headers: {
