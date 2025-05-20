@@ -20,9 +20,16 @@ serve(async (req) => {
     // Get request body
     const { paymentMethod, cardData, course, userId, applicationId } = await req.json();
 
-    // Initialize Stripe
+    // Initialize Stripe - Make sure we're using the test key from environment variables
+    // The STRIPE_SECRET_KEY should be your test key starting with 'sk_test_'
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || "";
-    console.log(`Using Stripe in ${isTestMode ? "TEST" : "LIVE"} mode`);
+    console.log(`Using Stripe in ${isTestMode ? "TEST" : "LIVE"} mode with key prefix: ${stripeKey.substring(0, 8)}...`);
+    
+    // Make sure we're using a test API key
+    if (!stripeKey.startsWith('sk_test_') && isTestMode) {
+      console.error("Warning: Test mode is enabled but the API key doesn't appear to be a test key!");
+    }
+    
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2022-11-15",
     });
@@ -112,7 +119,7 @@ serve(async (req) => {
       });
     }
 
-    // Create a Stripe checkout session
+    // Create a Stripe checkout session - Ensure test mode is set appropriately
     const session = await stripe.checkout.sessions.create({
       payment_method_types: getPaymentMethodTypes(paymentMethod),
       customer_email: userData.email,

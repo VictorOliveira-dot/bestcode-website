@@ -30,6 +30,9 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
         <p className="text-sm">
           Este é um ambiente de teste. Nenhum pagamento real será processado.
         </p>
+        <p className="text-sm mt-2 font-medium">
+          Importante: Use apenas cartões de teste ou você receberá um erro.
+        </p>
       </div>
     
       <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-md mb-4">
