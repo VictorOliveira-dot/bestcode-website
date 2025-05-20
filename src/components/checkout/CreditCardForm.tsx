@@ -59,6 +59,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
             <li>Mastercard (sucesso): <span className="font-mono font-bold">5555 5555 5555 4444</span></li>
             <li>Para PIX, use qualquer CPF válido</li>
             <li>Para Boleto, qualquer CPF válido será aceito</li>
+            <li className="text-red-500 font-semibold">NÃO use cartões reais - apenas os cartões de teste acima!</li>
           </ul>
         </div>
       </div>

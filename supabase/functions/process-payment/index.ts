@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Force test mode to true - this is critical for using test cards
+// Set test mode flag
 const isTestMode = true;
 
 serve(async (req) => {
@@ -21,15 +21,16 @@ serve(async (req) => {
     // Get request body
     const { paymentMethod, cardData, course, userId, applicationId } = await req.json();
 
-    // Initialize Stripe - FORCE TEST MODE by using the test key
-    // The STRIPE_SECRET_KEY should be your test key starting with 'sk_test_'
+    // Initialize Stripe with the test key from environment variables
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || "";
-    console.log(`Using Stripe in ${isTestMode ? "TEST" : "LIVE"} mode with key prefix: ${stripeKey.substring(0, 8)}...`);
     
-    // CRITICAL: Check if we're using a test API key
+    // Verify if we're using a test key
     if (!stripeKey.startsWith('sk_test_')) {
-      console.error("CRITICAL ERROR: Test mode is enabled but not using a test key! Will attempt to use test mode anyway.");
+      console.error("ERROR: Using a live key in test mode! Please set a test key.");
+      throw new Error("Configuration error: Test mode requires a Stripe test key.");
     }
+    
+    console.log(`Using Stripe in TEST mode with key prefix: ${stripeKey.substring(0, 8)}...`);
     
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2022-11-15",
