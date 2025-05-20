@@ -22,6 +22,16 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
 }) => {
   return (
     <div className="space-y-4">
+      <div className="bg-amber-50 border-2 border-amber-300 text-amber-800 p-4 rounded-md mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <AlertCircle size={20} className="text-amber-600" />
+          <p className="font-medium">MODO DE TESTE</p>
+        </div>
+        <p className="text-sm">
+          Este é um ambiente de teste. Nenhum pagamento real será processado.
+        </p>
+      </div>
+    
       <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-md mb-4">
         <div className="flex items-center gap-2 mb-2">
           <CreditCard size={20} />

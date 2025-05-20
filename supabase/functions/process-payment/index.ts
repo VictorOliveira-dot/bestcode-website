@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const isTestMode = true; // Forçando modo de teste
+const isTestMode = true; // Forcing test mode
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -21,7 +21,9 @@ serve(async (req) => {
     const { paymentMethod, cardData, course, userId, applicationId } = await req.json();
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || "";
+    console.log(`Using Stripe in ${isTestMode ? "TEST" : "LIVE"} mode`);
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2022-11-15",
     });
 
@@ -122,6 +124,7 @@ serve(async (req) => {
           userId: userId,
           applicationId: applicationId || '',
           paymentMethod: paymentMethod,
+          testMode: isTestMode.toString()
         },
       },
       success_url: `${req.headers.get("origin")}/checkout?success=true`,
