@@ -9,6 +9,7 @@ export interface AuthUser {
   email: string;
   name: string;
   role: 'admin' | 'teacher' | 'student';
+  is_active?: boolean;
 }
 
 // Convert this hook to a function component to properly access React hooks
@@ -25,8 +26,7 @@ export const useAuthState = () => {
       async (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
         
-        // Apenas atualize o estado do usuário para NULL quando o evento for SIGNED_OUT
-        // Não faça o processo de login automático com SIGNED_IN
+        // Only update the user state to NULL when the event is SIGNED_OUT
         if (event === 'SIGNED_OUT') {
           console.log("User signed out, clearing state");
           setUser(null);
@@ -35,15 +35,15 @@ export const useAuthState = () => {
       }
     );
 
-    // Verificar sessão inicial apenas para determinar se há loading ou não
-    // Não configura o usuário automaticamente
+    // Check initial session only to determine if there is loading or not
+    // Don't automatically configure the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         console.log("Initial session check: No active session");
         setLoading(false);
       } else {
         console.log("Initial session check: Session exists, but not auto-logging in");
-        // Apenas marcar que não está mais carregando, mas não define o usuário
+        // Just mark that it's no longer loading, but don't set the user
         setLoading(false);
       }
     });

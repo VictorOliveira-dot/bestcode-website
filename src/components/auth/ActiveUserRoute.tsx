@@ -25,7 +25,15 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
       try {
         console.log("Checking active status for user:", user.id, "with role:", user.role);
         
-        // Apenas verificar is_active para estudantes
+        // First check if the user has an is_active property from context
+        if (user.hasOwnProperty('is_active') && user.is_active === true) {
+          console.log("User is active based on context data");
+          setIsActive(true);
+          setCheckingStatus(false);
+          return;
+        }
+        
+        // Only check is_active for students
         if (user.role === 'student') {
           const { data, error } = await supabase
             .from("users")
@@ -38,10 +46,10 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
             throw error;
           }
           
-          console.log("User active status:", data?.is_active);
+          console.log("User active status from database:", data?.is_active);
           setIsActive(data?.is_active || false);
         } else {
-          // Não-estudantes sempre são considerados "ativos"
+          // Non-students are always considered "active"
           console.log("Non-student user, setting active to true");
           setIsActive(true);
         }
@@ -61,7 +69,7 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
   useEffect(() => {
     // Log current state for debugging purposes
     console.log("ActiveUserRoute state:", {
-      user: user ? { id: user.id, role: user.role } : null,
+      user: user ? { id: user.id, role: user.role, is_active: user.is_active } : null,
       isActive,
       loading,
       checkingStatus,

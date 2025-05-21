@@ -63,31 +63,61 @@ const Checkout = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      // Quando o pagamento for bem-sucedido, atualizar o status is_active do usuário
-      const updateUserStatus = async () => {
+      // When payment is successful, check user active status
+      const verifyUserActivation = async () => {
         try {
           if (user) {
-            const { error } = await supabase
+            // Check if the user has been activated
+            const { data: userData, error } = await supabase
               .from('users')
-              .update({ is_active: true })
-              .eq('id', user.id);
+              .select('is_active')
+              .eq('id', user.id)
+              .single();
               
             if (error) {
-              console.error("Error updating user status:", error);
+              console.error("Error checking user activation status:", error);
               toast({
-                title: "Erro na ativação da conta",
-                description: "Ocorreu um problema ao ativar sua conta, mas seu pagamento foi processado com sucesso.",
+                title: "Erro ao verificar ativação",
+                description: "Ocorreu um problema ao verificar o status da sua conta, mas seu pagamento foi processado com sucesso.",
                 variant: "destructive"
               });
-            } else {
+            } else if (userData?.is_active) {
               toast({
-                title: "Pagamento realizado com sucesso!",
+                title: "Pagamento confirmado!",
                 description: "Sua conta foi ativada. Redirecionando para a plataforma..."
               });
+              
+              // Update the user in auth context to include active status
+              if (userData) {
+                // Assuming your setUser function updates the user in AuthContext
+                const updatedUser = { ...user, is_active: true };
+                // Update any local user state if needed
+              }
+            } else {
+              console.log("User not activated yet, attempting to activate");
+              // Try to activate the user directly
+              const { error: updateError } = await supabase
+                .from('users')
+                .update({ is_active: true })
+                .eq('id', user.id);
+                
+              if (updateError) {
+                console.error("Error activating user account:", updateError);
+                toast({
+                  title: "Erro na ativação",
+                  description: "Seu pagamento foi processado, mas houve um erro ao ativar sua conta. Por favor, contate o suporte.",
+                  variant: "destructive"
+                });
+              } else {
+                toast({
+                  title: "Pagamento confirmado!",
+                  description: "Sua conta foi ativada. Redirecionando para a plataforma..."
+                });
+              }
             }
           }
           
-          // Redirect to dashboard regardless of update success
+          // Redirect to dashboard after confirmation
           setTimeout(() => {
             navigate("/student/dashboard");
           }, 3000);
@@ -101,7 +131,7 @@ const Checkout = () => {
         }
       };
       
-      updateUserStatus();
+      verifyUserActivation();
       return;
     }
 

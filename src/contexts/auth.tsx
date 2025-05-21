@@ -6,7 +6,7 @@ import { loginUser, logoutUser, registerUser } from '@/services/authService';
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string; user?: AuthUser }>;
   logout: () => Promise<{ success: boolean }>;
   register: (data: { email: string; password: string; name: string; role: string }) => Promise<{ success: boolean; message?: string }>;
   setUser: (user: AuthUser | null) => void;
