@@ -516,6 +516,10 @@ export type Database = {
       }
     }
     Functions: {
+      activate_student_account: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       admin_create_class: {
         Args: {
           p_name: string
