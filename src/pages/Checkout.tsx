@@ -89,9 +89,10 @@ const Checkout = () => {
               
               // Update the user in auth context to include active status
               if (userData) {
-                // Assuming your setUser function updates the user in AuthContext
                 const updatedUser = { ...user, is_active: true };
-                // Update any local user state if needed
+                // Explicitly update the user in the auth context
+                const { setUser } = useAuth();
+                setUser(updatedUser);
               }
             } else {
               console.log("User not activated yet, attempting to activate");
@@ -113,6 +114,11 @@ const Checkout = () => {
                   title: "Pagamento confirmado!",
                   description: "Sua conta foi ativada. Redirecionando para a plataforma..."
                 });
+                
+                // Update the local user state with is_active = true
+                const updatedUser = { ...user, is_active: true };
+                const { setUser } = useAuth();
+                setUser(updatedUser);
               }
             }
           }

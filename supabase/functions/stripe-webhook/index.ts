@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@12.4.0";
@@ -91,7 +90,8 @@ serve(async (req) => {
           const { error: userUpdateError } = await supabaseAdmin
             .from("users")
             .update({ is_active: true })
-            .eq("id", userId);
+            .eq("id", userId)
+            .eq("role", "student"); // Add this line to ensure only students are activated
             
           if (userUpdateError) {
             console.error("❌ Error updating user status:", userUpdateError);
@@ -103,12 +103,12 @@ serve(async (req) => {
             // Add more detailed logging about the user being activated
             const { data: updatedUser, error: checkError } = await supabaseAdmin
               .from("users")
-              .select("id, email, is_active")
+              .select("id, email, role, is_active")
               .eq("id", userId)
               .single();
               
             if (!checkError && updatedUser) {
-              console.log(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id}) is_active=${updatedUser.is_active}`);
+              console.log(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id}) role=${updatedUser.role} is_active=${updatedUser.is_active}`);
             } else {
               console.error("❌ Could not verify user activation:", checkError);
             }
@@ -191,7 +191,8 @@ serve(async (req) => {
               .update({ 
                 is_active: true 
               })
-              .eq("id", userId);
+              .eq("id", userId)
+              .eq("role", "student"); // Only activate student accounts
               
             if (userUpdateError) {
               console.error("❌ Error updating user status:", userUpdateError);
@@ -202,12 +203,12 @@ serve(async (req) => {
               // Add more detailed logging about the user being activated
               const { data: updatedUser, error: checkError } = await supabaseAdmin
                 .from("users")
-                .select("id, email, is_active")
+                .select("id, email, role, is_active")
                 .eq("id", userId)
                 .single();
                 
               if (!checkError && updatedUser) {
-                console.log(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id}) is_active=${updatedUser.is_active}`);
+                console.log(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id}) role=${updatedUser.role} is_active=${updatedUser.is_active}`);
               } else {
                 console.error("❌ Could not verify user activation:", checkError);
               }
@@ -266,7 +267,8 @@ serve(async (req) => {
           const { error: userUpdateError } = await supabaseAdmin
             .from("users")
             .update({ is_active: true })
-            .eq("id", userId);
+            .eq("id", userId)
+            .eq("role", "student"); // Only activate student accounts
             
           if (userUpdateError) {
             console.error("Error updating user status from payment intent:", userUpdateError);
