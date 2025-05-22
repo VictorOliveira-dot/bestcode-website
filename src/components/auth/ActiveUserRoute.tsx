@@ -35,6 +35,7 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
         
         // Only check is_active for students
         if (user.role === 'student') {
+          // Fetch the latest user data to ensure we have current activation status
           const { data, error } = await supabase
             .from("users")
             .select("is_active")

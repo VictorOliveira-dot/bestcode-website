@@ -11,13 +11,16 @@ const corsHeaders = {
 // This is your Stripe webhook secret for testing your endpoint locally
 const endpointSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
 
-// Helper function for logging
+// Enhanced logging function for tracking webhook flow
 const logEvent = (message: string, details?: any) => {
+  const timestamp = new Date().toISOString();
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[STRIPE-WEBHOOK] ${message}${detailsStr}`);
+  console.log(`[${timestamp}] [STRIPE-WEBHOOK] ${message}${detailsStr}`);
 };
 
 serve(async (req) => {
+  logEvent("Webhook received");
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -28,6 +31,7 @@ serve(async (req) => {
   try {
     // Get the raw body
     const body = await req.text();
+    logEvent("Request body received", { bodyLength: body.length });
     
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2022-11-15",
@@ -78,8 +82,16 @@ serve(async (req) => {
           testMode: testMode ? 'Yes' : 'No',
           courseTitle
         });
+
+        // Debug: Check if we have valid user identifiers
+        if (!userId && !customerEmail) {
+          logEvent("❌ No user identifier found in session");
+          throw new Error("No user identifier found in checkout session");
+        }
         
         if (userId) {
+          logEvent(`Processing activation for user ID: ${userId}`);
+          
           // Verificar se o usuário é um estudante
           const { data: userData, error: userError } = await supabaseAdmin
             .from("users")
@@ -108,16 +120,17 @@ serve(async (req) => {
             logEvent(`🔄 Activating user ${userId}`);
           }
           
-          // CRITICAL: Update user to active status (only for students)
-          // Use the RPC call to directly update the database for more reliable updates
-          const { data: activationData, error: userUpdateError } = await supabaseAdmin
+          // CRITICAL: Use the RPC call for more direct and reliable activation
+          logEvent("Calling activate_student_account RPC function");
+          const { data: activationData, error: activationError } = await supabaseAdmin
             .rpc('activate_student_account', { user_id: userId });
             
-          if (userUpdateError) {
-            logEvent("❌ Error updating user status with RPC call:", userUpdateError);
-            logEvent("Trying direct update as fallback...");
+          if (activationError) {
+            logEvent("❌ Error updating user status with RPC call:", activationError);
+            logEvent("❌ Error details:", JSON.stringify(activationError));
             
             // Direct update as fallback
+            logEvent("Trying direct update as fallback...");
             const { error: directUpdateError } = await supabaseAdmin
               .from("users")
               .update({ 
@@ -128,17 +141,17 @@ serve(async (req) => {
               .eq("role", "student");
               
             if (directUpdateError) {
-              logEvent("❌ Error updating user status with direct update:", directUpdateError);
-              logEvent("Error details:", JSON.stringify(directUpdateError));
+              logEvent("❌ Error with direct update fallback:", directUpdateError);
+              logEvent("❌ Error details:", JSON.stringify(directUpdateError));
               throw new Error(`Failed to activate student account: ${directUpdateError.message}`);
             } else {
               logEvent(`✅ Student ${userId} activated successfully with direct update`);
             }
           } else {
-            logEvent(`✅ Student ${userId} activated successfully with RPC call`);
+            logEvent(`✅ Student ${userId} activated successfully with RPC call`, { result: activationData });
           }
           
-          // Add more detailed logging about the user being activated
+          // Verify the activation by checking the user's status again
           const { data: updatedUser, error: checkError } = await supabaseAdmin
             .from("users")
             .select("id, email, name, role, is_active")
@@ -146,22 +159,26 @@ serve(async (req) => {
             .single();
             
           if (!checkError && updatedUser) {
-            logEvent(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id})`, {
+            logEvent(`✅ Verification: User ${updatedUser.email} (${updatedUser.id})`, {
               role: updatedUser.role,
               is_active: updatedUser.is_active,
               name: updatedUser.name
             });
+
+            if (!updatedUser.is_active) {
+              logEvent("⚠️ WARNING: User is still not active after update attempts!");
+            }
           } else {
             logEvent("❌ Could not verify user activation:", checkError);
           }
           
-          // Record payment details regardless of whether the user was newly activated
           // Get payment amount from session or use a default value
           const paymentAmount = session.amount_total 
             ? session.amount_total / 100 
             : (paymentMethod === "credit-installments" ? 4499.00 : 4000.00);
 
           // Record payment information
+          logEvent("Recording payment in user_payments table");
           const { error: paymentError } = await supabaseAdmin
             .from("user_payments")
             .insert({
@@ -176,11 +193,13 @@ serve(async (req) => {
             
           if (paymentError) {
             logEvent("❌ Error recording payment:", paymentError);
+            logEvent("❌ Error details:", JSON.stringify(paymentError));
           } else {
             logEvent(`✅ Payment record created for user ${userId}`);
           }
           
           // Send notification to student
+          logEvent("Sending notification to student");
           const { error: notificationError } = await supabaseAdmin
             .from("notifications")
             .insert({
@@ -192,12 +211,14 @@ serve(async (req) => {
               
           if (notificationError) {
             logEvent("❌ Error creating notification:", notificationError);
+            logEvent("❌ Error details:", JSON.stringify(notificationError));
           } else {
             logEvent(`✉️ Notification sent to user ${userId} about payment confirmation`);
           }
           
           // If application ID is provided, update application status
           if (applicationId) {
+            logEvent(`Updating application ${applicationId} status to approved`);
             const { error: applicationError } = await supabaseAdmin
               .from("student_applications")
               .update({ status: "approved" })
@@ -205,12 +226,15 @@ serve(async (req) => {
               
             if (applicationError) {
               logEvent("❌ Error updating application status:", applicationError);
+              logEvent("❌ Error details:", JSON.stringify(applicationError));
             } else {
               logEvent(`✅ Application ${applicationId} marked as approved`);
             }
           }
         } else if (customerEmail) {
           // If no userId in metadata, try to find user by email
+          logEvent(`No userId provided, looking up user by email: ${customerEmail}`);
+          
           const { data: userData, error: userFetchError } = await supabaseAdmin
             .from("users")
             .select("id, role, email, name, is_active")
@@ -240,15 +264,17 @@ serve(async (req) => {
             // Update user to active status
             const userId = userData.id;
             
-            // Use the RPC call to directly update the database
-            const { data: activationData, error: userUpdateError } = await supabaseAdmin
+            // Use the RPC call for more direct and reliable activation
+            logEvent("Calling activate_student_account RPC function");
+            const { data: activationData, error: activationError } = await supabaseAdmin
               .rpc('activate_student_account', { user_id: userId });
               
-            if (userUpdateError) {
-              logEvent("❌ Error updating user status with RPC call:", userUpdateError);
-              logEvent("Trying direct update as fallback...");
+            if (activationError) {
+              logEvent("❌ Error updating user status with RPC call:", activationError);
+              logEvent("❌ Error details:", JSON.stringify(activationError));
               
               // Direct update as fallback
+              logEvent("Trying direct update as fallback...");
               const { error: directUpdateError } = await supabaseAdmin
                 .from("users")
                 .update({ 
@@ -260,16 +286,18 @@ serve(async (req) => {
                 
               if (directUpdateError) {
                 logEvent("❌ Error updating user status with direct update:", directUpdateError);
-                logEvent("Error details:", JSON.stringify(directUpdateError));
+                logEvent("❌ Error details:", JSON.stringify(directUpdateError));
                 throw new Error(`Failed to activate student account: ${directUpdateError.message}`);
               } else {
                 logEvent(`✅ User with email ${customerEmail} activated successfully with direct update`);
               }
             } else {
-              logEvent(`✅ User with email ${customerEmail} activated successfully with RPC call`);
+              logEvent(`✅ User with email ${customerEmail} activated successfully with RPC call`, { 
+                result: activationData 
+              });
             }
               
-            // Add more detailed logging about the user being activated
+            // Verify the activation worked
             const { data: updatedUser, error: checkError } = await supabaseAdmin
               .from("users")
               .select("id, email, name, role, is_active")
@@ -277,11 +305,15 @@ serve(async (req) => {
               .single();
               
             if (!checkError && updatedUser) {
-              logEvent(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id})`, {
+              logEvent(`✅ Verification: User ${updatedUser.email} (${updatedUser.id})`, {
                 role: updatedUser.role,
                 is_active: updatedUser.is_active,
                 name: updatedUser.name
               });
+              
+              if (!updatedUser.is_active) {
+                logEvent("⚠️ WARNING: User is still not active after update attempts!");
+              }
             } else {
               logEvent("❌ Could not verify user activation:", checkError);
             }
@@ -292,6 +324,7 @@ serve(async (req) => {
               : (paymentMethod === "credit-installments" ? 4499.00 : 4000.00);
             
             // Record payment
+            logEvent("Recording payment in user_payments table");
             const { error: paymentError } = await supabaseAdmin
               .from("user_payments")
               .insert({
@@ -305,11 +338,13 @@ serve(async (req) => {
               
             if (paymentError) {
               logEvent("❌ Error recording payment:", paymentError);
+              logEvent("❌ Error details:", JSON.stringify(paymentError));
             } else {
               logEvent(`✅ Payment record created for user with email ${customerEmail}`);
             }
             
             // Add notification
+            logEvent("Sending notification to student");
             const { error: notificationError } = await supabaseAdmin
               .from("notifications")
               .insert({
@@ -321,6 +356,7 @@ serve(async (req) => {
               
             if (notificationError) {
               logEvent("❌ Error creating notification:", notificationError);
+              logEvent("❌ Error details:", JSON.stringify(notificationError));
             } else {
               logEvent(`✉️ Notification sent to user ${userId} about payment confirmation`);
             }
@@ -343,6 +379,8 @@ serve(async (req) => {
         const testMode = paymentIntent.metadata?.testMode === "true";
         
         if (userId) {
+          logEvent(`Processing payment_intent.succeeded for userId: ${userId}`);
+          
           // Check if the user is already active
           const { data: userData, error: checkError } = await supabaseAdmin
             .from("users")
@@ -352,6 +390,7 @@ serve(async (req) => {
             
           if (checkError) {
             logEvent("❌ Error checking user status:", checkError);
+            logEvent("❌ Error details:", JSON.stringify(checkError));
           } else if (userData.is_active) {
             logEvent(`ℹ️ User ${userId} is already active`);
           } else if (userData.role !== 'student') {
@@ -360,14 +399,16 @@ serve(async (req) => {
             logEvent(`🔄 Activating user ${userId} from payment intent`);
             
             // Use the RPC call to directly update the database
-            const { data: activationData, error: userUpdateError } = await supabaseAdmin
+            logEvent("Calling activate_student_account RPC function");
+            const { data: activationData, error: activationError } = await supabaseAdmin
               .rpc('activate_student_account', { user_id: userId });
               
-            if (userUpdateError) {
-              logEvent("❌ Error updating user status from payment intent with RPC call:", userUpdateError);
-              logEvent("Trying direct update as fallback...");
+            if (activationError) {
+              logEvent("❌ Error updating user status from payment intent with RPC call:", activationError);
+              logEvent("❌ Error details:", JSON.stringify(activationError));
               
               // Direct update as fallback
+              logEvent("Trying direct update as fallback...");
               const { error: directUpdateError } = await supabaseAdmin
                 .from("users")
                 .update({ 
@@ -379,11 +420,31 @@ serve(async (req) => {
                 
               if (directUpdateError) {
                 logEvent("❌ Error updating user status from payment intent:", directUpdateError);
+                logEvent("❌ Error details:", JSON.stringify(directUpdateError));
               } else {
                 logEvent(`✅ User ${userId} activated successfully from payment intent with direct update`);
               }
             } else {
-              logEvent(`✅ User ${userId} activated successfully from payment intent with RPC call`);
+              logEvent(`✅ User ${userId} activated successfully from payment intent with RPC call`, {
+                result: activationData
+              });
+            }
+            
+            // Verify activation worked
+            const { data: updatedUser, error: verifyError } = await supabaseAdmin
+              .from("users")
+              .select("id, email, name, role, is_active")
+              .eq("id", userId)
+              .single();
+              
+            if (!verifyError && updatedUser) {
+              logEvent(`✅ Verification after payment_intent: User ${updatedUser.id}`, {
+                is_active: updatedUser.is_active
+              });
+              
+              if (!updatedUser.is_active) {
+                logEvent("⚠️ WARNING: User is still not active after payment_intent update!");
+              }
             }
             
             // Add notification about payment
@@ -398,10 +459,14 @@ serve(async (req) => {
               
             if (notificationError) {
               logEvent("❌ Error creating payment notification:", notificationError);
+              logEvent("❌ Error details:", JSON.stringify(notificationError));
+            } else {
+              logEvent(`✉️ Notification sent about payment confirmation`);
             }
           }
             
           // Update payment status to completed
+          logEvent("Updating payment status to completed");
           const { error: paymentUpdateError } = await supabaseAdmin
             .from("user_payments")
             .update({ 
@@ -413,6 +478,7 @@ serve(async (req) => {
             
           if (paymentUpdateError) {
             logEvent("❌ Error updating payment status from payment intent:", paymentUpdateError);
+            logEvent("❌ Error details:", JSON.stringify(paymentUpdateError));
           } else {
             logEvent(`✅ Payment status updated to completed for user ${userId}`);
           }
@@ -432,6 +498,7 @@ serve(async (req) => {
         const userId = paymentIntent.metadata?.userId;
         
         if (userId) {
+          logEvent(`Updating payment status to failed for userId: ${userId}`);
           const { error: paymentUpdateError } = await supabaseAdmin
             .from("user_payments")
             .update({ 
@@ -443,11 +510,13 @@ serve(async (req) => {
             
           if (paymentUpdateError) {
             logEvent("❌ Error updating payment status to failed:", paymentUpdateError);
+            logEvent("❌ Error details:", JSON.stringify(paymentUpdateError));
           } else {
             logEvent(`✅ Payment status updated to failed for user ${userId}`);
           }
           
           // Notify user about failed payment
+          logEvent("Sending notification about failed payment");
           const { error: notificationError } = await supabaseAdmin
             .from("notifications")
             .insert({
@@ -459,7 +528,12 @@ serve(async (req) => {
             
           if (notificationError) {
             logEvent("❌ Error creating failed payment notification:", notificationError);
+            logEvent("❌ Error details:", JSON.stringify(notificationError));
+          } else {
+            logEvent(`✉️ Notification sent about failed payment`);
           }
+        } else {
+          logEvent("⚠️ No userId found in payment intent metadata for failed payment");
         }
         break;
       }
@@ -476,6 +550,7 @@ serve(async (req) => {
           const userId = paymentIntent.metadata?.userId;
           
           if (userId) {
+            logEvent(`Updating PIX payment status to processing for userId: ${userId}`);
             const { error: paymentUpdateError } = await supabaseAdmin
               .from("user_payments")
               .update({ 
@@ -487,9 +562,12 @@ serve(async (req) => {
               
             if (paymentUpdateError) {
               logEvent("❌ Error updating PIX payment status to processing:", paymentUpdateError);
+              logEvent("❌ Error details:", JSON.stringify(paymentUpdateError));
             } else {
               logEvent(`✅ PIX payment status updated to processing for user ${userId}`);
             }
+          } else {
+            logEvent("⚠️ No userId found in payment intent metadata for PIX payment");
           }
         }
         break;
@@ -499,6 +577,7 @@ serve(async (req) => {
         logEvent(`Unhandled event type ${event.type}`);
     }
     
+    logEvent("Webhook processing complete, returning success response");
     return new Response(JSON.stringify({ 
       received: true,
       success: true,

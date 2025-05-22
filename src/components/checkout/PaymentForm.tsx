@@ -63,12 +63,13 @@ const PaymentForm = ({
       return;
     }
     
+    console.log("Form validated, submitting payment with method:", paymentMethod);
     handleSubmit(e);
   };
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      {/* Test Mode Banner - Uncomment this section for testing */}
+      {/* Test Mode Banner - Always visible in this implementation */}
       <div className="bg-amber-100 border border-amber-300 p-3 rounded-md flex items-center gap-2 text-amber-800">
         <AlertTriangle size={18} />
         <span className="text-sm">
@@ -81,7 +82,10 @@ const PaymentForm = ({
         
         <RadioGroup
           value={paymentMethod}
-          onValueChange={(value) => setPaymentMethod(value)}
+          onValueChange={(value) => {
+            console.log("Payment method selected:", value);
+            setPaymentMethod(value);
+          }}
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
           <PaymentOptions 
