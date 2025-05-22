@@ -378,7 +378,7 @@ const Checkout = () => {
       <main className="flex-grow bg-gray-50 py-12">
         <div className="container-custom">
           {/* Test mode banner */}
-          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-center gap-2">
+          {/* <div className="mb-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-center gap-2">
             <AlertTriangle className="text-amber-500" size={20} />
             <div>
               <p className="font-medium text-amber-800">Ambiente de Testes</p>
@@ -386,7 +386,7 @@ const Checkout = () => {
                 Este é um ambiente de teste do Stripe. Nenhuma cobrança real será processada.
               </p>
             </div>
-          </div>
+          </div> */}
           
           <div>
             <div className="mb-8">
