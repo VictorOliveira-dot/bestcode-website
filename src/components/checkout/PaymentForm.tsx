@@ -53,6 +53,16 @@ const PaymentForm = ({
       return false;
     }
     
+    if ((paymentMethod === "credit-full" || paymentMethod === "credit-installments") && 
+        (!cardData.cardName || !cardData.cardNumber || !cardData.cardExpiry || !cardData.cardCvc)) {
+      toast({
+        title: "Dados do cartão incompletos",
+        description: "Por favor, preencha todos os dados do cartão para continuar",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
     return true;
   };
 

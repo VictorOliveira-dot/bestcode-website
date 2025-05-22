@@ -25,34 +25,36 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
       try {
         console.log("Checking active status for user:", user.id, "with role:", user.role);
         
-        // First check if the user has an is_active property from context
-        if (user.hasOwnProperty('is_active') && user.is_active === true) {
-          console.log("User is active based on context data");
+        // For non-students, always consider them active
+        if (user.role !== 'student') {
+          console.log("Non-student user, setting active to true");
           setIsActive(true);
           setCheckingStatus(false);
           return;
         }
         
-        // Only check is_active for students
-        if (user.role === 'student') {
-          const { data, error } = await supabase
-            .from("users")
-            .select("is_active")
-            .eq("id", user.id)
-            .single();
-
-          if (error) {
-            console.error("Error fetching user status:", error);
-            throw error;
-          }
-          
-          console.log("User active status from database:", data?.is_active);
-          setIsActive(data?.is_active || false);
-        } else {
-          // Non-students are always considered "active"
-          console.log("Non-student user, setting active to true");
-          setIsActive(true);
+        // First check if the user already has an is_active property from context
+        if (user.hasOwnProperty('is_active')) {
+          console.log("User active status from context:", user.is_active);
+          setIsActive(!!user.is_active); // Convert to boolean
+          setCheckingStatus(false);
+          return;
         }
+        
+        // If not available in context, check from database
+        const { data, error } = await supabase
+          .from("users")
+          .select("is_active")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user status:", error);
+          throw error;
+        }
+          
+        console.log("User active status from database:", data?.is_active);
+        setIsActive(!!data?.is_active); // Convert to boolean
       } catch (error) {
         console.error("Error checking user status:", error);
         setIsActive(false);
@@ -66,10 +68,14 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
     }
   }, [user, loading]);
 
+  // Log current state for debugging purposes
   useEffect(() => {
-    // Log current state for debugging purposes
     console.log("ActiveUserRoute state:", {
-      user: user ? { id: user.id, role: user.role, is_active: user.is_active } : null,
+      user: user ? { 
+        id: user.id, 
+        role: user.role, 
+        is_active: user.is_active 
+      } : null,
       isActive,
       loading,
       checkingStatus,
