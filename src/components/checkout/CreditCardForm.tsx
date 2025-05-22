@@ -22,7 +22,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      {/* <div className="bg-red-50 border-2 border-red-300 text-red-800 p-4 rounded-md mb-4">
+      <div className="bg-red-50 border-2 border-red-300 text-red-800 p-4 rounded-md mb-4">
         <div className="flex items-center gap-2 mb-2">
           <AlertCircle size={20} className="text-red-600" />
           <p className="font-medium text-red-600">AMBIENTE DE TESTE STRIPE</p>
@@ -33,7 +33,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
         <p className="text-sm mt-2 font-bold">
           IMPORTANTE: Use apenas os cartões de teste listados abaixo ou ocorrerá um erro!
         </p>
-      </div> */}
+      </div>
     
       <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-md mb-4">
         <div className="flex items-center gap-2 mb-2">
