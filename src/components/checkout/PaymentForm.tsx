@@ -69,12 +69,12 @@ const PaymentForm = ({
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       {/* Teste Mode Banner */}
-      <div className="bg-amber-100 border border-amber-300 p-3 rounded-md flex items-center gap-2 text-amber-800">
+      {/* <div className="bg-amber-100 border border-amber-300 p-3 rounded-md flex items-center gap-2 text-amber-800">
         <AlertTriangle size={18} />
         <span className="text-sm">
           <strong>Modo de teste:</strong> Use o cartão 4242 4242 4242 4242, qualquer data futura e qualquer CVC.
         </span>
-      </div>
+      </div> */}
 
       <div className="space-y-4">
         <Label className="text-base font-medium">Método de pagamento</Label>
