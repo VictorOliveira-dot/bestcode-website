@@ -51,166 +51,137 @@ serve(async (req) => {
     }
     
     console.log(`Received event: ${event.type}`);
-
-    // Helper function to activate a student account
-    async function activateStudentAccount(userId) {
-      if (!userId) {
-        console.error("❌ Cannot activate account: No user ID provided");
-        return false;
-      }
-
-      console.log(`🔄 Attempting to activate student account for user ${userId}`);
-
-      try {
-        // First check if user is a student
-        const { data: userData, error: userError } = await supabaseAdmin
-          .from("users")
-          .select("role, is_active")
-          .eq("id", userId)
-          .single();
-          
-        if (userError) {
-          console.error("❌ Error checking user role:", userError);
-          return false;
-        }
-        
-        if (userData.role !== 'student') {
-          console.error(`⚠️ User ${userId} is not a student. Role: ${userData.role}`);
-          return false;
-        }
-
-        if (userData.is_active) {
-          console.log(`✅ User ${userId} is already active`);
-          return true;
-        }
-          
-        // Use the RPC call to directly update the database for more reliable updates
-        const { data: activationData, error: activationError } = await supabaseAdmin
-          .rpc('activate_student_account', { user_id: userId });
-          
-        if (activationError) {
-          console.error("❌ Error updating user status with RPC call:", activationError);
-          console.error("Trying direct update as fallback...");
-          
-          // Direct update as fallback
-          const { error: directUpdateError } = await supabaseAdmin
-            .from("users")
-            .update({ 
-              is_active: true,
-              updated_at: new Date().toISOString()
-            })
-            .eq("id", userId)
-            .eq("role", "student");
-            
-          if (directUpdateError) {
-            console.error("❌ Error with fallback direct update:", directUpdateError);
-            return false;
-          } else {
-            console.log(`✅ Student ${userId} activated successfully with direct update`);
-          }
-        } else {
-          console.log(`✅ Student ${userId} activated successfully with RPC call: ${activationData}`);
-        }
-          
-        // Verify the account was actually activated
-        const { data: verifyData, error: verifyError } = await supabaseAdmin
-          .from("users")
-          .select("id, email, role, is_active")
-          .eq("id", userId)
-          .single();
-          
-        if (verifyError) {
-          console.error("❌ Could not verify user activation:", verifyError);
-          return false;
-        }
-          
-        console.log(`✅ Verified activation: User ${verifyData.email} (${verifyData.id}) role=${verifyData.role} is_active=${verifyData.is_active}`);
-        return verifyData.is_active;
-
-      } catch (error) {
-        console.error(`❌ Unexpected error activating account: ${error.message}`);
-        return false;
-      }
-    }
-
-    // Helper function to create a notification for the user
-    async function createNotification(userId, title, message) {
-      try {
-        const { error: notificationError } = await supabaseAdmin
-          .from("notifications")
-          .insert({
-            user_id: userId,
-            title: title,
-            message: message,
-            read: false
-          });
-          
-        if (notificationError) {
-          console.error("❌ Error creating notification:", notificationError);
-          return false;
-        } else {
-          console.log(`✉️ Notification sent to user ${userId}`);
-          return true;
-        }
-      } catch (error) {
-        console.error(`❌ Error creating notification: ${error.message}`);
-        return false;
-      }
-    }
     
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
-        const isTestMode = session.livemode === false;
         
-        // Extract customer info and metadata
+        // Extract customer email and metadata
         const customerEmail = session.customer_email;
         const userId = session.metadata?.userId;
         const applicationId = session.metadata?.applicationId;
         const paymentMethod = session.metadata?.paymentMethod;
+        const testMode = session.metadata?.testMode === "true";
         
-        console.log(`💰 Payment ${isTestMode ? '[TEST MODE] ' : ''}successful for session ${session.id}. User ID: ${userId}, Payment Method: ${paymentMethod}`);
+        console.log(`💰 Payment successful for session ${session.id}. User ID: ${userId}, Payment Method: ${paymentMethod}, Test Mode: ${testMode ? 'Yes' : 'No'}`);
         
         if (userId) {
-          // Activate the student account
-          const activated = await activateStudentAccount(userId);
+          // Verificar se o usuário é um estudante
+          const { data: userData, error: userError } = await supabaseAdmin
+            .from("users")
+            .select("role")
+            .eq("id", userId)
+            .single();
+            
+          if (userError) {
+            console.error("❌ Error fetching user role:", userError);
+          } else if (userData.role !== 'student') {
+            console.error(`⚠️ User ${userId} is not a student. Role: ${userData.role}`);
+            return new Response(JSON.stringify({ 
+              received: true, 
+              message: "User is not a student, not activating account" 
+            }), {
+              headers: { "Content-Type": "application/json" },
+              status: 200,
+            });
+          }
           
-          if (activated) {
-            // Send confirmation notification
-            await createNotification(
-              userId, 
-              "Pagamento Confirmado", 
-              `Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso ${session.metadata?.courseTitle || 'Formação Completa em QA'}.`
-            );
+          // CRITICAL: Update user to active status (only for students)
+          // Use the RPC call to directly update the database for more reliable updates
+          const { error: userUpdateError } = await supabaseAdmin
+            .rpc('activate_student_account', { user_id: userId });
             
-            // Update payment status to completed
-            const { error: paymentUpdateError } = await supabaseAdmin
-              .from("user_payments")
-              .update({ 
-                payment_status: "completed",
-                payment_date: new Date().toISOString()
-              })
-              .eq("stripe_payment_id", session.id);
+          if (userUpdateError) {
+            console.error("❌ Error updating user status with RPC call:", userUpdateError);
+            console.error("Trying direct update as fallback...");
+            
+            // Direct update as fallback
+            const { error: directUpdateError } = await supabaseAdmin
+              .from("users")
+              .update({ is_active: true })
+              .eq("id", userId)
+              .eq("role", "student");
               
-            if (paymentUpdateError) {
-              console.error("❌ Error updating payment status:", paymentUpdateError);
+            if (directUpdateError) {
+              console.error("❌ Error updating user status with direct update:", directUpdateError);
+              console.error("Error details:", JSON.stringify(directUpdateError));
+              throw new Error(`Failed to activate student account: ${directUpdateError.message}`);
             } else {
-              console.log(`✅ Payment status updated for session ${session.id}`);
+              console.log(`✅ Student ${userId} activated successfully with direct update`);
             }
+          } else {
+            console.log(`✅ Student ${userId} activated successfully with RPC call`);
+          }
+          
+          // Add more detailed logging about the user being activated
+          const { data: updatedUser, error: checkError } = await supabaseAdmin
+            .from("users")
+            .select("id, email, role, is_active")
+            .eq("id", userId)
+            .single();
             
-            // If application ID is provided, update application status
-            if (applicationId) {
-              const { error: applicationError } = await supabaseAdmin
-                .from("student_applications")
-                .update({ status: "approved" })
-                .eq("id", applicationId);
+          if (!checkError && updatedUser) {
+            console.log(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id}) role=${updatedUser.role} is_active=${updatedUser.is_active}`);
+          } else {
+            console.error("❌ Could not verify user activation:", checkError);
+          }
+          
+          // Send confirmation email to student
+          try {
+            const { data: emailData, error: emailError } = await supabaseAdmin
+              .from("users")
+              .select("email, name")
+              .eq("id", userId)
+              .single();
+              
+            if (!emailError && emailData) {
+              // Add notification to the student's notifications
+              const { error: notificationError } = await supabaseAdmin
+                .from("notifications")
+                .insert({
+                  user_id: userId,
+                  title: "Pagamento Confirmado",
+                  message: `Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso ${session.metadata?.courseTitle || 'Formação Completa em QA'}.`,
+                  read: false
+                });
                 
-              if (applicationError) {
-                console.error("❌ Error updating application status:", applicationError);
+              if (notificationError) {
+                console.error("❌ Error creating notification:", notificationError);
               } else {
-                console.log(`✅ Application ${applicationId} marked as approved`);
+                console.log(`✉️ Notification sent to user ${userId} about payment confirmation`);
               }
+            }
+          } catch (emailErr) {
+            console.error("❌ Error sending confirmation notification:", emailErr);
+          }
+          
+          // Update payment status to completed
+          const { error: paymentUpdateError } = await supabaseAdmin
+            .from("user_payments")
+            .update({ 
+              payment_status: "completed",
+              payment_date: new Date().toISOString()
+            })
+            .eq("stripe_payment_id", session.id);
+            
+          if (paymentUpdateError) {
+            console.error("❌ Error updating payment status:", paymentUpdateError);
+          } else {
+            console.log(`✅ Payment status updated for session ${session.id}`);
+          }
+          
+          // If application ID is provided, update application status
+          if (applicationId) {
+            const { error: applicationError } = await supabaseAdmin
+              .from("student_applications")
+              .update({ status: "approved" })
+              .eq("id", applicationId);
+              
+            if (applicationError) {
+              console.error("❌ Error updating application status:", applicationError);
+            } else {
+              console.log(`✅ Application ${applicationId} marked as approved`);
             }
           }
         } else if (customerEmail) {
@@ -223,36 +194,84 @@ serve(async (req) => {
             
           if (userFetchError || !userData) {
             console.error("❌ Error finding user by email:", userFetchError);
+          } else if (userData.role !== 'student') {
+            console.log(`⚠️ User with email ${customerEmail} is not a student. Not activating.`);
           } else {
+            // Update user to active status
             const userId = userData.id;
-            // Activate the student account
-            const activated = await activateStudentAccount(userId);
             
-            if (activated) {
-              // Send confirmation notification
-              await createNotification(
-                userId, 
-                "Pagamento Confirmado", 
-                "Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso."
-              );
+            // Use the RPC call to directly update the database
+            const { error: userUpdateError } = await supabaseAdmin
+              .rpc('activate_student_account', { user_id: userId });
               
-              // Record payment
-              const { error: paymentError } = await supabaseAdmin
-                .from("user_payments")
-                .insert({
-                  user_id: userId,
-                  payment_status: "completed",
-                  payment_method: "stripe", 
-                  stripe_payment_id: session.id,
-                  payment_amount: session.amount_total / 100,
-                  payment_date: new Date().toISOString(),
-                });
+            if (userUpdateError) {
+              console.error("❌ Error updating user status with RPC call:", userUpdateError);
+              console.error("Trying direct update as fallback...");
+              
+              // Direct update as fallback
+              const { error: directUpdateError } = await supabaseAdmin
+                .from("users")
+                .update({ 
+                  is_active: true 
+                })
+                .eq("id", userId)
+                .eq("role", "student");
                 
-              if (paymentError) {
-                console.error("❌ Error recording payment:", paymentError);
+              if (directUpdateError) {
+                console.error("❌ Error updating user status with direct update:", directUpdateError);
+                console.error("Error details:", JSON.stringify(directUpdateError));
               } else {
-                console.log(`✅ Payment record created for user with email ${customerEmail}`);
+                console.log(`✅ User with email ${customerEmail} activated successfully with direct update`);
               }
+            } else {
+              console.log(`✅ User with email ${customerEmail} activated successfully with RPC call`);
+            }
+              
+            // Add more detailed logging about the user being activated
+            const { data: updatedUser, error: checkError } = await supabaseAdmin
+              .from("users")
+              .select("id, email, role, is_active")
+              .eq("id", userId)
+              .single();
+              
+            if (!checkError && updatedUser) {
+              console.log(`✅ Verified activation: User ${updatedUser.email} (${updatedUser.id}) role=${updatedUser.role} is_active=${updatedUser.is_active}`);
+            } else {
+              console.error("❌ Could not verify user activation:", checkError);
+            }
+            
+            // Add notification
+            const { error: notificationError } = await supabaseAdmin
+              .from("notifications")
+              .insert({
+                user_id: userId,
+                title: "Pagamento Confirmado",
+                message: "Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso.",
+                read: false
+              });
+              
+            if (notificationError) {
+              console.error("❌ Error creating notification:", notificationError);
+            } else {
+              console.log(`✉️ Notification sent to user ${userId} about payment confirmation`);
+            }
+            
+            // Record payment
+            const { error: paymentError } = await supabaseAdmin
+              .from("user_payments")
+              .insert({
+                user_id: userId,
+                payment_status: "completed",
+                payment_method: "stripe", 
+                stripe_payment_id: session.id,
+                payment_amount: session.amount_total / 100,
+                payment_date: new Date().toISOString(),
+              });
+              
+            if (paymentError) {
+              console.error("❌ Error recording payment:", paymentError);
+            } else {
+              console.log(`✅ Payment record created for user with email ${customerEmail}`);
             }
           }
         } else {
@@ -263,32 +282,49 @@ serve(async (req) => {
       
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
-        const isTestMode = paymentIntent.livemode === false;
-        console.log(`PaymentIntent ${isTestMode ? '[TEST MODE] ' : ''}for ${paymentIntent.amount} succeeded.`);
+        console.log(`PaymentIntent for ${paymentIntent.amount} succeeded.`);
         
         // If the payment intent has metadata with user ID, update user status
         const userId = paymentIntent.metadata?.userId;
         
         if (userId) {
-          // Activate the student account
-          const activated = await activateStudentAccount(userId);
-          
-          if (activated) {
-            // Update payment status
-            const { error: paymentUpdateError } = await supabaseAdmin
-              .from("user_payments")
-              .update({ 
-                payment_status: "completed",
-                payment_date: new Date().toISOString()
-              })
-              .eq("user_id", userId)
-              .eq("payment_status", "pending");
+          // Check if this is a payment for our course
+          // Use the RPC call to directly update the database
+          const { error: userUpdateError } = await supabaseAdmin
+            .rpc('activate_student_account', { user_id: userId });
+            
+          if (userUpdateError) {
+            console.error("❌ Error updating user status from payment intent with RPC call:", userUpdateError);
+            console.error("Trying direct update as fallback...");
+            
+            // Direct update as fallback
+            const { error: directUpdateError } = await supabaseAdmin
+              .from("users")
+              .update({ is_active: true })
+              .eq("id", userId)
+              .eq("role", "student");
               
-            if (paymentUpdateError) {
-              console.error("Error updating payment status from payment intent:", paymentUpdateError);
+            if (directUpdateError) {
+              console.error("Error updating user status from payment intent:", directUpdateError);
             } else {
-              console.log(`✅ Payment status updated for user ${userId}`);
+              console.log(`User ${userId} activated successfully from payment intent with direct update`);
             }
+          } else {
+            console.log(`User ${userId} activated successfully from payment intent with RPC call`);
+          }
+            
+          // Update payment status
+          const { error: paymentUpdateError } = await supabaseAdmin
+            .from("user_payments")
+            .update({ 
+              payment_status: "completed",
+              payment_date: new Date().toISOString()
+            })
+            .eq("user_id", userId)
+            .eq("payment_status", "pending");
+            
+          if (paymentUpdateError) {
+            console.error("Error updating payment status from payment intent:", paymentUpdateError);
           }
         }
         break;

@@ -6,8 +6,6 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = PUBLIC
 AS $$
-DECLARE
-  updated_rows INTEGER;
 BEGIN
   -- Update the user to active status (only for students)
   UPDATE public.users
@@ -16,14 +14,9 @@ BEGIN
     updated_at = NOW()
   WHERE 
     id = user_id 
-    AND role = 'student'
-  RETURNING 1 INTO updated_rows;
+    AND role = 'student';
     
   -- Return true if the update affected any rows
-  RETURN updated_rows > 0;
-EXCEPTION WHEN OTHERS THEN
-  -- Log any errors
-  RAISE NOTICE 'Error in activate_student_account: %', SQLERRM;
-  RETURN FALSE;
+  RETURN FOUND;
 END;
 $$;
