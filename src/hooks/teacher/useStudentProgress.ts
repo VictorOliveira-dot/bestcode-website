@@ -33,7 +33,6 @@ export const useStudentProgress = () => {
       console.log("Fetching student progress for teacher ID:", user.id);
       
       try {
-        // Using explicit table references to avoid ambiguity
         const { data, error } = await supabase.rpc('get_teacher_student_progress', {
           teacher_id: user.id
         });
