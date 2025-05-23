@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { LessonStatus } from "./types/student";
 
-// Updated interface to match Supabase data
 interface StudentProgress {
   id: string;
   name: string;

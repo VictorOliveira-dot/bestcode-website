@@ -2,7 +2,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
-import { toast } from "@/hooks/use-toast";
 
 export const useTeacherData = () => {
   const { user } = useAuth();
@@ -35,8 +34,8 @@ export const useTeacherData = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 30000, // Consider data fresh for 30 seconds
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    staleTime: 30000,
+    gcTime: 1000 * 60 * 5,
   });
 
   const { 
