@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +16,7 @@ interface Lesson {
   youtubeUrl: string;
   date: string;
   class: string;
+  class_id: string;
   visibility: 'all' | 'class_only';
 }
 
@@ -56,16 +58,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               >
                 <Video className="h-4 w-4" />
                 Nova Aula
-              </Button>
-            )}
-            {activeTab === "classes" && (
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2 w-full md:w-auto"
-                onClick={() => {}} // This button wasn't doing anything
-              >
-                <Users className="h-4 w-4" />
-                Gerenciar Turmas
               </Button>
             )}
           </div>

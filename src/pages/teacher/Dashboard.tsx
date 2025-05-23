@@ -7,6 +7,8 @@ import DashboardCards from "@/components/teacher/DashboardCards";
 import DashboardContent from "@/components/teacher/DashboardContent";
 import AddLessonForm from "@/components/teacher/AddLessonForm";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Lesson {
   id: string;
@@ -65,6 +67,79 @@ const TeacherDashboard = () => {
   
   const studentCountValue = typeof studentCount === 'number' ? studentCount : 0;
 
+  const handleDeleteLesson = async (lessonId: string) => {
+    try {
+      const { error } = await supabase
+        .from('lessons')
+        .delete()
+        .eq('id', lessonId);
+
+      if (error) {
+        console.error('Error deleting lesson:', error);
+        toast({
+          title: "Erro ao excluir aula",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Aula excluída",
+        description: "A aula foi excluída com sucesso.",
+      });
+
+      await refetchLessons();
+    } catch (error: any) {
+      console.error('Error deleting lesson:', error);
+      toast({
+        title: "Erro ao excluir aula",
+        description: "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditLesson = async (lessonId: string, updatedLesson: any) => {
+    try {
+      const { error } = await supabase
+        .from('lessons')
+        .update({
+          title: updatedLesson.title,
+          description: updatedLesson.description,
+          youtube_url: updatedLesson.youtubeUrl,
+          date: updatedLesson.date,
+          class_id: updatedLesson.classId,
+          visibility: updatedLesson.visibility
+        })
+        .eq('id', lessonId);
+
+      if (error) {
+        console.error('Error updating lesson:', error);
+        toast({
+          title: "Erro ao atualizar aula",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Aula atualizada",
+        description: "A aula foi atualizada com sucesso.",
+      });
+
+      await refetchLessons();
+    } catch (error: any) {
+      console.error('Error updating lesson:', error);
+      toast({
+        title: "Erro ao atualizar aula",
+        description: "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <DashboardHeader userName={user.name} />
@@ -84,8 +159,8 @@ const TeacherDashboard = () => {
           lessons={formattedLessons}
           availableClasses={formattedClasses}
           setIsAddLessonOpen={setIsAddLessonOpen}
-          handleDeleteLesson={async () => { await refetchLessons(); }}
-          handleEditLesson={async () => { await refetchLessons(); }}
+          handleDeleteLesson={handleDeleteLesson}
+          handleEditLesson={handleEditLesson}
           isLoading={isLoading}
         />
       </main>
