@@ -32,17 +32,23 @@ export const useStudentProgress = () => {
       
       console.log("Fetching student progress for teacher ID:", user.id);
       
-      const { data, error } = await supabase.rpc('get_teacher_student_progress', {
-        teacher_id: user.id
-      });
+      try {
+        // Using explicit table references to avoid ambiguity
+        const { data, error } = await supabase.rpc('get_teacher_student_progress', {
+          teacher_id: user.id
+        });
 
-      if (error) {
-        console.error("Error fetching teacher student progress:", error);
-        throw error;
+        if (error) {
+          console.error("Error fetching teacher student progress:", error);
+          throw error;
+        }
+        
+        console.log("Fetched student progress:", data);
+        return data || [];
+      } catch (err) {
+        console.error("Failed to fetch student progress:", err);
+        throw err;
       }
-      
-      console.log("Fetched student progress:", data);
-      return data || [];
     },
     enabled: !!user?.id,
     staleTime: 30000,
@@ -59,16 +65,21 @@ export const useStudentProgress = () => {
         return [];
       }
       
-      const { data, error } = await supabase.rpc('get_teacher_classes_simple', {
-        teacher_id: user.id
-      });
+      try {
+        const { data, error } = await supabase.rpc('get_teacher_classes_simple', {
+          teacher_id: user.id
+        });
 
-      if (error) {
-        console.error("Error fetching teacher classes for filter:", error);
-        throw error;
+        if (error) {
+          console.error("Error fetching teacher classes for filter:", error);
+          throw error;
+        }
+        
+        return data || [];
+      } catch (err) {
+        console.error("Failed to fetch teacher classes:", err);
+        throw err;
       }
-      
-      return data || [];
     },
     enabled: !!user?.id,
     staleTime: 30000,
