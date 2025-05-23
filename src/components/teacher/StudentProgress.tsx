@@ -9,6 +9,7 @@ import StudentDetailsModal from "./student/StudentDetailsModal";
 import { useStudentProgress, StudentProgressData } from "@/hooks/teacher/useStudentProgress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
+import { LessonStatus } from "./types/student";
 
 // Updated interface to match Supabase data
 interface StudentProgress {
@@ -20,14 +21,6 @@ interface StudentProgress {
   completedLessons: number;
   totalLessons: number;
   progress: number;
-}
-
-interface LessonStatus {
-  id: string;
-  title: string;
-  status: 'completed' | 'in_progress' | 'not_started';
-  progress: number;
-  lastWatched?: string;
 }
 
 const StudentProgressTracker = () => {
@@ -62,27 +55,31 @@ const StudentProgressTracker = () => {
   const viewStudentDetails = async (student: StudentProgress) => {
     setSelectedStudent(student);
     
-    // Generate mock lesson data for now - you can implement a proper function later
+    // Generate mock lesson data matching the imported LessonStatus interface
     const mockLessons: LessonStatus[] = [
       {
         id: "1",
         title: "Introdução ao Curso",
+        date: "2024-01-15",
         status: "completed",
-        progress: 100,
-        lastWatched: "2024-01-15T10:30:00Z"
+        watchTimeMinutes: 45,
+        lastWatch: "2024-01-15T10:30:00Z"
       },
       {
         id: "2", 
         title: "Fundamentos",
+        date: "2024-01-16",
         status: "in_progress",
-        progress: 60,
-        lastWatched: "2024-01-16T14:20:00Z"
+        watchTimeMinutes: 25,
+        lastWatch: "2024-01-16T14:20:00Z"
       },
       {
         id: "3",
         title: "Projeto Prático",
+        date: "2024-01-17",
         status: "not_started",
-        progress: 0
+        watchTimeMinutes: 0,
+        lastWatch: null
       }
     ];
     
