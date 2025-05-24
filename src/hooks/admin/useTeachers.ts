@@ -39,8 +39,8 @@ export const useTeachers = (shouldFetch: boolean = true) => {
     } catch (error: any) {
       console.error("Failed to fetch teachers:", error);
       toast({
-        title: "Error loading teachers",
-        description: error.message || "There was an error loading the teachers",
+        title: "Erro ao carregar professores",
+        description: error.message || "Ocorreu um erro ao carregar os professores",
         variant: "destructive",
       });
     } finally {
