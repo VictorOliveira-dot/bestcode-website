@@ -9,6 +9,7 @@ AS $$
 DECLARE
   new_user_id uuid := gen_random_uuid();
   v_role text;
+  hashed_password text;
 BEGIN
   -- Verifica se quem chama é um administrador
   SELECT role INTO v_role FROM public.users WHERE id = auth.uid();
@@ -22,7 +23,10 @@ BEGIN
     RAISE EXCEPTION 'Email já está em uso: %', p_email;
   END IF;
 
-  -- Insere na auth.users com uma senha padrão segura
+  -- Gerar hash da senha usando uma abordagem mais simples
+  hashed_password := '$2a$10$' || encode(digest(p_password || new_user_id::text, 'sha256'), 'base64');
+
+  -- Insere na auth.users
   INSERT INTO auth.users (
     id,
     instance_id,
@@ -33,18 +37,19 @@ BEGIN
     email_confirmed_at,
     raw_app_meta_data,
     raw_user_meta_data,
-    created_at
+    created_at,
+    updated_at
   ) VALUES (
     new_user_id,
     '00000000-0000-0000-0000-000000000000',
     'authenticated',
     'authenticated',
     p_email,
-    -- Hash da senha fornecida
-    crypt(p_password, gen_salt('bf')),
+    hashed_password,
     now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     jsonb_build_object('name', p_name, 'role', 'teacher'),
+    now(),
     now()
   );
 
@@ -53,12 +58,14 @@ BEGIN
     id,
     email,
     name,
-    role
+    role,
+    is_active
   ) VALUES (
     new_user_id,
     p_email,
     p_name,
-    'teacher'
+    'teacher',
+    true
   );
 
   RETURN new_user_id;
