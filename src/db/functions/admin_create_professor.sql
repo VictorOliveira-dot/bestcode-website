@@ -1,10 +1,11 @@
 
+
 -- Função para criar professores no sistema
 CREATE OR REPLACE FUNCTION public.admin_create_teacher(p_email TEXT, p_name TEXT, p_password TEXT)
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = ''
+SET search_path = public, pg_catalog
 AS $$
 DECLARE
   new_user_id uuid := gen_random_uuid();
@@ -23,8 +24,8 @@ BEGIN
     RAISE EXCEPTION 'Email já está em uso: %', p_email;
   END IF;
 
-  -- Gerar hash da senha usando uma abordagem mais simples
-  hashed_password := '$2a$10$' || encode(digest(p_password || new_user_id::text, 'sha256'), 'base64');
+  -- Gerar hash da senha usando crypt e gen_salt (agora funcionará)
+  hashed_password := crypt(p_password, gen_salt('bf'));
 
   -- Insere na auth.users
   INSERT INTO auth.users (
@@ -88,3 +89,4 @@ BEGIN
   RETURN public.admin_create_teacher(p_email, p_name, p_password);
 END;
 $$;
+
