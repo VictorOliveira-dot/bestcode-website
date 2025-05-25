@@ -41,6 +41,13 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   handleEditLesson,
   isLoading = false
 }) => {
+  const handleAddLessonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Opening add lesson modal");
+    setIsAddLessonOpen(true);
+  };
+
   return (
     <div className="mt-8">
       <Card className="overflow-hidden">
@@ -52,9 +59,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           <div className="flex gap-2 w-full md:w-auto">
             {activeTab === "lessons" && (
               <Button 
+                type="button"
                 variant="outline" 
                 className="flex items-center gap-2 w-full md:w-auto"
-                onClick={() => setIsAddLessonOpen(true)}
+                onClick={handleAddLessonClick}
               >
                 <Video className="h-4 w-4" />
                 Nova Aula
