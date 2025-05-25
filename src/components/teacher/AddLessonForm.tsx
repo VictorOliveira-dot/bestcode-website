@@ -125,28 +125,30 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Adicionar Nova Aula</DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-1 gap-4">
-            <LessonDetailsForm 
-              lessonDetails={lessonDetails}
-              onLessonDetailsChange={setLessonDetails}
-            />
-            
-            <ClassSelector
-              classes={classes}
-              selectedClassId={selectedClassId}
-              onClassChange={setSelectedClassId}
-              onClassesUpdate={handleClassesUpdate}
-            />
+        <div className="flex-1 overflow-y-auto py-4">
+          <div className="grid gap-4">
+            <div className="grid grid-cols-1 gap-4">
+              <LessonDetailsForm 
+                lessonDetails={lessonDetails}
+                onLessonDetailsChange={setLessonDetails}
+              />
+              
+              <ClassSelector
+                classes={classes}
+                selectedClassId={selectedClassId}
+                onClassChange={setSelectedClassId}
+                onClassesUpdate={handleClassesUpdate}
+              />
+            </div>
           </div>
         </div>
         
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>

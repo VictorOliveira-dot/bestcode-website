@@ -78,7 +78,7 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
   };
 
   return (
-    <div className="space-y-3 p-4 border rounded-md bg-gray-50">
+    <div className="space-y-4 p-4 border rounded-md bg-gray-50 max-h-[60vh] overflow-y-auto">
       <div>
         <Label htmlFor="className">Nome da Turma</Label>
         <Input
@@ -95,6 +95,7 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
           value={newClass.description}
           onChange={(e) => setNewClass({ ...newClass, description: e.target.value })}
           placeholder="Descrição da nova turma"
+          className="min-h-[100px]"
         />
       </div>
       <div>
@@ -106,7 +107,7 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
           onChange={(e) => setNewClass({ ...newClass, startDate: e.target.value })}
         />
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 pt-2">
         <Button
           type="button"
           onClick={handleCreateClass}
