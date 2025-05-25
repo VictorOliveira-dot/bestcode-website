@@ -30,19 +30,8 @@ export const useTeacherData = () => {
         throw error;
       }
       
-      console.log("Fetched classes data:", data);
-      
-      // Transform data to ensure it has the right format
-      const formattedClasses = data?.map((cls: any) => ({
-        id: cls.id,
-        name: cls.name,
-        description: cls.description,
-        start_date: cls.start_date,
-        students_count: cls.students_count || 0
-      })) || [];
-      
-      console.log("Formatted classes:", formattedClasses);
-      return formattedClasses;
+      console.log("Fetched classes:", data);
+      return data || [];
     },
     enabled: !!user?.id,
     staleTime: 30000,

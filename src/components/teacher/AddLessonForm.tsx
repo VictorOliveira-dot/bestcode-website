@@ -55,18 +55,11 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
     startDate: new Date().toISOString().split("T")[0],
   });
   const [isCreatingClass, setIsCreatingClass] = useState(false);
-  const [classes, setClasses] = useState<Class[]>([]);
-
-  // Update classes when availableClasses prop changes
-  useEffect(() => {
-    console.log("Available classes updated:", availableClasses);
-    setClasses(availableClasses);
-  }, [availableClasses]);
+  const [classes, setClasses] = useState<Class[]>(availableClasses);
 
   // Reset form when dialog opens
   useEffect(() => {
     if (isOpen) {
-      console.log("Dialog opened, resetting form with classes:", classes);
       setNewLesson({
         title: "",
         description: "",
@@ -83,6 +76,11 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
       });
     }
   }, [isOpen, classes]);
+
+  // Update classes when availableClasses prop changes
+  useEffect(() => {
+    setClasses(availableClasses);
+  }, [availableClasses]);
 
   const handleCreateClass = async () => {
     if (!newClass.name.trim() || !newClass.description.trim()) {
@@ -126,10 +124,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
       // Update local classes state
       const formattedClasses = updatedClasses?.map((cls: any) => ({
         id: cls.id,
-        name: cls.name,
-        description: cls.description,
-        start_date: cls.start_date,
-        students_count: cls.students_count || 0
+        name: cls.name
       })) || [];
       
       setClasses(formattedClasses);
@@ -162,9 +157,6 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
   };
 
   const handleSubmit = async () => {
-    console.log("Submitting lesson with classId:", newLesson.classId);
-    console.log("Available classes:", classes);
-    
     if (!newLesson.classId) {
       toast({
         title: "Erro",
@@ -307,26 +299,17 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
               ) : (
                 <Select
                   value={newLesson.classId}
-                  onValueChange={(value) => {
-                    console.log("Selected class ID:", value);
-                    setNewLesson({ ...newLesson, classId: value });
-                  }}
+                  onValueChange={(value) => setNewLesson({ ...newLesson, classId: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={classes.length > 0 ? "Selecione uma turma" : "Nenhuma turma encontrada"} />
+                    <SelectValue placeholder="Selecione uma turma" />
                   </SelectTrigger>
                   <SelectContent>
-                    {classes.length > 0 ? (
-                      classes.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id}>
-                          {cls.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="" disabled>
-                        Nenhuma turma disponível
+                    {classes.map((cls) => (
+                      <SelectItem key={cls.id} value={cls.id}>
+                        {cls.name}
                       </SelectItem>
-                    )}
+                    ))}
                   </SelectContent>
                 </Select>
               )}
