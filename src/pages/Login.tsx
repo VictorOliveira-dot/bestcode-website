@@ -41,9 +41,9 @@ const Login = () => {
             </p>
           </div>
           
-          {/* Loading ou Form */}
+          {/* Só mostrar loading se ainda estiver verificando a sessão inicial */}
           {loading ? (
-            <div className="flex justify-center items-center min-h-[400px]">
+            <div className="flex justify-center items-center min-h-[300px]">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bestcode-600"></div>
             </div>
           ) : (

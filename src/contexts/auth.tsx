@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { loginUser, logoutUser, fetchUserData } from '@/services/authService';
+import { loginUser, logoutUser, fetchUserData, registerUser } from '@/services/authService';
 import { AuthUser } from './types/auth';
 
 interface AuthContextType {
@@ -11,6 +11,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
+  register: (data: { email: string; password: string; name: string; role: string }) => Promise<{ success: boolean; message?: string }>;
   setUser: (user: AuthUser | null) => void;
 }
 
@@ -101,12 +102,23 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     }
   };
 
+  const register = async (data: { email: string; password: string; name: string; role: string }) => {
+    setLoading(true);
+    try {
+      const result = await registerUser(data);
+      return result;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     user,
     session,
     loading,
     login,
     logout,
+    register,
     setUser,
   };
 
