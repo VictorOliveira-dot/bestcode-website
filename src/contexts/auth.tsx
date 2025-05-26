@@ -123,12 +123,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }, []);
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
+    console.log('[Auth] Login attempt for:', email);
     try {
       const result = await loginUser(email, password);
+      console.log('[Auth] Login result:', result.success ? 'success' : 'failed');
       return result;
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('[Auth] Login error:', error);
+      return { success: false, message: 'Erro inesperado durante o login' };
     }
   };
 

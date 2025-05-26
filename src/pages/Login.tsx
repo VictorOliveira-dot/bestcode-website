@@ -5,16 +5,27 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/auth";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { ArrowLeft } from "lucide-react";
 
 const Login = () => {
   const { loading, user } = useAuth();
+  
+  // Use the redirect hook
+  useAuthRedirect();
 
   console.log('[Login Page] Loading:', loading, 'User:', user?.email);
 
-  // Se já estiver logado, não mostrar a página de login
+  // Se já estiver logado, mostrar loading enquanto redireciona
   if (user) {
-    return null; // O redirecionamento será feito pelo contexto de auth
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bestcode-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecionando...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -43,7 +54,7 @@ const Login = () => {
             </p>
           </div>
           
-          {/* Mostrar o formulário sempre, remover loading desnecessário */}
+          {/* Mostrar o formulário sempre */}
           <LoginForm />
         </div>
       </main>
