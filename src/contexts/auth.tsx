@@ -23,11 +23,60 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Função para buscar dados do usuário
-  const fetchAndSetUserData = async (supabaseUser: User) => {
+  useEffect(() => {
+    console.log('[Auth] Starting initialization...');
+    
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        // Check for existing session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('[Auth] Error getting session:', error);
+        } else if (session?.user && mounted) {
+          console.log('[Auth] Found existing session');
+          await handleUserSession(session.user);
+        } else {
+          console.log('[Auth] No existing session');
+        }
+      } catch (error) {
+        console.error('[Auth] Error in initAuth:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+          console.log('[Auth] Loading set to false');
+        }
+      }
+    };
+
+    // Set up auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('[Auth] Auth state changed:', event);
+        
+        if (!mounted) return;
+
+        if (event === 'SIGNED_IN' && session?.user) {
+          await handleUserSession(session.user);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      }
+    );
+
+    // Initialize
+    initAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleUserSession = async (supabaseUser: User) => {
     try {
-      console.log('[Auth] Fetching user data for:', supabaseUser.id);
-      
       const userData = await fetchUserData(supabaseUser);
       
       if (userData) {
@@ -39,65 +88,13 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           is_active: userData.is_active,
         };
         
-        console.log('[Auth] User data set:', authUser);
         setUser(authUser);
-      } else {
-        console.error('[Auth] No user data found');
-        setUser(null);
+        console.log('[Auth] User set:', authUser.email);
       }
     } catch (error) {
-      console.error('[Auth] Error fetching user data:', error);
-      setUser(null);
+      console.error('[Auth] Error handling user session:', error);
     }
   };
-
-  // Configurar autenticação
-  useEffect(() => {
-    console.log('[Auth] Initializing auth...');
-    
-    // Configurar listener de mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[Auth] Auth state changed:', event, 'Session:', session ? 'present' : 'null');
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('[Auth] User signed in');
-          await fetchAndSetUserData(session.user);
-        } else if (event === 'SIGNED_OUT') {
-          console.log('[Auth] User signed out');
-          setUser(null);
-        }
-      }
-    );
-
-    // Verificar sessão inicial
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('[Auth] Error getting session:', error);
-        } else if (session?.user) {
-          console.log('[Auth] Initial session found');
-          await fetchAndSetUserData(session.user);
-        } else {
-          console.log('[Auth] No initial session');
-        }
-      } catch (error) {
-        console.error('[Auth] Error checking initial session:', error);
-      } finally {
-        // Sempre finalizar loading
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    return () => {
-      console.log('[Auth] Cleaning up auth listener');
-      subscription.unsubscribe();
-    };
-  }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
@@ -117,8 +114,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           message = 'Email ou senha incorretos.';
         } else if (error.message.includes('Email not confirmed')) {
           message = 'Email não confirmado. Verifique sua caixa de entrada.';
-        } else if (error.message.includes('Too many requests')) {
-          message = 'Muitas tentativas. Tente novamente em alguns minutos.';
         }
         
         return { success: false, message };
@@ -142,31 +137,20 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (data: { email: string; password: string; name: string; role: string }): Promise<{ success: boolean; message?: string }> => {
     try {
       console.log('[Auth] Attempting registration for:', data.email);
-      setLoading(true);
-
       const result = await registerUser(data);
-
-      if (result.success) {
-        console.log('[Auth] Registration successful');
-        return { success: true };
-      }
-
-      return { success: false, message: result.message };
+      return result;
     } catch (error: any) {
       console.error('[Auth] Registration exception:', error);
       return { 
         success: false, 
         message: error.message || 'Erro de conexão durante o cadastro.' 
       };
-    } finally {
-      setLoading(false);
     }
   };
 
   const logout = async (): Promise<void> => {
     try {
       console.log('[Auth] Performing logout');
-      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -174,8 +158,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       setUser(null);
-      
-      console.log('[Auth] Logout completed');
     } catch (error) {
       console.error('[Auth] Logout error:', error);
       setUser(null);

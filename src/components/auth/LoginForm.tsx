@@ -20,10 +20,10 @@ const LoginForm = () => {
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirecionar quando o usuário for definido
+  // Simple redirect effect - only when login is successful and we have a user
   React.useEffect(() => {
     if (user && !isLoading) {
-      console.log('[LoginForm] User detected, redirecting...', user);
+      console.log('[LoginForm] User authenticated, redirecting...', user);
       
       let redirectPath = "/";
       
@@ -47,34 +47,24 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isLoading) return; // Prevenir múltiplos submits
+    if (isLoading) return;
     
     setIsLoading(true);
     setErrorMessage(null);
 
     console.log("[LoginForm] Attempting login with email:", email);
 
-    try {
-      const result = await login(email, password);
-      
-      if (!result.success) {
-        console.log("[LoginForm] Login error:", result.message);
-        setErrorMessage(result.message || "Login inválido. Tente novamente.");
-        toast.error("Não foi possível fazer login", {
-          description: result.message || "Login inválido. Tente novamente.",
-        });
-        setIsLoading(false); // Parar loading em caso de erro
-      }
-      // Se o login for bem-sucedido, o useEffect acima cuidará do redirecionamento
-      // Não definir setIsLoading(false) aqui para manter o loading até o redirecionamento
-    } catch (error: any) {
-      console.error("[LoginForm] Login error:", error);
-      setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
-      toast.error("Erro de autenticação", {
-        description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
+    const result = await login(email, password);
+    
+    if (!result.success) {
+      console.log("[LoginForm] Login failed:", result.message);
+      setErrorMessage(result.message || "Login inválido. Tente novamente.");
+      toast.error("Não foi possível fazer login", {
+        description: result.message || "Login inválido. Tente novamente.",
       });
       setIsLoading(false);
     }
+    // Se sucesso, o useEffect vai cuidar do redirect
   };
 
   return (
