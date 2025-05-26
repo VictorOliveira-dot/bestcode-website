@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -17,8 +17,33 @@ const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const { login } = useAuth();
+  const { login, user, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Effect para redirecionar quando o usuário for definido
+  useEffect(() => {
+    if (user && !loading) {
+      console.log('[LoginForm] User logged in, redirecting...', user);
+      
+      let redirectPath = "/";
+      
+      if (user.role === "admin") {
+        redirectPath = "/admin/dashboard";
+      } else if (user.role === "teacher") {
+        redirectPath = "/teacher/dashboard";
+      } else if (user.role === "student") {
+        redirectPath = "/student/dashboard";
+      }
+      
+      console.log('[LoginForm] Redirecting to:', redirectPath);
+      
+      toast.success("Login bem-sucedido!", {
+        description: "Redirecionando...",
+      });
+      
+      navigate(redirectPath, { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,26 +65,8 @@ const LoginForm = () => {
         toast.error("Não foi possível fazer login", {
           description: result.message || "Login inválido. Tente novamente.",
         });
-      } else if (result.user) {
-        console.log("Login successful, user:", result.user);
-        toast.success("Login bem-sucedido!", {
-          description: "Redirecionando...",
-        });
-        
-        // Redirecionar com base no role do usuário
-        let redirectPath = "/";
-        
-        if (result.user.role === "admin") {
-          redirectPath = "/admin/dashboard";
-        } else if (result.user.role === "teacher") {
-          redirectPath = "/teacher/dashboard";
-        } else if (result.user.role === "student") {
-          redirectPath = "/student/dashboard";
-        }
-        
-        console.log("Redirecting to:", redirectPath);
-        navigate(redirectPath, { replace: true });
       }
+      // Se o login foi bem-sucedido, o useEffect acima irá cuidar do redirecionamento
     } catch (error: any) {
       console.error("Login error:", error);
       setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
