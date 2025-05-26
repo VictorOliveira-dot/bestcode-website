@@ -33,6 +33,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
+  // Garantir que os arrays estão sempre definidos
+  const safePayments = Array.isArray(payments) ? payments : [];
+  const safeCourses = Array.isArray(courses) ? courses : [];
+  const safeStudents = Array.isArray(students) ? students : [];
+  const safeTeachers = Array.isArray(teachers) ? teachers : [];
+
   return (
     <Card className="mt-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -102,7 +108,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             </div>
           ) : (
             <div className="text-center py-12 text-gray-500">
-              <p>Showing {payments.length} current enrollments</p>
+              <p>Showing {safePayments.length} current enrollments</p>
             </div>
           )}
         </TabsContent>

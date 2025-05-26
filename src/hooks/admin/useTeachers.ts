@@ -52,5 +52,10 @@ export const useTeachers = (shouldFetch: boolean = true) => {
     fetchTeachers();
   }, [fetchTeachers]);
 
-  return { teachers, isLoading, fetchTeachers };
+  return { 
+    teachers, 
+    isLoading, 
+    fetchTeachers,
+    refetch: fetchTeachers // Adicionar alias para compatibilidade
+  };
 };

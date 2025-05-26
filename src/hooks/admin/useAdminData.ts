@@ -7,9 +7,9 @@ import { useActiveStudentsCount } from "./useActiveStudentsCount";
 
 export function useAdminData() {
   const { students, isLoading: studentsLoading, refetch: refetchStudents } = useStudentsTable();
-  const { teachers, isLoading: teachersLoading, refetch: refetchTeachers } = useTeachers();
-  const { courses, isLoading: coursesLoading } = useCourses();
-  const { payments } = useRevenue();
+  const { teachers, isLoading: teachersLoading, fetchTeachers } = useTeachers();
+  const { data: courses, isLoading: coursesLoading } = useCourses();
+  const { data: payments } = useRevenue();
   const { activeStudentsCount, isLoading: countLoading } = useActiveStudentsCount();
 
   const enrollmentStats = [];
@@ -19,12 +19,12 @@ export function useAdminData() {
   return {
     students,
     teachers,
-    courses,
-    payments,
+    courses: courses || [],
+    payments: payments || [],
     enrollmentStats,
     activeStudentsCount,
     isLoading,
     refetchStudents,
-    refetchTeachers
+    refetchTeachers: fetchTeachers
   };
 }
