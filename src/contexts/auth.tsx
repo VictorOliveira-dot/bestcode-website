@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase, isSessionValid, performLogout } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -30,11 +31,19 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData = await fetchUserData(supabaseUser);
       
       if (userData) {
+        // Fetch is_active status from users table
+        const { data: userDetails, error } = await supabase
+          .from('users')
+          .select('is_active')
+          .eq('id', supabaseUser.id)
+          .single();
+
         const authUser: AuthUser = {
           id: supabaseUser.id,
           email: supabaseUser.email || '',
           name: userData.name,
           role: userData.role as 'admin' | 'teacher' | 'student',
+          is_active: userDetails?.is_active || false,
         };
         
         console.log('[Auth] User data fetched successfully:', authUser);
