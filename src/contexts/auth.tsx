@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -81,6 +80,13 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (!user) {
               await fetchAndSetUserData(session.user);
             }
+          } else if (event === 'INITIAL_SESSION') {
+            console.log('[Auth] Initial session event');
+            if (session?.user) {
+              await fetchAndSetUserData(session.user);
+            } else {
+              setUser(null);
+            }
           }
         } catch (error) {
           console.error('[Auth] Error in auth state change:', error);
@@ -89,6 +95,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
         
+        // Sempre finalizar loading após processar qualquer evento
         if (mounted && !initialized) {
           setLoading(false);
           setInitialized(true);
