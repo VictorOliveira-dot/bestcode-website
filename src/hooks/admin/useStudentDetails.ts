@@ -30,6 +30,8 @@ export interface StudentFullDetails {
   goals: string | null;
   study_availability: string | null;
   is_profile_complete: boolean;
+  gender: string | null;
+  referral: string | null;
 }
 
 export const useStudentDetails = (studentId: string | null) => {
@@ -38,12 +40,27 @@ export const useStudentDetails = (studentId: string | null) => {
     queryFn: async () => {
       if (!studentId) throw new Error("Student ID is required");
       
+      console.log('[useStudentDetails] Fetching details for student:', studentId);
+      
       const { data, error } = await supabase.rpc('admin_get_student_details', { 
         p_student_id: studentId 
       });
       
-      if (error) throw error;
-      return data?.[0] as StudentFullDetails;
+      if (error) {
+        console.error('[useStudentDetails] Error:', error);
+        throw error;
+      }
+      
+      console.log('[useStudentDetails] Raw data received:', data);
+      
+      if (!data || data.length === 0) {
+        throw new Error("Nenhum dado encontrado para este estudante");
+      }
+      
+      const studentData = data[0] as StudentFullDetails;
+      console.log('[useStudentDetails] Processed student data:', studentData);
+      
+      return studentData;
     },
     enabled: !!studentId
   });
