@@ -1,31 +1,31 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/auth";
-import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { ArrowLeft } from "lucide-react";
 
 const Login = () => {
   const { loading, user } = useAuth();
-  
-  // Use the redirect hook
-  useAuthRedirect();
 
   console.log('[Login Page] Loading:', loading, 'User:', user?.email);
 
-  // Se já estiver logado, mostrar loading enquanto redireciona
-  if (user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bestcode-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecionando...</p>
-        </div>
-      </div>
-    );
+  // Se já estiver logado, redirecionar imediatamente
+  if (user && !loading) {
+    let redirectPath = "/";
+    
+    if (user.role === "admin") {
+      redirectPath = "/admin/dashboard";
+    } else if (user.role === "teacher") {
+      redirectPath = "/teacher/dashboard";
+    } else if (user.role === "student") {
+      redirectPath = "/student/dashboard";
+    }
+    
+    console.log('[Login Page] User already logged in, redirecting to:', redirectPath);
+    return <Navigate to={redirectPath} replace />;
   }
 
   return (
@@ -54,7 +54,6 @@ const Login = () => {
             </p>
           </div>
           
-          {/* Mostrar o formulário sempre */}
           <LoginForm />
         </div>
       </main>

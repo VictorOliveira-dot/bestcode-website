@@ -37,9 +37,55 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     
     let mounted = true;
 
+    // Set up auth state listener primeiro
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('[Supabase Auth] Event:', event, 'Session:', session ? 'present' : 'null');
+        
+        if (!mounted) return;
+
+        if (event === 'SIGNED_OUT') {
+          console.log('[Auth] User signed out, clearing state');
+          setUser(null);
+          setSession(null);
+          setLoading(false);
+          return;
+        }
+
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          console.log('[Auth] User signed in, fetching data for:', session.user.email);
+          
+          try {
+            const userData = await fetchUserData(session.user);
+            if (userData && mounted) {
+              const authUser: AuthUser = {
+                id: session.user.id,
+                email: session.user.email || '',
+                name: userData.name,
+                role: userData.role as 'admin' | 'teacher' | 'student',
+              };
+              console.log('[Auth] Setting user data:', authUser);
+              setUser(authUser);
+              setSession(session);
+            }
+          } catch (error) {
+            console.error('[Auth] Error fetching user data:', error);
+          }
+        } else if (!session) {
+          console.log('[Auth] No session, clearing user');
+          setUser(null);
+          setSession(null);
+        }
+        
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    );
+
+    // Verificar sessão inicial
     const initializeAuth = async () => {
       try {
-        // Get initial session
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -63,6 +109,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
               name: userData.name,
               role: userData.role as 'admin' | 'teacher' | 'student',
             };
+            console.log('[Auth] Setting initial user data:', authUser);
             setUser(authUser);
             setSession(initialSession);
           }
@@ -79,40 +126,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       }
     };
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[Supabase Auth] Event:', event, 'Session:', session ? 'present' : 'null');
-        
-        if (!mounted) return;
-
-        setSession(session);
-        
-        if (session?.user && event !== 'TOKEN_REFRESHED') {
-          console.log('[Auth] User signed in, fetching data for:', session.user.email);
-          
-          try {
-            const userData = await fetchUserData(session.user);
-            if (userData && mounted) {
-              const authUser: AuthUser = {
-                id: session.user.id,
-                email: session.user.email || '',
-                name: userData.name,
-                role: userData.role as 'admin' | 'teacher' | 'student',
-              };
-              setUser(authUser);
-            }
-          } catch (error) {
-            console.error('[Auth] Error fetching user data:', error);
-          }
-        } else if (!session) {
-          console.log('[Auth] No session, clearing user');
-          setUser(null);
-        }
-      }
-    );
-
-    // Initialize auth state
+    // Executar inicialização
     initializeAuth();
 
     return () => {
@@ -124,13 +138,24 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const login = async (email: string, password: string) => {
     console.log('[Auth] Login attempt for:', email);
+    setLoading(true);
+    
     try {
       const result = await loginUser(email, password);
       console.log('[Auth] Login result:', result.success ? 'success' : 'failed');
+      
+      if (result.success && result.user) {
+        // Definir o usuário imediatamente após login bem-sucedido
+        setUser(result.user);
+        console.log('[Auth] User set after successful login:', result.user);
+      }
+      
       return result;
     } catch (error) {
       console.error('[Auth] Login error:', error);
       return { success: false, message: 'Erro inesperado durante o login' };
+    } finally {
+      setLoading(false);
     }
   };
 

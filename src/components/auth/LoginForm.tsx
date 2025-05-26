@@ -23,7 +23,7 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isLoading) return; // Prevent multiple submissions
+    if (isLoading) return;
     
     setIsLoading(true);
     setErrorMessage(null);
@@ -40,11 +40,26 @@ const LoginForm = () => {
           description: result.message || "Login inválido. Tente novamente.",
         });
       } else {
-        // Login bem-sucedido - o contexto de auth vai lidar com o redirecionamento
-        console.log("Login successful, auth context will handle redirect");
+        console.log("Login successful, redirecting...");
         toast.success("Login bem-sucedido!", {
           description: "Redirecionando...",
         });
+        
+        // Redirecionar com base no role do usuário
+        if (result.user) {
+          let redirectPath = "/";
+          
+          if (result.user.role === "admin") {
+            redirectPath = "/admin/dashboard";
+          } else if (result.user.role === "teacher") {
+            redirectPath = "/teacher/dashboard";
+          } else if (result.user.role === "student") {
+            redirectPath = "/student/dashboard";
+          }
+          
+          console.log("Redirecting to:", redirectPath);
+          navigate(redirectPath, { replace: true });
+        }
       }
     } catch (error: any) {
       console.error("Login error:", error);
