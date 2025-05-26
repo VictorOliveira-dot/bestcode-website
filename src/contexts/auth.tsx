@@ -3,13 +3,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { loginUser, logoutUser, fetchUserData, registerUser } from '@/services/authService';
-import { AuthUser } from './types/auth';
+import { AuthUser, LoginResult } from './types/auth';
 
 interface AuthContextType {
   user: AuthUser | null;
   session: Session | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   register: (data: { email: string; password: string; name: string; role: string }) => Promise<{ success: boolean; message?: string }>;
   setUser: (user: AuthUser | null) => void;
@@ -136,7 +136,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<LoginResult> => {
     console.log('[Auth] Login attempt for:', email);
     setLoading(true);
     
@@ -148,9 +148,10 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         // Definir o usuário imediatamente após login bem-sucedido
         setUser(result.user);
         console.log('[Auth] User set after successful login:', result.user);
+        return { success: true, user: result.user };
       }
       
-      return result;
+      return { success: result.success, message: result.message };
     } catch (error) {
       console.error('[Auth] Login error:', error);
       return { success: false, message: 'Erro inesperado durante o login' };
