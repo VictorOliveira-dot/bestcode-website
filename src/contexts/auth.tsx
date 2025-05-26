@@ -33,50 +33,91 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   console.log('[Auth] Current state:', { user: user?.email, loading });
 
   useEffect(() => {
-    console.log('[Auth] Checking initial session...');
+    console.log('[Auth] Initializing auth state...');
     
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('[Auth] Error getting initial session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        console.log('[Auth] Initial session check:', initialSession ? 'found' : 'not found');
+
+        if (initialSession?.user && mounted) {
+          console.log('[Auth] Processing initial session for:', initialSession.user.email);
+          
+          const userData = await fetchUserData(initialSession.user);
+          if (userData && mounted) {
+            const authUser: AuthUser = {
+              id: initialSession.user.id,
+              email: initialSession.user.email || '',
+              name: userData.name,
+              role: userData.role as 'admin' | 'teacher' | 'student',
+            };
+            setUser(authUser);
+            setSession(initialSession);
+          }
+        }
+
+        if (mounted) {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('[Auth] Error in initialization:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[Supabase Auth] Event:', event, 'Session:', session ? 'present' : 'null');
         
+        if (!mounted) return;
+
         setSession(session);
         
-        if (session?.user) {
-          console.log('[Auth] User signed in, fetching data');
-          console.log('[Auth] Fetching user data for:', session.user.id);
+        if (session?.user && event !== 'TOKEN_REFRESHED') {
+          console.log('[Auth] User signed in, fetching data for:', session.user.email);
           
-          const userData = await fetchUserData(session.user);
-          if (userData) {
-            const authUser: AuthUser = {
-              id: session.user.id,
-              email: session.user.email || '',
-              name: userData.name,
-              role: userData.role as 'admin' | 'teacher' | 'student',
-            };
-            setUser(authUser);
-          } else {
-            setUser(null);
+          try {
+            const userData = await fetchUserData(session.user);
+            if (userData && mounted) {
+              const authUser: AuthUser = {
+                id: session.user.id,
+                email: session.user.email || '',
+                name: userData.name,
+                role: userData.role as 'admin' | 'teacher' | 'student',
+              };
+              setUser(authUser);
+            }
+          } catch (error) {
+            console.error('[Auth] Error fetching user data:', error);
           }
-        } else {
+        } else if (!session) {
           console.log('[Auth] No session, clearing user');
           setUser(null);
         }
-        
-        setLoading(false);
       }
     );
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[Auth] Initial session check:', session ? 'found' : 'not found');
-      if (!session) {
-        setLoading(false); // Set loading to false if no session
-      }
-    });
+    // Initialize auth state
+    initializeAuth();
 
     return () => {
       console.log('[Auth] Cleaning up auth state listener');
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
