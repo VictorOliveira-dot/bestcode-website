@@ -36,6 +36,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: supabaseUser.email || '',
           name: userData.name,
           role: userData.role as 'admin' | 'teacher' | 'student',
+          is_active: userData.is_active,
         };
         
         console.log('[Auth] User data set:', authUser);
