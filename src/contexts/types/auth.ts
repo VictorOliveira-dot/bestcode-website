@@ -6,7 +6,6 @@ export interface AuthUser {
   email: string;
   name: string;
   role: 'admin' | 'teacher' | 'student';
-  is_active?: boolean;
 }
 
 export interface User {
