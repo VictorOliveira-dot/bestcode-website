@@ -161,10 +161,10 @@ const LoginForm = () => {
 
   return (
     <>
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full shadow-lg border-0 bg-white/80 backdrop-blur-sm">
         <LoginFormHeader />
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="px-6 pb-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <EmailField
               email={email}
               setEmail={setEmail}
@@ -176,7 +176,7 @@ const LoginForm = () => {
               disabled={isLoading}
             />
             {errorMessage && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
                 <p className="font-medium">Erro: {errorMessage}</p>
                 <p className="text-xs mt-1">Verifique se o email e senha estão corretos.</p>
               </div>
