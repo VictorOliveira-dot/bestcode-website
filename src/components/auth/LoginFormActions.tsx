@@ -13,17 +13,17 @@ interface LoginFormActionsProps {
 const LoginFormActions = ({ isLoading, onForgotPassword }: LoginFormActionsProps) => {
   return (
     <>
-      <div className="flex items-center justify-between py-2">
+      <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Checkbox id="remember" disabled={isLoading} />
-          <Label htmlFor="remember" className="text-sm font-normal text-gray-600">
+          <Label htmlFor="remember" className="text-sm font-normal">
             Lembrar de mim
           </Label>
         </div>
         <Button
           type="button"
           variant="link"
-          className="text-sm text-bestcode-600 hover:text-bestcode-800 p-0 h-auto"
+          className="text-sm text-bestcode-600 hover:text-bestcode-800"
           onClick={onForgotPassword}
           disabled={isLoading}
         >
@@ -34,15 +34,15 @@ const LoginFormActions = ({ isLoading, onForgotPassword }: LoginFormActionsProps
       <div className="pt-2">
         <Button 
           type="submit" 
-          className="w-full bg-bestcode-600 hover:bg-bestcode-700 text-white font-medium py-2.5 rounded-lg transition-colors" 
+          className="w-full bg-bestcode-600 hover:bg-bestcode-700" 
           disabled={isLoading}
         >
           {isLoading ? "Entrando..." : "Entrar"}
         </Button>
       </div>
       
-      <div className="text-center text-sm pt-4">
-        <span className="text-gray-600">Não tem uma conta? </span>
+      <div className="text-center text-sm">
+        Não tem uma conta?{" "}
         <Link to="/register" className="text-bestcode-600 hover:text-bestcode-800 font-medium">
           Registre-se
         </Link>

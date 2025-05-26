@@ -1,6 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { AuthUser, LoginResult } from "@/contexts/types/auth";
+import { AuthUser } from "@/hooks/useAuthState";
 
 export const fetchUserData = async (authUser: User) => {
   try {
@@ -76,7 +77,7 @@ export const fetchUserData = async (authUser: User) => {
   }
 };
 
-export const loginUser = async (email: string, password: string): Promise<LoginResult> => {
+export const loginUser = async (email: string, password: string) => {
   try {
     console.log('Attempting login with:', email);
     
@@ -101,22 +102,19 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
       
       if (userData) {
         // Return the complete user data with the success message
-        const authUser: AuthUser = {
-          id: data.user.id,
-          email: data.user.email || '',
-          name: userData.name,
-          role: userData.role as 'admin' | 'teacher' | 'student',
-          is_active: userData.is_active,
-        };
-        
-        console.log('Returning user data:', authUser);
         return { 
           success: true, 
-          user: authUser
+          user: {
+            id: data.user.id,
+            email: data.user.email || '',
+            name: userData.name,
+            role: userData.role as 'admin' | 'teacher' | 'student',
+            is_active: userData.is_active,
+          }
         };
       }
       
-      return { success: false, message: 'Erro ao carregar dados do usuário' };
+      return { success: true };
     }
 
     return {

@@ -8,9 +8,9 @@ import {
 
 const LoginFormHeader = () => {
   return (
-    <CardHeader className="space-y-1 text-center pb-6">
-      <CardTitle className="text-2xl font-bold text-gray-900">Entrar na sua conta</CardTitle>
-      <CardDescription className="text-gray-600">
+    <CardHeader className="space-y-1">
+      <CardTitle className="text-2xl font-bold">Entrar na sua conta</CardTitle>
+      <CardDescription>
         Digite suas credenciais abaixo para acessar a plataforma
       </CardDescription>
     </CardHeader>

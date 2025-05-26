@@ -1,19 +1,9 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { loginUser, logoutUser, fetchUserData, registerUser } from '@/services/authService';
-import { AuthUser, LoginResult } from './types/auth';
-
-interface AuthContextType {
-  user: AuthUser | null;
-  session: Session | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<LoginResult>;
-  logout: () => Promise<void>;
-  register: (data: { email: string; password: string; name: string; role: string }) => Promise<{ success: boolean; message?: string }>;
-  setUser: (user: AuthUser | null) => void;
-}
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { supabase, isSessionValid, performLogout } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
+import { fetchUserData, registerUser } from '@/services/authService';
+import { AuthUser, AuthContextType } from './types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -25,157 +15,225 @@ export const useAuth = () => {
   return context;
 };
 
-const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  console.log('[Auth] Current state:', { user: user?.email, loading });
+  // Função melhorada para buscar dados do usuário
+  const fetchAndSetUserData = async (supabaseUser: User) => {
+    try {
+      console.log('[Auth] Fetching user data for:', supabaseUser.id);
+      
+      const userData = await fetchUserData(supabaseUser);
+      
+      if (userData) {
+        // Fetch is_active status from users table
+        const { data: userDetails, error } = await supabase
+          .from('users')
+          .select('is_active')
+          .eq('id', supabaseUser.id)
+          .single();
 
-  useEffect(() => {
-    console.log('[Auth] Initializing auth state...');
-    
-    let mounted = true;
-
-    // Set up auth state listener primeiro
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[Supabase Auth] Event:', event, 'Session:', session ? 'present' : 'null');
+        const authUser: AuthUser = {
+          id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          name: userData.name,
+          role: userData.role as 'admin' | 'teacher' | 'student',
+          is_active: userDetails?.is_active || false,
+        };
         
-        if (!mounted) return;
+        console.log('[Auth] User data fetched successfully:', authUser);
+        setUser(authUser);
+        return authUser;
+      } else {
+        console.error('[Auth] No user data found');
+        setUser(null);
+        return null;
+      }
+    } catch (error) {
+      console.error('[Auth] Error fetching user data:', error);
+      setUser(null);
+      return null;
+    }
+  };
 
-        if (event === 'SIGNED_OUT') {
-          console.log('[Auth] User signed out, clearing state');
-          setUser(null);
-          setSession(null);
-          setLoading(false);
+  // Verificar sessão inicial com retry
+  useEffect(() => {
+    let mounted = true;
+    
+    const checkInitialSession = async () => {
+      try {
+        console.log('[Auth] Checking initial session...');
+        
+        // Verificar se a sessão é válida
+        const sessionValid = await isSessionValid();
+        
+        if (!sessionValid) {
+          console.log('[Auth] No valid session found');
+          if (mounted) {
+            setUser(null);
+            setLoading(false);
+          }
           return;
         }
-
-        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          console.log('[Auth] User signed in, fetching data for:', session.user.email);
-          
-          try {
-            const userData = await fetchUserData(session.user);
-            if (userData && mounted) {
-              const authUser: AuthUser = {
-                id: session.user.id,
-                email: session.user.email || '',
-                name: userData.name,
-                role: userData.role as 'admin' | 'teacher' | 'student',
-              };
-              console.log('[Auth] Setting user data:', authUser);
-              setUser(authUser);
-              setSession(session);
-            }
-          } catch (error) {
-            console.error('[Auth] Error fetching user data:', error);
-          }
-        } else if (!session) {
-          console.log('[Auth] No session, clearing user');
-          setUser(null);
-          setSession(null);
-        }
         
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    );
-
-    // Verificar sessão inicial
-    const initializeAuth = async () => {
-      try {
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('[Auth] Error getting initial session:', error);
+          console.error('[Auth] Session error:', error);
           if (mounted) {
+            setUser(null);
             setLoading(false);
           }
           return;
         }
 
-        console.log('[Auth] Initial session check:', initialSession ? 'found' : 'not found');
-
-        if (initialSession?.user && mounted) {
-          console.log('[Auth] Processing initial session for:', initialSession.user.email);
-          
-          const userData = await fetchUserData(initialSession.user);
-          if (userData && mounted) {
-            const authUser: AuthUser = {
-              id: initialSession.user.id,
-              email: initialSession.user.email || '',
-              name: userData.name,
-              role: userData.role as 'admin' | 'teacher' | 'student',
-            };
-            console.log('[Auth] Setting initial user data:', authUser);
-            setUser(authUser);
-            setSession(initialSession);
-          }
-        }
-
-        if (mounted) {
-          setLoading(false);
+        if (session?.user) {
+          console.log('[Auth] Valid session found, fetching user data');
+          await fetchAndSetUserData(session.user);
+        } else {
+          console.log('[Auth] No session found');
+          if (mounted) setUser(null);
         }
       } catch (error) {
-        console.error('[Auth] Error in initialization:', error);
-        if (mounted) {
-          setLoading(false);
-        }
+        console.error('[Auth] Error checking initial session:', error);
+        if (mounted) setUser(null);
+      } finally {
+        if (mounted) setLoading(false);
       }
     };
 
-    // Executar inicialização
-    initializeAuth();
+    checkInitialSession();
+    
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Listener para mudanças de autenticação
+  useEffect(() => {
+    console.log('[Auth] Setting up auth state listener');
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('[Auth] Auth state changed:', event, session ? 'session present' : 'no session');
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('[Auth] User signed in, fetching data');
+          await fetchAndSetUserData(session.user);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('[Auth] User signed out');
+          setUser(null);
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          console.log('[Auth] Token refreshed, updating user data');
+          await fetchAndSetUserData(session.user);
+        }
+        
+        setLoading(false);
+      }
+    );
 
     return () => {
       console.log('[Auth] Cleaning up auth state listener');
-      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<LoginResult> => {
-    console.log('[Auth] Login attempt for:', email);
-    
+  const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
-      const result = await loginUser(email, password);
-      console.log('[Auth] Login service result:', result);
-      
-      // Não precisamos definir o usuário aqui manualmente,
-      // o onAuthStateChange vai cuidar disso
-      return result;
-    } catch (error) {
-      console.error('[Auth] Login error:', error);
-      return { success: false, message: 'Erro inesperado durante o login' };
-    }
-  };
+      console.log('[Auth] Attempting login for:', email);
+      setLoading(true);
 
-  const logout = async () => {
-    setLoading(true);
-    try {
-      await logoutUser();
-      setUser(null);
-      setSession(null);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        console.error('[Auth] Login error:', error);
+        
+        let message = 'Erro ao fazer login. Tente novamente.';
+        
+        if (error.message.includes('Invalid login credentials')) {
+          message = 'Email ou senha incorretos.';
+        } else if (error.message.includes('Email not confirmed')) {
+          message = 'Email não confirmado. Verifique sua caixa de entrada.';
+        } else if (error.message.includes('Too many requests')) {
+          message = 'Muitas tentativas. Tente novamente em alguns minutos.';
+        }
+        
+        return { success: false, message };
+      }
+
+      if (data.user) {
+        console.log('[Auth] Login successful');
+        // O listener onAuthStateChange irá cuidar de definir o usuário
+        return { success: true };
+      }
+
+      return { success: false, message: 'Erro inesperado durante o login.' };
+    } catch (error: any) {
+      console.error('[Auth] Login exception:', error);
+      return { 
+        success: false, 
+        message: error.message || 'Erro de conexão. Verifique sua internet.' 
+      };
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (data: { email: string; password: string; name: string; role: string }) => {
-    setLoading(true);
+  const register = async (data: { email: string; password: string; name: string; role: string }): Promise<{ success: boolean; message?: string }> => {
     try {
+      console.log('[Auth] Attempting registration for:', data.email);
+      setLoading(true);
+
       const result = await registerUser(data);
-      return result;
+
+      if (result.success) {
+        console.log('[Auth] Registration successful');
+        return { success: true };
+      }
+
+      return { success: false, message: result.message };
+    } catch (error: any) {
+      console.error('[Auth] Registration exception:', error);
+      return { 
+        success: false, 
+        message: error.message || 'Erro de conexão durante o cadastro.' 
+      };
     } finally {
       setLoading(false);
     }
   };
 
-  const value = {
+  const logout = async (): Promise<void> => {
+    try {
+      console.log('[Auth] Performing logout');
+      setLoading(true);
+      
+      // Usar a função de logout melhorada
+      await performLogout();
+      
+      // Limpar estado local
+      setUser(null);
+      
+      console.log('[Auth] Logout completed successfully');
+    } catch (error) {
+      console.error('[Auth] Logout error:', error);
+      // Mesmo com erro, limpar o estado local
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const value: AuthContextType = {
     user,
-    session,
     loading,
     login,
     logout,
