@@ -739,7 +739,7 @@ export type Database = {
         }[]
       }
       get_teacher_classes: {
-        Args: { teacher_id: string }
+        Args: { p_teacher_id: string }
         Returns: {
           id: string
           name: string
@@ -769,11 +769,11 @@ export type Database = {
         }[]
       }
       get_teacher_student_count: {
-        Args: { teacher_id: string }
+        Args: { p_teacher_id: string }
         Returns: number
       }
       get_teacher_student_progress: {
-        Args: { teacher_id: string }
+        Args: { p_teacher_id: string }
         Returns: {
           id: string
           name: string
@@ -786,7 +786,7 @@ export type Database = {
         }[]
       }
       get_teacher_students: {
-        Args: { teacher_id: string }
+        Args: { p_teacher_id: string }
         Returns: {
           student_id: string
           name: string

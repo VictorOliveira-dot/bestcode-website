@@ -40,9 +40,7 @@ const LoginForm = () => {
           description: result.message || "Login inválido. Tente novamente.",
         });
       } else {
-        // Login bem-sucedido, vamos verificar o status do usuário e redirecionar
-        
-        // Buscar dados do usuário após login bem-sucedido
+        // Login bem-sucedido, verificar sessão e redirecionar
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           const userData = await fetchUserData(session.user);
