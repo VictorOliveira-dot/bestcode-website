@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Dialog,
@@ -15,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormControl,
+  FormMessage,
 } from "@/components/ui/form";
 import {
   Select,
@@ -23,21 +24,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useStudentDetails } from "@/hooks/admin/useStudentDetails";
+import { useAdminStats } from "@/hooks/admin/useAdminStats";
 
 interface StudentEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (values: { classId: string, status: string }) => Promise<void>;
-  studentDetails: {
-    current_classes: Array<{
-      class_id: string;
-      class_name: string;
-      status: string;
-    }> | null;
-  } | null;
+  studentId: string | null;
 }
 
-export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }: StudentEditModalProps) {
+export function StudentEditModal({ isOpen, onClose, onConfirm, studentId }: StudentEditModalProps) {
+  const { data: studentDetails } = useStudentDetails(studentId);
+  const { allClasses } = useAdminStats();
+  
   const form = useForm({
     defaultValues: {
       classId: "",
@@ -45,16 +45,20 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
     }
   });
 
+  useEffect(() => {
+    if (studentDetails?.current_classes && studentDetails.current_classes.length > 0) {
+      const firstClass = studentDetails.current_classes[0];
+      form.setValue("classId", firstClass.class_id);
+      form.setValue("status", firstClass.status);
+    }
+  }, [studentDetails, form]);
+
   const handleSubmit = async (values: { classId: string, status: string }) => {
     await onConfirm(values);
     onClose();
   };
 
-  // Return null if studentDetails is null
-  if (!studentDetails) return null;
-
-  // Ensure current_classes is always an array even if it's null
-  const currentClasses = studentDetails.current_classes || [];
+  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -80,14 +84,15 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
                         <SelectValue placeholder="Selecione uma turma" />
                       </SelectTrigger>
                       <SelectContent>
-                        {currentClasses.map((cls) => (
+                        {allClasses.map((cls) => (
                           <SelectItem key={cls.class_id} value={cls.class_id}>
-                            {cls.class_name}
+                            {cls.class_name} - {cls.teacher_name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -113,6 +118,7 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />

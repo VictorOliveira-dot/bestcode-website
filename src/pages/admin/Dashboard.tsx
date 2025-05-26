@@ -8,6 +8,7 @@ import AdminDashboardCards from "@/components/admin/DashboardCards";
 import DashboardContent from "@/components/admin/DashboardContent";
 import DashboardActions from "@/components/admin/DashboardActions";
 import { useAdminData } from "@/hooks/admin/useAdminData";
+import { useAdminStats } from "@/hooks/admin/useAdminStats";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -21,6 +22,8 @@ const AdminDashboard = () => {
     refetchStudents,
     refetchTeachers
   } = useAdminData();
+
+  const { activeStudentsCount } = useAdminStats();
   
   if (!user) {
     return <Navigate to="/login" />;
@@ -35,7 +38,7 @@ const AdminDashboard = () => {
   const formattedTeachers = Array.isArray(teachers) ? teachers : [];
 
   const stats = {
-    studentsCount: formattedStudents.length,
+    studentsCount: activeStudentsCount, // Agora vem do banco baseado em is_active
     teachersCount: formattedTeachers.length,
     coursesCount: 0, // Implementar depois
     revenueAmount: "R$ 0,00" // Implementar depois

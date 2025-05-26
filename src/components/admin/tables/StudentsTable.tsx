@@ -14,7 +14,6 @@ import { useAuth } from "@/contexts/auth";
 import { StudentActions } from "./StudentActions";
 import { useStudentsTable } from "@/hooks/admin/useStudentsTable";
 import StudentProgress from "./StudentProgress";
-import { Link } from "react-router-dom";
 
 const StudentsTable: React.FC = () => {
   const { user } = useAuth();

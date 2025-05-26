@@ -29,41 +29,20 @@ export function StudentActions({ student, onViewDetails, onEdit, onDelete }: Stu
   const [showDetails, setShowDetails] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [details, setDetails] = useState(null);
   
-  const { 
-    fetchStudentDetails, 
-    updateEnrollment, 
-    deleteStudent 
-  } = useStudentActions();
+  const { updateEnrollment, deleteStudent } = useStudentActions();
 
-  const handleViewDetails = async () => {
-    try {
-      const details = await fetchStudentDetails(student.user_id);
-      setDetails(details);
-      setShowDetails(true);
-      
-      // Call parent handler if provided
-      if (onViewDetails) {
-        onViewDetails(student.user_id);
-      }
-    } catch (error) {
-      console.error("Error fetching student details:", error);
+  const handleViewDetails = () => {
+    setShowDetails(true);
+    if (onViewDetails) {
+      onViewDetails(student.user_id);
     }
   };
 
-  const handleEdit = async () => {
-    try {
-      const details = await fetchStudentDetails(student.user_id);
-      setDetails(details);
-      setShowEdit(true);
-      
-      // Call parent handler if provided
-      if (onEdit) {
-        onEdit(student.user_id);
-      }
-    } catch (error) {
-      console.error("Error fetching student details for edit:", error);
+  const handleEdit = () => {
+    setShowEdit(true);
+    if (onEdit) {
+      onEdit(student.user_id);
     }
   };
 
@@ -75,10 +54,8 @@ export function StudentActions({ student, onViewDetails, onEdit, onDelete }: Stu
     });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     setShowDelete(true);
-    
-    // Call parent handler if provided
     if (onDelete) {
       onDelete(student.user_id);
     }
@@ -122,14 +99,14 @@ export function StudentActions({ student, onViewDetails, onEdit, onDelete }: Stu
       <StudentDetailsModal
         isOpen={showDetails}
         onClose={() => setShowDetails(false)}
-        details={details}
+        studentId={showDetails ? student.user_id : null}
       />
 
       <StudentEditModal
         isOpen={showEdit}
         onClose={() => setShowEdit(false)}
         onConfirm={handleUpdateEnrollment}
-        studentDetails={details}
+        studentId={showEdit ? student.user_id : null}
       />
 
       <DeleteStudentDialog
