@@ -541,19 +541,6 @@ export type Database = {
         Args: { p_student_id: string }
         Returns: undefined
       }
-      admin_get_active_students_count: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      admin_get_all_classes: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          class_id: string
-          class_name: string
-          teacher_name: string
-          start_date: string
-        }[]
-      }
       admin_get_courses: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -622,19 +609,6 @@ export type Database = {
           subscription_plan: string
           progress_average: number
           last_active: string
-          first_name: string
-          last_name: string
-          phone: string
-          whatsapp: string
-          cpf: string
-          birth_date: string
-          address: string
-          education: string
-          professional_area: string
-          experience_level: string
-          goals: string
-          study_availability: string
-          is_profile_complete: boolean
         }[]
       }
       admin_get_students_data: {
@@ -765,7 +739,7 @@ export type Database = {
         }[]
       }
       get_teacher_classes: {
-        Args: { p_teacher_id: string }
+        Args: { teacher_id: string }
         Returns: {
           id: string
           name: string
@@ -795,11 +769,11 @@ export type Database = {
         }[]
       }
       get_teacher_student_count: {
-        Args: { p_teacher_id: string }
+        Args: { teacher_id: string }
         Returns: number
       }
       get_teacher_student_progress: {
-        Args: { p_teacher_id: string }
+        Args: { teacher_id: string }
         Returns: {
           id: string
           name: string
@@ -812,7 +786,7 @@ export type Database = {
         }[]
       }
       get_teacher_students: {
-        Args: { p_teacher_id: string }
+        Args: { teacher_id: string }
         Returns: {
           student_id: string
           name: string
