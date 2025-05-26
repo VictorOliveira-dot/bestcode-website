@@ -22,7 +22,7 @@ const LoginForm = () => {
 
   // Redirecionar quando o usuário for definido
   React.useEffect(() => {
-    if (user) {
+    if (user && !isLoading) {
       console.log('[LoginForm] User detected, redirecting...', user);
       
       let redirectPath = "/";
@@ -42,10 +42,12 @@ const LoginForm = () => {
       console.log('[LoginForm] Redirecting to:', redirectPath);
       navigate(redirectPath, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isLoading) return; // Prevenir múltiplos submits
     
     setIsLoading(true);
     setErrorMessage(null);
@@ -61,15 +63,16 @@ const LoginForm = () => {
         toast.error("Não foi possível fazer login", {
           description: result.message || "Login inválido. Tente novamente.",
         });
+        setIsLoading(false); // Parar loading em caso de erro
       }
       // Se o login for bem-sucedido, o useEffect acima cuidará do redirecionamento
+      // Não definir setIsLoading(false) aqui para manter o loading até o redirecionamento
     } catch (error: any) {
       console.error("[LoginForm] Login error:", error);
       setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
       toast.error("Erro de autenticação", {
         description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
       });
-    } finally {
       setIsLoading(false);
     }
   };

@@ -60,7 +60,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[Auth] Auth state changed:', event);
+        console.log('[Auth] Auth state changed:', event, 'Session:', session ? 'present' : 'null');
         
         try {
           if (event === 'SIGNED_IN' && session?.user) {
@@ -71,7 +71,10 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(null);
           } else if (event === 'TOKEN_REFRESHED' && session?.user) {
             console.log('[Auth] Token refreshed');
-            await fetchAndSetUserData(session.user);
+            // Para refresh de token, só atualize se não temos usuário
+            if (!user) {
+              await fetchAndSetUserData(session.user);
+            }
           }
         } catch (error) {
           console.error('[Auth] Error in auth state change:', error);
@@ -103,12 +106,13 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('[Auth] Cleaning up auth listener');
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Remover dependência de 'user' para evitar loops
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       console.log('[Auth] Attempting login for:', email);
-      setLoading(true);
+      
+      // Não definir loading aqui, deixar o componente gerenciar
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -144,8 +148,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         success: false, 
         message: error.message || 'Erro de conexão. Verifique sua internet.' 
       };
-    } finally {
-      setLoading(false);
     }
   };
 
