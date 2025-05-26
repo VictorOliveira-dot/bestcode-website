@@ -22,6 +22,7 @@ interface AuthProviderProps {
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   // Função para buscar dados do usuário
   const fetchAndSetUserData = async (supabaseUser: User) => {
@@ -56,11 +57,16 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Configurar listener de autenticação
   useEffect(() => {
+    let mounted = true;
+    
     console.log('[Auth] Setting up auth listener');
     
+    // Configurar listener primeiro
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[Auth] Auth state changed:', event, 'Session:', session ? 'present' : 'null');
+        
+        if (!mounted) return;
         
         try {
           if (event === 'SIGNED_IN' && session?.user) {
@@ -71,48 +77,71 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(null);
           } else if (event === 'TOKEN_REFRESHED' && session?.user) {
             console.log('[Auth] Token refreshed');
-            // Para refresh de token, só atualize se não temos usuário
+            // Só buscar dados se não temos usuário atual
             if (!user) {
               await fetchAndSetUserData(session.user);
             }
           }
         } catch (error) {
           console.error('[Auth] Error in auth state change:', error);
-          setUser(null);
-        } finally {
+          if (mounted) {
+            setUser(null);
+          }
+        }
+        
+        if (mounted && !initialized) {
           setLoading(false);
+          setInitialized(true);
         }
       }
     );
 
-    // Verificar sessão inicial
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('[Auth] Error getting session:', error);
-        setLoading(false);
-        return;
-      }
+    // Verificar sessão inicial após configurar listener
+    const checkInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('[Auth] Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+            setInitialized(true);
+          }
+          return;
+        }
 
-      if (session?.user) {
-        console.log('[Auth] Initial session found');
-        fetchAndSetUserData(session.user).finally(() => setLoading(false));
-      } else {
-        console.log('[Auth] No initial session');
-        setLoading(false);
+        if (session?.user && mounted) {
+          console.log('[Auth] Initial session found');
+          await fetchAndSetUserData(session.user);
+        } else {
+          console.log('[Auth] No initial session');
+        }
+        
+        if (mounted) {
+          setLoading(false);
+          setInitialized(true);
+        }
+      } catch (error) {
+        console.error('[Auth] Error checking initial session:', error);
+        if (mounted) {
+          setLoading(false);
+          setInitialized(true);
+        }
       }
-    });
+    };
+
+    checkInitialSession();
 
     return () => {
+      mounted = false;
       console.log('[Auth] Cleaning up auth listener');
       subscription.unsubscribe();
     };
-  }, []); // Remover dependência de 'user' para evitar loops
+  }, []); // Sem dependências para evitar loops
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       console.log('[Auth] Attempting login for:', email);
-      
-      // Não definir loading aqui, deixar o componente gerenciar
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -178,7 +207,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async (): Promise<void> => {
     try {
       console.log('[Auth] Performing logout');
-      setLoading(true);
       
       const { error } = await supabase.auth.signOut();
       
@@ -194,8 +222,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('[Auth] Logout error:', error);
       // Mesmo com erro, limpar o estado local
       setUser(null);
-    } finally {
-      setLoading(false);
     }
   };
 
