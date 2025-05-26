@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -142,16 +141,15 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     
     try {
       const result = await loginUser(email, password);
-      console.log('[Auth] Login result:', result.success ? 'success' : 'failed');
+      console.log('[Auth] Login result:', result);
       
       if (result.success && result.user) {
-        // Definir o usuário imediatamente após login bem-sucedido
+        console.log('[Auth] Setting user after successful login:', result.user);
         setUser(result.user);
-        console.log('[Auth] User set after successful login:', result.user);
         return { success: true, user: result.user };
       }
       
-      return { success: result.success, message: result.message };
+      return { success: false, message: result.message };
     } catch (error) {
       console.error('[Auth] Login error:', error);
       return { success: false, message: 'Erro inesperado durante o login' };

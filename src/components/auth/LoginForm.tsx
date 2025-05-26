@@ -32,6 +32,7 @@ const LoginForm = () => {
 
     try {
       const result = await login(email, password);
+      console.log("Login result:", result);
       
       if (!result.success) {
         console.log("Login error:", result.message);
@@ -39,27 +40,25 @@ const LoginForm = () => {
         toast.error("Não foi possível fazer login", {
           description: result.message || "Login inválido. Tente novamente.",
         });
-      } else {
-        console.log("Login successful, redirecting...");
+      } else if (result.user) {
+        console.log("Login successful, user:", result.user);
         toast.success("Login bem-sucedido!", {
           description: "Redirecionando...",
         });
         
         // Redirecionar com base no role do usuário
-        if (result.user) {
-          let redirectPath = "/";
-          
-          if (result.user.role === "admin") {
-            redirectPath = "/admin/dashboard";
-          } else if (result.user.role === "teacher") {
-            redirectPath = "/teacher/dashboard";
-          } else if (result.user.role === "student") {
-            redirectPath = "/student/dashboard";
-          }
-          
-          console.log("Redirecting to:", redirectPath);
-          navigate(redirectPath, { replace: true });
+        let redirectPath = "/";
+        
+        if (result.user.role === "admin") {
+          redirectPath = "/admin/dashboard";
+        } else if (result.user.role === "teacher") {
+          redirectPath = "/teacher/dashboard";
+        } else if (result.user.role === "student") {
+          redirectPath = "/student/dashboard";
         }
+        
+        console.log("Redirecting to:", redirectPath);
+        navigate(redirectPath, { replace: true });
       }
     } catch (error: any) {
       console.error("Login error:", error);
