@@ -1,17 +1,8 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase, isSessionValid, performLogout } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { fetchUserData } from '@/services/authService';
-import { AuthUser } from './types/auth';
-
-interface AuthContextType {
-  user: AuthUser | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
-  logout: () => Promise<void>;
-  setUser: (user: AuthUser | null) => void;
-}
+import { fetchUserData, registerUser } from '@/services/authService';
+import { AuthUser, AuthContextType } from './types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -187,6 +178,30 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const register = async (data: { email: string; password: string; name: string; role: string }): Promise<{ success: boolean; message?: string }> => {
+    try {
+      console.log('[Auth] Attempting registration for:', data.email);
+      setLoading(true);
+
+      const result = await registerUser(data);
+
+      if (result.success) {
+        console.log('[Auth] Registration successful');
+        return { success: true };
+      }
+
+      return { success: false, message: result.message };
+    } catch (error: any) {
+      console.error('[Auth] Registration exception:', error);
+      return { 
+        success: false, 
+        message: error.message || 'Erro de conexão durante o cadastro.' 
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async (): Promise<void> => {
     try {
       console.log('[Auth] Performing logout');
@@ -213,6 +228,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     login,
     logout,
+    register,
     setUser,
   };
 
