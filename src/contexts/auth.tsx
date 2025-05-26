@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase, isSessionValid, performLogout } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { fetchUserData, registerUser } from '@/services/authService';
 import { AuthUser, AuthContextType } from './types/auth';
@@ -22,7 +23,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Função melhorada para buscar dados do usuário
+  // Função para buscar dados do usuário
   const fetchAndSetUserData = async (supabaseUser: User) => {
     try {
       console.log('[Auth] Fetching user data for:', supabaseUser.id);
@@ -37,7 +38,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           role: userData.role as 'admin' | 'teacher' | 'student',
         };
         
-        console.log('[Auth] User data fetched successfully:', authUser);
+        console.log('[Auth] User data set:', authUser);
         setUser(authUser);
         return authUser;
       } else {
@@ -52,84 +53,53 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Verificar sessão inicial com retry
+  // Configurar listener de autenticação
   useEffect(() => {
-    let mounted = true;
-    
-    const checkInitialSession = async () => {
-      try {
-        console.log('[Auth] Checking initial session...');
-        
-        // Verificar se a sessão é válida
-        const sessionValid = await isSessionValid();
-        
-        if (!sessionValid) {
-          console.log('[Auth] No valid session found');
-          if (mounted) {
-            setUser(null);
-            setLoading(false);
-          }
-          return;
-        }
-        
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('[Auth] Session error:', error);
-          if (mounted) {
-            setUser(null);
-            setLoading(false);
-          }
-          return;
-        }
-
-        if (session?.user) {
-          console.log('[Auth] Valid session found, fetching user data');
-          await fetchAndSetUserData(session.user);
-        } else {
-          console.log('[Auth] No session found');
-          if (mounted) setUser(null);
-        }
-      } catch (error) {
-        console.error('[Auth] Error checking initial session:', error);
-        if (mounted) setUser(null);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    checkInitialSession();
-    
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // Listener para mudanças de autenticação
-  useEffect(() => {
-    console.log('[Auth] Setting up auth state listener');
+    console.log('[Auth] Setting up auth listener');
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[Auth] Auth state changed:', event, session ? 'session present' : 'no session');
+        console.log('[Auth] Auth state changed:', event);
         
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('[Auth] User signed in, fetching data');
-          await fetchAndSetUserData(session.user);
-        } else if (event === 'SIGNED_OUT') {
-          console.log('[Auth] User signed out');
+        try {
+          if (event === 'SIGNED_IN' && session?.user) {
+            console.log('[Auth] User signed in');
+            await fetchAndSetUserData(session.user);
+          } else if (event === 'SIGNED_OUT') {
+            console.log('[Auth] User signed out');
+            setUser(null);
+          } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+            console.log('[Auth] Token refreshed');
+            await fetchAndSetUserData(session.user);
+          }
+        } catch (error) {
+          console.error('[Auth] Error in auth state change:', error);
           setUser(null);
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          console.log('[Auth] Token refreshed, updating user data');
-          await fetchAndSetUserData(session.user);
+        } finally {
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
+    // Verificar sessão inicial
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('[Auth] Error getting session:', error);
+        setLoading(false);
+        return;
+      }
+
+      if (session?.user) {
+        console.log('[Auth] Initial session found');
+        fetchAndSetUserData(session.user).finally(() => setLoading(false));
+      } else {
+        console.log('[Auth] No initial session');
+        setLoading(false);
+      }
+    });
+
     return () => {
-      console.log('[Auth] Cleaning up auth state listener');
+      console.log('[Auth] Cleaning up auth listener');
       subscription.unsubscribe();
     };
   }, []);
@@ -207,13 +177,16 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('[Auth] Performing logout');
       setLoading(true);
       
-      // Usar a função de logout melhorada
-      await performLogout();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('[Auth] Logout error:', error);
+      }
       
       // Limpar estado local
       setUser(null);
       
-      console.log('[Auth] Logout completed successfully');
+      console.log('[Auth] Logout completed');
     } catch (error) {
       console.error('[Auth] Logout error:', error);
       // Mesmo com erro, limpar o estado local
