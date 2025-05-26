@@ -20,7 +20,7 @@ const LoginForm = () => {
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
-  // Simple redirect effect - only when login is successful and we have a user
+  // Redirect only when user is authenticated
   React.useEffect(() => {
     if (user && !isLoading) {
       console.log('[LoginForm] User authenticated, redirecting...', user);
@@ -62,9 +62,9 @@ const LoginForm = () => {
       toast.error("Não foi possível fazer login", {
         description: result.message || "Login inválido. Tente novamente.",
       });
-      setIsLoading(false);
     }
-    // Se sucesso, o useEffect vai cuidar do redirect
+    
+    setIsLoading(false);
   };
 
   return (

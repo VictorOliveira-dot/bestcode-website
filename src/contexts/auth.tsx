@@ -24,30 +24,28 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[Auth] Starting initialization...');
-    
-    let mounted = true;
+    console.log('[Auth] Initializing auth...');
 
+    // Check initial session
     const initAuth = async () => {
       try {
-        // Check for existing session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('[Auth] Error getting session:', error);
-        } else if (session?.user && mounted) {
-          console.log('[Auth] Found existing session');
+          console.error('[Auth] Session error:', error);
+        } else if (session?.user) {
+          console.log('[Auth] Found session, setting user');
           await handleUserSession(session.user);
         } else {
-          console.log('[Auth] No existing session');
+          console.log('[Auth] No session found');
+          setUser(null);
         }
       } catch (error) {
-        console.error('[Auth] Error in initAuth:', error);
+        console.error('[Auth] Init error:', error);
+        setUser(null);
       } finally {
-        if (mounted) {
-          setLoading(false);
-          console.log('[Auth] Loading set to false');
-        }
+        setLoading(false);
+        console.log('[Auth] Loading finished');
       }
     };
 
@@ -56,8 +54,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       async (event, session) => {
         console.log('[Auth] Auth state changed:', event);
         
-        if (!mounted) return;
-
         if (event === 'SIGNED_IN' && session?.user) {
           await handleUserSession(session.user);
         } else if (event === 'SIGNED_OUT') {
@@ -70,7 +66,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initAuth();
 
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
