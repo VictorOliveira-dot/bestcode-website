@@ -17,6 +17,7 @@ const AdminDashboard = () => {
   const {
     students,
     teachers,
+    activeStudentsCount,
     isLoading,
     refetchStudents,
     refetchTeachers
@@ -35,7 +36,7 @@ const AdminDashboard = () => {
   const formattedTeachers = Array.isArray(teachers) ? teachers : [];
 
   const stats = {
-    studentsCount: formattedStudents.length,
+    studentsCount: activeStudentsCount, // Usando a contagem correta do banco
     teachersCount: formattedTeachers.length,
     coursesCount: 0, // Implementar depois
     revenueAmount: "R$ 0,00" // Implementar depois

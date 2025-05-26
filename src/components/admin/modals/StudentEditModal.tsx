@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Dialog,
@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAllClasses } from "@/hooks/admin/useAllClasses";
 
 interface StudentEditModalProps {
   isOpen: boolean;
@@ -45,6 +46,19 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
     }
   });
 
+  const { allClasses, isLoading: classesLoading } = useAllClasses();
+
+  // Reset form when modal opens with student data
+  useEffect(() => {
+    if (isOpen && studentDetails?.current_classes?.length) {
+      const firstClass = studentDetails.current_classes[0];
+      form.reset({
+        classId: firstClass.class_id,
+        status: firstClass.status,
+      });
+    }
+  }, [isOpen, studentDetails, form]);
+
   const handleSubmit = async (values: { classId: string, status: string }) => {
     await onConfirm(values);
     onClose();
@@ -60,7 +74,7 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Editar Matrícula</DialogTitle>
+          <DialogTitle>Editar Matrícula do Aluno</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -75,14 +89,15 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
+                      disabled={classesLoading}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione uma turma" />
                       </SelectTrigger>
                       <SelectContent>
-                        {currentClasses.map((cls) => (
+                        {allClasses.map((cls) => (
                           <SelectItem key={cls.class_id} value={cls.class_id}>
-                            {cls.class_name}
+                            {cls.class_name} - {cls.teacher_name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -97,7 +112,7 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel>Status da Matrícula</FormLabel>
                   <FormControl>
                     <Select
                       value={field.value}
@@ -117,12 +132,20 @@ export function StudentEditModal({ isOpen, onClose, onConfirm, studentDetails }:
               )}
             />
 
+            {currentClasses.length > 0 && (
+              <div className="bg-gray-50 p-3 rounded-md">
+                <p className="text-sm font-medium mb-2">Turma atual:</p>
+                <p className="text-sm">{currentClasses[0].class_name}</p>
+                <p className="text-sm text-muted-foreground">Status: {currentClasses[0].status}</p>
+              </div>
+            )}
+
             <DialogFooter>
               <Button variant="outline" type="button" onClick={onClose}>
                 Cancelar
               </Button>
-              <Button type="submit">
-                Salvar
+              <Button type="submit" disabled={classesLoading}>
+                Salvar Alterações
               </Button>
             </DialogFooter>
           </form>

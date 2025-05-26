@@ -20,10 +20,25 @@ interface StudentDetailsModalProps {
       class_name: string;
       enrollment_date: string;
       status: string;
+      teacher_name?: string;
     }> | null;
     subscription_plan: string;
     progress_average: number;
     last_active: string | null;
+    // Dados do perfil
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    whatsapp?: string;
+    cpf?: string;
+    birth_date?: string;
+    address?: string;
+    education?: string;
+    professional_area?: string;
+    experience_level?: string;
+    goals?: string;
+    study_availability?: string;
+    is_profile_complete?: boolean;
   } | null;
 }
 
@@ -35,16 +50,17 @@ export function StudentDetailsModal({ isOpen, onClose, details }: StudentDetails
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Detalhes do Aluno</DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Informações Básicas */}
             <div>
-              <h3 className="font-semibold">Informações Básicas</h3>
-              <div className="mt-2 space-y-2">
+              <h3 className="font-semibold text-lg mb-3 border-b pb-1">Informações Básicas</h3>
+              <div className="space-y-2">
                 <p><span className="font-medium">Nome:</span> {details.name}</p>
                 <p><span className="font-medium">Email:</span> {details.email}</p>
                 <p><span className="font-medium">Data de Cadastro:</span> {formatDate(details.created_at)}</p>
@@ -54,21 +70,63 @@ export function StudentDetailsModal({ isOpen, onClose, details }: StudentDetails
                   <span className="font-medium">Última Atividade:</span>{" "}
                   {details.last_active ? formatDate(details.last_active) : "Nunca"}
                 </p>
+                <p>
+                  <span className="font-medium">Perfil Completo:</span>{" "}
+                  <span className={details.is_profile_complete ? "text-green-600" : "text-red-600"}>
+                    {details.is_profile_complete ? "Sim" : "Não"}
+                  </span>
+                </p>
               </div>
             </div>
 
+            {/* Dados Pessoais */}
             <div>
-              <h3 className="font-semibold">Turmas</h3>
-              <div className="mt-2 space-y-4">
+              <h3 className="font-semibold text-lg mb-3 border-b pb-1">Dados Pessoais</h3>
+              <div className="space-y-2">
+                <p><span className="font-medium">Nome Completo:</span> {details.first_name || 'N/A'} {details.last_name || ''}</p>
+                <p><span className="font-medium">CPF:</span> {details.cpf || 'N/A'}</p>
+                <p><span className="font-medium">Data de Nascimento:</span> {details.birth_date ? formatDate(details.birth_date) : 'N/A'}</p>
+                <p><span className="font-medium">Telefone:</span> {details.phone || 'N/A'}</p>
+                <p><span className="font-medium">WhatsApp:</span> {details.whatsapp || 'N/A'}</p>
+                <p><span className="font-medium">Endereço:</span> {details.address || 'N/A'}</p>
+              </div>
+            </div>
+
+            {/* Informações Acadêmicas/Profissionais */}
+            <div>
+              <h3 className="font-semibold text-lg mb-3 border-b pb-1">Perfil Acadêmico/Profissional</h3>
+              <div className="space-y-2">
+                <p><span className="font-medium">Educação:</span> {details.education || 'N/A'}</p>
+                <p><span className="font-medium">Área Profissional:</span> {details.professional_area || 'N/A'}</p>
+                <p><span className="font-medium">Nível de Experiência:</span> {details.experience_level || 'N/A'}</p>
+                <p><span className="font-medium">Disponibilidade de Estudo:</span> {details.study_availability || 'N/A'}</p>
+              </div>
+              {details.goals && (
+                <div className="mt-3">
+                  <p className="font-medium">Objetivos:</p>
+                  <p className="text-sm text-gray-600 mt-1">{details.goals}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Turmas */}
+            <div>
+              <h3 className="font-semibold text-lg mb-3 border-b pb-1">Turmas Matriculadas</h3>
+              <div className="space-y-3">
                 {currentClasses.length > 0 ? (
                   currentClasses.map((cls) => (
-                    <div key={cls.class_id} className="border p-3 rounded-md">
+                    <div key={cls.class_id} className="border p-3 rounded-md bg-gray-50">
                       <p className="font-medium">{cls.class_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Professor: {cls.teacher_name || 'N/A'}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         Matrícula: {formatDate(cls.enrollment_date)}
                       </p>
                       <p className="text-sm">
-                        Status: <span className="capitalize">{cls.status}</span>
+                        Status: <span className={`capitalize ${cls.status === 'active' ? 'text-green-600' : cls.status === 'completed' ? 'text-blue-600' : 'text-red-600'}`}>
+                          {cls.status === 'active' ? 'Ativo' : cls.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                        </span>
                       </p>
                     </div>
                   ))
