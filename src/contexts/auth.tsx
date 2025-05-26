@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -21,7 +22,6 @@ interface AuthProviderProps {
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
 
   // Função para buscar dados do usuário
   const fetchAndSetUserData = async (supabaseUser: User) => {
@@ -41,110 +41,63 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         console.log('[Auth] User data set:', authUser);
         setUser(authUser);
-        return authUser;
       } else {
         console.error('[Auth] No user data found');
         setUser(null);
-        return null;
       }
     } catch (error) {
       console.error('[Auth] Error fetching user data:', error);
       setUser(null);
-      return null;
     }
   };
 
-  // Configurar listener de autenticação
+  // Configurar autenticação
   useEffect(() => {
-    let mounted = true;
+    console.log('[Auth] Initializing auth...');
     
-    console.log('[Auth] Setting up auth listener');
-    
-    // Configurar listener primeiro
+    // Configurar listener de mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[Auth] Auth state changed:', event, 'Session:', session ? 'present' : 'null');
         
-        if (!mounted) return;
-        
-        try {
-          if (event === 'SIGNED_IN' && session?.user) {
-            console.log('[Auth] User signed in');
-            await fetchAndSetUserData(session.user);
-          } else if (event === 'SIGNED_OUT') {
-            console.log('[Auth] User signed out');
-            setUser(null);
-          } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-            console.log('[Auth] Token refreshed');
-            // Só buscar dados se não temos usuário atual
-            if (!user) {
-              await fetchAndSetUserData(session.user);
-            }
-          } else if (event === 'INITIAL_SESSION') {
-            console.log('[Auth] Initial session event');
-            if (session?.user) {
-              await fetchAndSetUserData(session.user);
-            } else {
-              setUser(null);
-            }
-          }
-        } catch (error) {
-          console.error('[Auth] Error in auth state change:', error);
-          if (mounted) {
-            setUser(null);
-          }
-        }
-        
-        // Sempre finalizar loading após processar qualquer evento
-        if (mounted && !initialized) {
-          setLoading(false);
-          setInitialized(true);
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('[Auth] User signed in');
+          await fetchAndSetUserData(session.user);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('[Auth] User signed out');
+          setUser(null);
         }
       }
     );
 
-    // Verificar sessão inicial após configurar listener
-    const checkInitialSession = async () => {
+    // Verificar sessão inicial
+    const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('[Auth] Error getting session:', error);
-          if (mounted) {
-            setLoading(false);
-            setInitialized(true);
-          }
-          return;
-        }
-
-        if (session?.user && mounted) {
+        } else if (session?.user) {
           console.log('[Auth] Initial session found');
           await fetchAndSetUserData(session.user);
         } else {
           console.log('[Auth] No initial session');
         }
-        
-        if (mounted) {
-          setLoading(false);
-          setInitialized(true);
-        }
       } catch (error) {
         console.error('[Auth] Error checking initial session:', error);
-        if (mounted) {
-          setLoading(false);
-          setInitialized(true);
-        }
+      } finally {
+        // Sempre finalizar loading
+        setLoading(false);
       }
     };
 
-    checkInitialSession();
+    initializeAuth();
 
     return () => {
-      mounted = false;
       console.log('[Auth] Cleaning up auth listener');
       subscription.unsubscribe();
     };
-  }, []); // Sem dependências para evitar loops
+  }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
@@ -173,7 +126,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (data.user) {
         console.log('[Auth] Login successful');
-        // O listener onAuthStateChange irá cuidar de definir o usuário
         return { success: true };
       }
 
@@ -221,13 +173,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error('[Auth] Logout error:', error);
       }
       
-      // Limpar estado local
       setUser(null);
       
       console.log('[Auth] Logout completed');
     } catch (error) {
       console.error('[Auth] Logout error:', error);
-      // Mesmo com erro, limpar o estado local
       setUser(null);
     }
   };
