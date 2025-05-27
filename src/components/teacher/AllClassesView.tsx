@@ -78,7 +78,7 @@ const AllClassesView = () => {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  Início: {new Date(classInfo.start_date).toLocaleDateString('pt-BR')}
+                  Início: {new Date(classInfo.startDate).toLocaleDateString('pt-BR')}
                 </span>
               </div>
             </CardContent>
