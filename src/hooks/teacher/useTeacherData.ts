@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
@@ -42,11 +41,11 @@ export const useTeacherData = () => {
         startDate: cls.start_date,
         studentsCount: 0,
         teacher_id: cls.teacher_id,
-        teacher_name: cls.users ? cls.users.name : 'N/A'
+        teacher_name: cls.users && !Array.isArray(cls.users) ? cls.users.name : 'N/A'
       })) || [];
     },
-    staleTime: 60000, // Aumentando para 1 minuto
-    gcTime: 1000 * 60 * 10, // Aumentando cache para 10 minutos
+    staleTime: 30000, // Reduzindo para 30 segundos
+    gcTime: 1000 * 60 * 5, // Reduzindo cache para 5 minutos
   });
 
   const { 
@@ -102,8 +101,8 @@ export const useTeacherData = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 60000,
-    gcTime: 1000 * 60 * 10,
+    staleTime: 30000,
+    gcTime: 1000 * 60 * 5,
   });
 
   const {
