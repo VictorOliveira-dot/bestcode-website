@@ -12,28 +12,38 @@ export const useTeacherData = () => {
     error: classesError,
     refetch: refetchClasses
   } = useQuery({
-    queryKey: ["teacherClasses", user?.id],
+    queryKey: ["allClasses"],
     queryFn: async () => {
-      if (!user?.id) {
-        console.error("No user ID available for querying classes");
-        return [];
-      }
+      console.log("Fetching all classes");
       
-      console.log("Fetching classes for teacher ID:", user.id);
-      
-      const { data, error } = await supabase.rpc('get_teacher_classes', {
-        teacher_id: user.id
-      });
+      const { data, error } = await supabase
+        .from('classes')
+        .select(`
+          id,
+          name,
+          description,
+          start_date,
+          teacher_id,
+          users!classes_teacher_id_fkey(name)
+        `)
+        .eq('is_active', true)
+        .order('name');
 
       if (error) {
-        console.error("Error fetching teacher classes:", error);
+        console.error("Error fetching all classes:", error);
         throw error;
       }
       
-      console.log("Fetched classes:", data);
-      return data || [];
+      console.log("Fetched all classes:", data);
+      return data?.map(cls => ({
+        id: cls.id,
+        name: cls.name,
+        description: cls.description,
+        start_date: cls.start_date,
+        teacher_id: cls.teacher_id,
+        teacher_name: cls.users?.name || 'N/A'
+      })) || [];
     },
-    enabled: !!user?.id,
     staleTime: 30000,
     gcTime: 1000 * 60 * 5,
   });
@@ -42,28 +52,23 @@ export const useTeacherData = () => {
     data: studentCount = 0,
     isLoading: isLoadingStudentCount
   } = useQuery({
-    queryKey: ["teacherStudentCount", user?.id],
+    queryKey: ["allStudentsCount"],
     queryFn: async () => {
-      if (!user?.id) {
-        console.error("No user ID available for querying student count");
-        return 0;
-      }
+      console.log("Fetching total student count");
       
-      console.log("Fetching student count for teacher ID:", user.id);
-      
-      const { data, error } = await supabase.rpc('get_teacher_student_count', {
-        teacher_id: user.id
-      });
+      const { data, error, count } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'student');
 
       if (error) {
-        console.error("Error fetching teacher student count:", error);
+        console.error("Error fetching total student count:", error);
         throw error;
       }
       
-      console.log("Fetched student count:", data);
-      return data || 0;
+      console.log("Fetched total student count:", count);
+      return count || 0;
     },
-    enabled: !!user?.id,
     staleTime: 30000,
     gcTime: 1000 * 60 * 5,
   });
@@ -100,13 +105,48 @@ export const useTeacherData = () => {
     gcTime: 1000 * 60 * 5,
   });
 
+  const {
+    data: allStudents = [],
+    isLoading: isLoadingAllStudents,
+    refetch: refetchAllStudents
+  } = useQuery({
+    queryKey: ["allStudents"],
+    queryFn: async () => {
+      console.log("Fetching all students");
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select(`
+          id,
+          name,
+          email,
+          created_at,
+          is_active
+        `)
+        .eq('role', 'student')
+        .order('name');
+
+      if (error) {
+        console.error("Error fetching all students:", error);
+        throw error;
+      }
+      
+      console.log("Fetched all students:", data);
+      return data || [];
+    },
+    staleTime: 30000,
+    gcTime: 1000 * 60 * 5,
+  });
+
   return {
     classes,
     studentCount,
     lessons,
-    isLoading: isLoadingClasses || isLoadingLessons || isLoadingStudentCount,
+    allStudents,
+    isLoading: isLoadingClasses || isLoadingLessons || isLoadingStudentCount || isLoadingAllStudents,
     error: classesError || lessonsError,
     refetchClasses,
-    refetchLessons
+    refetchLessons,
+    refetchAllStudents
   };
 };

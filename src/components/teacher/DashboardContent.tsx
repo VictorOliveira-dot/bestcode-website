@@ -7,6 +7,7 @@ import { Video, Users } from "lucide-react";
 import ClassManagement from "./ClassManagement";
 import StudentProgressTracker from "./StudentProgress";
 import LessonsPanel from "./LessonsPanel";
+import AllClassesView from "./AllClassesView";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Lesson {
@@ -72,16 +73,22 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 Aulas
               </TabsTrigger>
               <TabsTrigger 
+                value="all-classes" 
+                className="flex-1 md:flex-none py-3 md:py-1.5 rounded-none md:rounded-md border-b-2 border-transparent data-[state=active]:border-bestcode-600 md:data-[state=active]:border-transparent"
+              >
+                Todas Turmas
+              </TabsTrigger>
+              <TabsTrigger 
                 value="classes" 
                 className="flex-1 md:flex-none py-3 md:py-1.5 rounded-none md:rounded-md border-b-2 border-transparent data-[state=active]:border-bestcode-600 md:data-[state=active]:border-transparent"
               >
-                Turmas
+                Minhas Turmas
               </TabsTrigger>
               <TabsTrigger 
                 value="students" 
                 className="flex-1 md:flex-none py-3 md:py-1.5 rounded-none md:rounded-md border-b-2 border-transparent data-[state=active]:border-bestcode-600 md:data-[state=active]:border-transparent"
               >
-                Alunos
+                Todos Alunos
               </TabsTrigger>
             </TabsList>
             
@@ -101,6 +108,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                       onDeleteLesson={handleDeleteLesson} 
                       onEditLesson={handleEditLesson}
                     />
+                  </TabsContent>
+
+                  <TabsContent value="all-classes" className="mt-0">
+                    <AllClassesView />
                   </TabsContent>
                   
                   <TabsContent value="classes" className="mt-0">

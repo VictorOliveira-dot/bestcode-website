@@ -146,7 +146,7 @@ const TeacherDashboard = () => {
 
       <main className="container-custom py-4 md:py-8 px-2 md:px-0">
         <DashboardCards 
-          classesCount={formattedClasses.length}
+          classesCount={classes.length}
           lessonsCount={formattedLessons.length}
           studentsCount={studentCountValue}
           onAddLessonClick={() => setIsAddLessonOpen(true)}

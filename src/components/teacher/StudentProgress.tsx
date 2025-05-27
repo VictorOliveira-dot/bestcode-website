@@ -6,7 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import StudentSearchBar from "./student/StudentSearchBar";
 import StudentProgressTable from "./student/StudentProgressTable";
 import StudentDetailsModal from "./student/StudentDetailsModal";
-import { useStudentProgress, StudentProgressData } from "@/hooks/teacher/useStudentProgress";
+import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { LessonStatus } from "./types/student";
@@ -23,7 +23,7 @@ interface StudentProgress {
 }
 
 const StudentProgressTracker = () => {
-  const { students, availableClasses, isLoading, error } = useStudentProgress();
+  const { allStudents, classes, isLoading, error } = useTeacherData();
   const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [studentLessons, setStudentLessons] = useState<LessonStatus[]>([]);
@@ -32,23 +32,22 @@ const StudentProgressTracker = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
 
-  // Transform Supabase data to component format
-  const transformedStudents: StudentProgress[] = students.map((student: StudentProgressData) => ({
+  // Transform students data to component format
+  const transformedStudents: StudentProgress[] = allStudents.map((student: any) => ({
     id: student.id,
     name: student.name,
     email: student.email,
-    className: student.class_name,
-    lastActivity: student.last_activity,
-    completedLessons: student.completed_lessons,
-    totalLessons: student.total_lessons,
-    progress: student.progress
+    className: "Todas as turmas", // Since we're showing all students
+    lastActivity: null, // This would need to be fetched separately if needed
+    completedLessons: 0, // This would need to be calculated if needed
+    totalLessons: 0, // This would need to be calculated if needed
+    progress: 0 // This would need to be calculated if needed
   }));
 
   const filteredStudents = transformedStudents.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = classFilter === "all" || student.className === classFilter;
-    return matchesSearch && matchesClass;
+    return matchesSearch;
   });
 
   const viewStudentDetails = async (student: StudentProgress) => {
@@ -103,7 +102,7 @@ const StudentProgressTracker = () => {
     return (
       <div className="text-center p-6 border rounded-md bg-destructive/10">
         <AlertCircle className="h-6 w-6 text-destructive mx-auto mb-2" />
-        <p className="text-destructive-foreground font-medium">Erro ao carregar progresso dos alunos</p>
+        <p className="text-destructive-foreground font-medium">Erro ao carregar dados dos alunos</p>
         <p className="text-sm text-muted-foreground mt-1">{error.message}</p>
       </div>
     );
@@ -111,12 +110,16 @@ const StudentProgressTracker = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Todos os Alunos ({allStudents.length})</h2>
+      </div>
+
       <StudentSearchBar 
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         classFilter={classFilter}
         setClassFilter={setClassFilter}
-        availableClasses={availableClasses.map(c => c.name)}
+        availableClasses={[]}
       />
 
       <StudentProgressTable 
