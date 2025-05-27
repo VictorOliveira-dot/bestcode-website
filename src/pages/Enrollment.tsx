@@ -13,7 +13,7 @@ const Enrollment = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const totalSteps = 2;
+  const totalSteps = 2; // Changed from 3 to 2
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -27,20 +27,6 @@ const Enrollment = () => {
 
       try {
         setIsLoading(true);
-        
-        console.log("Enrollment page - checking user status:", {
-          user_id: user.id,
-          role: user.role,
-          is_active: user.is_active
-        });
-
-        // Se o usuário é estudante e já está ativo, redirecionar para o dashboard
-        if (user.role === 'student' && user.is_active) {
-          console.log("Student is already active, redirecting to dashboard");
-          toast.info("Sua conta já está ativa. Redirecionando para o dashboard...");
-          navigate('/student/dashboard');
-          return;
-        }
         
         // Check if user has an application and its status
         const { data: applicationData, error: applicationError } = await supabase
@@ -71,11 +57,27 @@ const Enrollment = () => {
           console.error("Error checking profile status:", profileError);
         }
         
-        // If profile is complete but user hasn't paid, redirect to checkout
-        if (profileData?.is_profile_complete && !user.is_active) {
-          toast.info("Seu perfil está completo. Redirecionando para o checkout...");
-          navigate('/checkout');
-          return;
+        // If profile is complete, check if user is active (has paid)
+        if (profileData?.is_profile_complete) {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('is_active')
+            .eq('id', user.id)
+            .maybeSingle();
+            
+          if (userError) {
+            console.error("Error checking if user is active:", userError);
+          } else if (userData?.is_active) {
+            // If user has paid, redirect to dashboard
+            toast.info("Sua conta já está ativa. Redirecionando para o dashboard...");
+            navigate('/student/dashboard');
+            return;
+          } else {
+            // If profile is complete but user hasn't paid, redirect to checkout
+            toast.info("Seu perfil está completo. Redirecionando para o checkout...");
+            navigate('/checkout');
+            return;
+          }
         }
         
       } catch (error) {
