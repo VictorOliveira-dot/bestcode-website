@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -18,10 +17,9 @@ import { useAuth } from "@/contexts/auth";
 import { AlertTriangle } from "lucide-react";
 
 const Checkout = () => {
-  const [paymentMethod, setPaymentMethod] = useState("pix");
+  const [paymentMethod, setPaymentMethod] = useState("pix"); // Default to PIX (cheapest option)
   const [isProcessing, setIsProcessing] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
-  const [checkingActivation, setCheckingActivation] = useState(false);
   const [cardData, setCardData] = useState({
     cardName: "",
     cardNumber: "",
@@ -31,17 +29,17 @@ const Checkout = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   
   const isCanceled = new URLSearchParams(location.search).get("canceled") === "true";
   const isSuccess = new URLSearchParams(location.search).get("success") === "true";
 
-  // Course information with dynamic pricing
+  // Course information with dynamic pricing based on payment method
   const [course, setCourse] = useState({
     title: "Formação Completa em QA",
     price: 4999.00,
     discount: 999.00,
-    finalPrice: 4000.00,
+    finalPrice: 4000.00, // Default to PIX price (4000)
     installments: 12,
     installmentPrice: 374.91
   });
@@ -58,107 +56,88 @@ const Checkout = () => {
       setCourse(prev => ({
         ...prev,
         discount: 0.00,
-        finalPrice: 4499.00
+        finalPrice: 4499.00 // Total price for installments (12 × 374.91 = 4,498.92)
       }));
     }
   }, [paymentMethod]);
 
-  // Check user activation status with retry mechanism
-  const checkUserActivation = async (retries = 5, delay = 2000) => {
-    if (!user) return false;
-    
-    setCheckingActivation(true);
-    
-    for (let i = 0; i < retries; i++) {
-      try {
-        console.log(`Verificando ativação (tentativa ${i + 1}/${retries})`);
-        
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('is_active, role')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          console.error("Erro ao verificar status do usuário:", error);
-          if (i === retries - 1) throw error;
-        } else if (userData?.is_active) {
-          console.log("Usuário ativado com sucesso!");
-          
-          // Update the user in auth context
-          const updatedUser = { ...user, is_active: true };
-          setUser(updatedUser);
-          
-          setCheckingActivation(false);
-          return true;
-        }
-        
-        // Wait before next attempt
-        if (i < retries - 1) {
-          console.log(`Aguardando ${delay}ms antes da próxima verificação...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      } catch (error) {
-        console.error(`Erro na tentativa ${i + 1}:`, error);
-        if (i === retries - 1) {
-          setCheckingActivation(false);
-          throw error;
-        }
-      }
-    }
-    
-    setCheckingActivation(false);
-    return false;
-  };
-
   useEffect(() => {
-    const handlePaymentSuccess = async () => {
-      if (!isSuccess || !user) return;
-      
-      try {
-        toast({
-          title: "Pagamento processado!",
-          description: "Verificando ativação da sua conta..."
-        });
-        
-        const isActivated = await checkUserActivation();
-        
-        if (isActivated) {
-          toast({
-            title: "Conta ativada!",
-            description: "Redirecionando para a área de alunos..."
-          });
+    if (isSuccess) {
+      // When payment is successful, check user active status
+      const verifyUserActivation = async () => {
+        try {
+          if (user) {
+            // Check if the user has been activated
+            const { data: userData, error } = await supabase
+              .from('users')
+              .select('is_active')
+              .eq('id', user.id)
+              .single();
+              
+            if (error) {
+              console.error("Error checking user activation status:", error);
+              toast({
+                title: "Erro ao verificar ativação",
+                description: "Ocorreu um problema ao verificar o status da sua conta, mas seu pagamento foi processado com sucesso.",
+                variant: "destructive"
+              });
+            } else if (userData?.is_active) {
+              toast({
+                title: "Pagamento confirmado!",
+                description: "Sua conta foi ativada. Redirecionando para a plataforma..."
+              });
+              
+              // Update the user in auth context to include active status
+              if (userData) {
+                const updatedUser = { ...user, is_active: true };
+                // Explicitly update the user in the auth context
+                const { setUser } = useAuth();
+                setUser(updatedUser);
+              }
+            } else {
+              console.log("User not activated yet, attempting to activate");
+              // Try to activate the user directly
+              const { error: updateError } = await supabase
+                .from('users')
+                .update({ is_active: true })
+                .eq('id', user.id);
+                
+              if (updateError) {
+                console.error("Error activating user account:", updateError);
+                toast({
+                  title: "Erro na ativação",
+                  description: "Seu pagamento foi processado, mas houve um erro ao ativar sua conta. Por favor, contate o suporte.",
+                  variant: "destructive"
+                });
+              } else {
+                toast({
+                  title: "Pagamento confirmado!",
+                  description: "Sua conta foi ativada. Redirecionando para a plataforma..."
+                });
+                
+                // Update the local user state with is_active = true
+                const updatedUser = { ...user, is_active: true };
+                const { setUser } = useAuth();
+                setUser(updatedUser);
+              }
+            }
+          }
           
-          setTimeout(() => {
-            navigate("/student/dashboard");
-          }, 2000);
-        } else {
-          toast({
-            title: "Processamento em andamento",
-            description: "Seu pagamento foi processado. A ativação pode levar alguns minutos. Você receberá uma notificação quando estiver pronto.",
-            variant: "default"
-          });
-          
+          // Redirect to dashboard after confirmation
           setTimeout(() => {
             navigate("/student/dashboard");
           }, 3000);
+        } catch (error) {
+          console.error("Error in payment success handler:", error);
+          toast({
+            title: "Erro no processamento",
+            description: "Ocorreu um erro ao finalizar seu pagamento.",
+            variant: "destructive"
+          });
         }
-      } catch (error) {
-        console.error("Erro ao processar sucesso do pagamento:", error);
-        toast({
-          title: "Pagamento processado",
-          description: "Seu pagamento foi processado com sucesso. A ativação da conta pode levar alguns minutos.",
-          variant: "default"
-        });
-        
-        setTimeout(() => {
-          navigate("/student/dashboard");
-        }, 3000);
-      }
-    };
-
-    if (isSuccess) {
-      handlePaymentSuccess();
+      };
+      
+      verifyUserActivation();
       return;
     }
 
@@ -181,9 +160,10 @@ const Checkout = () => {
       return;
     }
 
-    // Check user status and profile completion
+    // Check if user's profile is complete and if user is already active
     const checkUserStatus = async () => {
       try {
+        // Check if user is already active
         const { data: userData, error: userError } = await supabase
           .from("users")
           .select("is_active, role")
@@ -195,6 +175,7 @@ const Checkout = () => {
           throw userError;
         }
 
+        // Redirect non-students away
         if (userData && userData.role !== 'student') {
           toast({
             title: "Acesso restrito",
@@ -204,6 +185,7 @@ const Checkout = () => {
           return;
         }
         
+        // Redirect already active students
         if (userData?.is_active) {
           toast({
             title: "Conta já ativa",
@@ -213,6 +195,7 @@ const Checkout = () => {
           return;
         }
           
+        // Check if student application is complete
         const { data: applicationData, error: applicationError } = await supabase
           .from("student_applications")
           .select("status")
@@ -223,6 +206,7 @@ const Checkout = () => {
           console.error("Error checking student application:", applicationError);
         }
         
+        // If application doesn't exist or is pending, redirect to enrollment
         if (!applicationData || applicationData.status !== 'completed') {
           toast({
             title: "Cadastro incompleto",
@@ -232,6 +216,7 @@ const Checkout = () => {
           return;
         }
         
+        // Check if profile exists and is complete
         const { data: profileData, error: profileError } = await supabase
           .from("user_profiles")
           .select("is_profile_complete")
@@ -262,10 +247,16 @@ const Checkout = () => {
       }
     };
 
-    if (user && !isSuccess) {
+    if (user) {
       checkUserStatus();
+    } else {
+      toast({
+        title: "Acesso restrito",
+        description: "Você precisa estar logado para acessar esta página"
+      });
+      navigate("/login");
     }
-  }, [user, navigate, isCanceled, isSuccess, setUser]);
+  }, [user, navigate, isCanceled, isSuccess]);
 
   const handleCardInputChange = (field: string, value: string) => {
     setCardData(prev => ({
@@ -289,6 +280,7 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
+      // Get application ID if available
       const { data: applicationData, error: appError } = await supabase
         .from("student_applications")
         .select("id")
@@ -301,6 +293,7 @@ const Checkout = () => {
       
       const applicationId = applicationData?.id;
 
+      // Process payment based on selected method
       const { data, error } = await supabase.functions.invoke('process-payment', {
         body: {
           paymentMethod,
@@ -316,11 +309,14 @@ const Checkout = () => {
       
       if (error) throw new Error(error.message || "Ocorreu um erro ao processar o pagamento");
       
+      // Store testMode flag in localStorage
       if (data.testMode) {
         localStorage.setItem('payment_test_mode', 'true');
       }
       
+      // Redirect to Stripe Checkout or show success based on payment method
       if (data?.url) {
+        // Store email data for checkout recovery
         localStorage.setItem('checkout_session', JSON.stringify({
           sessionId: data.id,
           email: user.email,
@@ -337,11 +333,14 @@ const Checkout = () => {
           title: "Pagamento iniciado",
           description: "Siga as instruções para completar o pagamento"
         });
-        
+        // For non-redirect methods like PIX or boleto
         if (data.pixCode) {
+          // Handle PIX code display
+          // Could redirect to a PIX instructions page
           navigate(`/payment/pix?code=${data.pixCode}`);
           return;
         } else if (data.boleto) {
+          // Handle boleto URL
           navigate(`/payment/boleto?url=${data.boleto}`);
           return;
         }
@@ -360,7 +359,8 @@ const Checkout = () => {
     }
   };
 
-  if (!isProfileComplete && user && !isSuccess) {
+  // If still checking profile status, show loading
+  if (!isProfileComplete && user) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -372,27 +372,22 @@ const Checkout = () => {
     );
   }
 
-  if (checkingActivation) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bestcode-600 mx-auto mb-4"></div>
-            <h2 className="text-xl font-semibold mb-2">Ativando sua conta...</h2>
-            <p className="text-gray-600">Aguarde enquanto processamos sua ativação.</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow bg-gray-50 py-12">
         <div className="container-custom">
+          {/* Test mode banner */}
+          {/* <div className="mb-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-center gap-2">
+            <AlertTriangle className="text-amber-500" size={20} />
+            <div>
+              <p className="font-medium text-amber-800">Ambiente de Testes</p>
+              <p className="text-sm text-amber-700">
+                Este é um ambiente de teste do Stripe. Nenhuma cobrança real será processada.
+              </p>
+            </div>
+          </div> */}
+          
           <div>
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Checkout</h1>
@@ -400,10 +395,12 @@ const Checkout = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Order Summary */}
               <div className="lg:col-span-1 order-2 lg:order-1">
                 <OrderSummary course={course} />
               </div>
 
+              {/* Payment Form */}
               <div className="lg:col-span-2 order-1 lg:order-2">
                 <Card>
                   <CardHeader>
