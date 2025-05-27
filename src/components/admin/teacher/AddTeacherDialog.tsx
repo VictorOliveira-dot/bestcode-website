@@ -18,17 +18,26 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth"; 
 import { PlusCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAvailableClasses } from "@/hooks/admin/useAvailableClasses";
 
 const formSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  classId: z.string().optional(),
 });
 
 interface AddTeacherDialogProps {
@@ -39,13 +48,15 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
+  const { availableClasses, isLoading: classesLoading } = useAvailableClasses();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       email: "",
-      password: ""
+      password: "",
+      classId: ""
     }
   });
 
@@ -59,7 +70,6 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       return;
     }
 
-    // Verificação adicional de campos preenchidos
     if (!data.email || !data.name || !data.password) {
       toast({
         title: "Dados incompletos",
@@ -72,9 +82,9 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      // Criar o professor usando a função RPC admin_create_professor
-      console.log("Chamando RPC admin_create_professor para criar professor com email:", data.email);
+      console.log("Criando professor com dados:", data);
       
+      // Criar o professor usando a função RPC admin_create_professor
       const { data: teacherId, error: rpcError } = await supabase.rpc('admin_create_professor', {
         p_email: data.email,
         p_name: data.name,
@@ -87,15 +97,37 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       }
 
       console.log("Professor criado com ID:", teacherId);
+
+      // Se uma turma foi selecionada, atribuir o professor à turma
+      if (data.classId && data.classId !== "") {
+        console.log("Atribuindo professor à turma:", data.classId);
+        
+        const { error: updateError } = await supabase
+          .from('classes')
+          .update({ teacher_id: teacherId })
+          .eq('id', data.classId);
+
+        if (updateError) {
+          console.error("Erro ao atribuir professor à turma:", updateError);
+          // Não falhar completamente se a atribuição der erro
+          toast({
+            title: "Professor criado com aviso",
+            description: `Professor ${data.name} foi criado, mas houve um problema ao atribuir à turma.`,
+            variant: "default",
+          });
+        } else {
+          console.log("Professor atribuído à turma com sucesso");
+        }
+      }
       
       toast({
         title: "Professor criado com sucesso",
-        description: `O professor ${data.name} foi adicionado ao sistema com acesso completo.`,
+        description: `O professor ${data.name} foi adicionado ao sistema${data.classId ? ' e atribuído à turma selecionada' : ''}.`,
       });
 
       form.reset();
       setIsOpen(false);
-      onTeacherAdded(); // Atualiza a lista de professores
+      onTeacherAdded();
     } catch (error: any) {
       console.error("Erro ao criar professor:", error);
       toast({
@@ -107,6 +139,9 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       setIsSubmitting(false);
     }
   };
+
+  // Filtrar turmas que não têm professor atribuído
+  const unassignedClasses = availableClasses.filter(cls => !cls.teacher_name);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -157,6 +192,31 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
                   <FormControl>
                     <Input type="password" placeholder="******" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="classId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Turma (Opcional)</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={classesLoading}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma turma (opcional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Nenhuma turma</SelectItem>
+                      {unassignedClasses.map((cls) => (
+                        <SelectItem key={cls.id} value={cls.id}>
+                          {cls.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

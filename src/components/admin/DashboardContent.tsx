@@ -43,7 +43,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     <Card className="mt-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsContent value="students" className="p-4">
-          <h2 className="text-2xl font-bold mb-4">Students Management</h2>
+          <h2 className="text-2xl font-bold mb-4">Gestão de Alunos</h2>
           {isLoading ? (
             <div className="space-y-4">
               <Skeleton className="h-12 w-full" />
@@ -55,7 +55,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         </TabsContent>
         
         <TabsContent value="teachers" className="p-4">
-          <h2 className="text-2xl font-bold mb-4">Teachers Management</h2>
+          <h2 className="text-2xl font-bold mb-4">Gestão de Professores</h2>
           {isLoading ? (
             <div className="space-y-4">
               <Skeleton className="h-12 w-full" />
@@ -67,7 +67,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         </TabsContent>
         
         <TabsContent value="courses" className="p-4">
-          <h2 className="text-2xl font-bold mb-4">Courses Management</h2>
+          <h2 className="text-2xl font-bold mb-4">Gestão de Turmas</h2>
           {isLoading ? (
             <div className="space-y-4">
               <Skeleton className="h-12 w-full" />
@@ -83,13 +83,13 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         </TabsContent>
         
         <TabsContent value="reports" className="p-4">
-          <h2 className="text-2xl font-bold mb-4">Reports and Analytics</h2>
+          <h2 className="text-2xl font-bold mb-4">Relatórios e Análises</h2>
           {isLoading ? (
             <Skeleton className="h-80 w-full" />
           ) : (
             <div className="grid grid-cols-1">
               <Card className="p-4">
-                <h3 className="text-lg font-medium mb-4">Enrollment Trends</h3>
+                <h3 className="text-lg font-medium mb-4">Tendências de Matrícula</h3>
                 <EnrollmentsChart 
                   month={selectedMonth} 
                   year={selectedYear} 
@@ -100,7 +100,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         </TabsContent>
         
         <TabsContent value="enrollments" className="p-4">
-          <h2 className="text-2xl font-bold mb-4">Enrollment Management</h2>
+          <h2 className="text-2xl font-bold mb-4">Gestão de Matrículas</h2>
           {isLoading ? (
             <div className="space-y-4">
               <Skeleton className="h-12 w-full" />
@@ -108,7 +108,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             </div>
           ) : (
             <div className="text-center py-12 text-gray-500">
-              <p>Showing {safePayments.length} current enrollments</p>
+              <p>Exibindo {safePayments.length} matrículas ativas</p>
             </div>
           )}
         </TabsContent>

@@ -58,9 +58,9 @@ const AdminDashboardCards: React.FC<DashboardCardsProps> = ({
       >
         <CardContent className="p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-500">Cursos</p>
+            <p className="text-sm font-medium text-gray-500">Turmas</p>
             <h3 className="text-2xl font-bold mt-1">{coursesCount}</h3>
-            <p className="text-xs text-gray-500 mt-1">Cursos disponíveis</p>
+            <p className="text-xs text-gray-500 mt-1">Turmas ativas</p>
           </div>
           <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
             <BookOpen className="h-6 w-6 text-purple-600" />
@@ -76,7 +76,7 @@ const AdminDashboardCards: React.FC<DashboardCardsProps> = ({
           <div>
             <p className="text-sm font-medium text-gray-500">Receita</p>
             <h3 className="text-2xl font-bold mt-1">{revenueAmount}</h3>
-            <p className="text-xs text-gray-500 mt-1">Receita total do mês</p>
+            <p className="text-xs text-gray-500 mt-1">Receita total</p>
           </div>
           <div className="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center">
             <DollarSign className="h-6 w-6 text-yellow-600" />

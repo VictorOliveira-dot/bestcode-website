@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
 import AdminDashboardHeader from "@/components/admin/DashboardHeader";
@@ -11,12 +11,13 @@ import { useAdminData } from "@/hooks/admin/useAdminData";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const location = useLocation();
   const [activeTab, setActiveTab] = useState("students");
   
   const {
     students,
     teachers,
+    courses,
+    payments,
     activeStudentsCount,
     isLoading,
     refetchStudents,
@@ -34,22 +35,19 @@ const AdminDashboard = () => {
   // Garantir que os dados são do tipo esperado
   const formattedStudents = Array.isArray(students) ? students : [];
   const formattedTeachers = Array.isArray(teachers) ? teachers : [];
+  const formattedCourses = Array.isArray(courses) ? courses : [];
+  const formattedPayments = Array.isArray(payments) ? payments : [];
+
+  // Calcular receita total (cada matrícula vale R$ 997)
+  const totalRevenue = formattedPayments.length * 997;
+  const formattedRevenue = `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
   const stats = {
-    studentsCount: activeStudentsCount, // Usando a contagem correta do banco
+    studentsCount: activeStudentsCount,
     teachersCount: formattedTeachers.length,
-    coursesCount: 0, // Implementar depois
-    revenueAmount: "R$ 0,00" // Implementar depois
+    coursesCount: formattedCourses.length, 
+    revenueAmount: formattedRevenue
   };
-
-  useEffect(() => {
-    const path = location.pathname.split('/').pop();
-    if (path === "students" || path === "teachers" || 
-        path === "courses" || path === "payments" || 
-        path === "enrollments" || path === "reports") {
-      setActiveTab(path);
-    }
-  }, [location.pathname]);
 
   useEffect(() => {
     if (user) {
@@ -66,11 +64,16 @@ const AdminDashboard = () => {
 
   const handleClassAdded = () => {
     refetchStudents();
+    refetchTeachers();
   };
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <AdminDashboardHeader userName={user?.name || 'Admin'} />
+      <AdminDashboardHeader 
+        userName={user?.name || 'Admin'} 
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
       <main className="container-custom py-4 md:py-8 px-2 md:px-0">
         <DashboardActions 

@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,11 +18,16 @@ import { toast } from "@/hooks/use-toast";
 
 interface DashboardHeaderProps {
   userName: string;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
 }
 
-const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
+const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ 
+  userName, 
+  activeTab, 
+  setActiveTab 
+}) => {
   const { logout } = useAuth();
-  const navigate = useNavigate();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -39,7 +43,6 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
         duration: 1500,
       });
       
-      // Add delay before redirect to show the toast
       setTimeout(() => {
         window.location.href = "/login";
       }, 1500);
@@ -51,6 +54,20 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
         variant: "destructive",
       });
     }
+  };
+
+  const menuItems = [
+    { id: 'students', label: 'Alunos' },
+    { id: 'teachers', label: 'Professores' },
+    { id: 'courses', label: 'Turmas' },
+    { id: 'payments', label: 'Pagamentos' },
+    { id: 'enrollments', label: 'Matrículas' },
+    { id: 'reports', label: 'Relatórios' }
+  ];
+
+  const handleMenuClick = (tabId: string) => {
+    setActiveTab(tabId);
+    setIsSheetOpen(false);
   };
 
   return (
@@ -77,53 +94,22 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
                     </span>
                   </div>
                   <nav className="space-y-1">
-                    <Link
-                      to="/admin/students"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      Alunos
-                    </Link>
-                    <Link
-                      to="/admin/teachers"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      Professores
-                    </Link>
-                    <Link
-                      to="/admin/courses"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      Cursos
-                    </Link>
-                    <Link
-                      to="/admin/payments"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      Pagamentos
-                    </Link>
-                    <Link
-                      to="/admin/enrollments"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      Matrículas
-                    </Link>
-                    <Link
-                      to="/admin/reports"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      Relatórios
-                    </Link>
+                    {menuItems.map((item) => (
+                      <button
+                        key={item.id}
+                        className={`flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md w-full text-left ${
+                          activeTab === item.id ? 'bg-bestcode-100 text-bestcode-600' : ''
+                        }`}
+                        onClick={() => handleMenuClick(item.id)}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
                   </nav>
                 </div>
               </SheetContent>
             </Sheet>
-            <Link to="/admin/students" className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
               <img 
                 src="/img/logotipo/logotipoBestCode.png" 
                 alt="Code Academy" 
@@ -132,46 +118,21 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
               <span className="text-xs bg-bestcode-100 text-bestcode-600 py-0.5 px-2 rounded-md">
                 Admin
               </span>
-            </Link>
+            </div>
           </div>
 
           <nav className="hidden md:flex items-center space-x-6">
-            <Link
-              to="/admin/students"
-              className="text-gray-700 hover:text-bestcode-600"
-            >
-              Alunos
-            </Link>
-            <Link
-              to="/admin/teachers"
-              className="text-gray-700 hover:text-bestcode-600"
-            >
-              Professores
-            </Link>
-            <Link
-              to="/admin/courses"
-              className="text-gray-700 hover:text-bestcode-600"
-            >
-              Cursos
-            </Link>
-            <Link
-              to="/admin/payments"
-              className="text-gray-700 hover:text-bestcode-600"
-            >
-              Pagamentos
-            </Link>
-            <Link
-              to="/admin/enrollments"
-              className="text-gray-700 hover:text-bestcode-600"
-            >
-              Matrículas
-            </Link>
-            <Link
-              to="/admin/reports"
-              className="text-gray-700 hover:text-bestcode-600"
-            >
-              Relatórios
-            </Link>
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                className={`text-gray-700 hover:text-bestcode-600 ${
+                  activeTab === item.id ? 'text-bestcode-600 font-medium' : ''
+                }`}
+                onClick={() => setActiveTab(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
           </nav>
 
           <div className="flex items-center space-x-4">
