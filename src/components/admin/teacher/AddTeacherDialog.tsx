@@ -56,7 +56,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       name: "",
       email: "",
       password: "",
-      classId: ""
+      classId: "none"
     }
   });
 
@@ -99,7 +99,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       console.log("Professor criado com ID:", teacherId);
 
       // Se uma turma foi selecionada, atribuir o professor à turma
-      if (data.classId && data.classId !== "") {
+      if (data.classId && data.classId !== "none") {
         console.log("Atribuindo professor à turma:", data.classId);
         
         const { error: updateError } = await supabase
@@ -122,7 +122,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       
       toast({
         title: "Professor criado com sucesso",
-        description: `O professor ${data.name} foi adicionado ao sistema${data.classId ? ' e atribuído à turma selecionada' : ''}.`,
+        description: `O professor ${data.name} foi adicionado ao sistema${data.classId && data.classId !== "none" ? ' e atribuído à turma selecionada' : ''}.`,
       });
 
       form.reset();
@@ -209,7 +209,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhuma turma</SelectItem>
+                      <SelectItem value="none">Nenhuma turma</SelectItem>
                       {unassignedClasses.map((cls) => (
                         <SelectItem key={cls.id} value={cls.id}>
                           {cls.name}
