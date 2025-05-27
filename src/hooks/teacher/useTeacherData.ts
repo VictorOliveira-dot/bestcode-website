@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
@@ -38,14 +39,14 @@ export const useTeacherData = () => {
         id: cls.id,
         name: cls.name,
         description: cls.description,
-        startDate: cls.start_date, // Convert to camelCase
-        studentsCount: 0, // Default value, could be calculated later
+        startDate: cls.start_date,
+        studentsCount: 0,
         teacher_id: cls.teacher_id,
-        teacher_name: cls.users?.name || 'N/A'
+        teacher_name: cls.users ? cls.users.name : 'N/A'
       })) || [];
     },
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 60000, // Aumentando para 1 minuto
+    gcTime: 1000 * 60 * 10, // Aumentando cache para 10 minutos
   });
 
   const { 
@@ -69,8 +70,8 @@ export const useTeacherData = () => {
       console.log("Fetched total student count:", count);
       return count || 0;
     },
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 60000,
+    gcTime: 1000 * 60 * 10,
   });
 
   const {
@@ -101,8 +102,8 @@ export const useTeacherData = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 60000,
+    gcTime: 1000 * 60 * 10,
   });
 
   const {
@@ -124,6 +125,7 @@ export const useTeacherData = () => {
           is_active
         `)
         .eq('role', 'student')
+        .eq('is_active', true) // Apenas alunos ativos para melhor performance
         .order('name');
 
       if (error) {
@@ -134,11 +136,11 @@ export const useTeacherData = () => {
       console.log("Fetched all students:", data);
       return data || [];
     },
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 60000,
+    gcTime: 1000 * 60 * 10,
   });
 
-  // Query for teacher's own classes that matches ClassInfo interface
+  // Query otimizada para as turmas do professor
   const {
     data: teacherClasses = [],
     isLoading: isLoadingTeacherClasses,
@@ -172,13 +174,13 @@ export const useTeacherData = () => {
       })) || [];
     },
     enabled: !!user?.id,
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 60000,
+    gcTime: 1000 * 60 * 10,
   });
 
   return {
-    classes, // All classes in the system
-    teacherClasses, // Only teacher's own classes with proper ClassInfo structure
+    classes,
+    teacherClasses,
     studentCount,
     lessons,
     allStudents,
