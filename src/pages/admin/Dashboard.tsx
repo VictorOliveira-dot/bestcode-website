@@ -19,6 +19,7 @@ const AdminDashboard = () => {
     courses,
     payments,
     activeStudentsCount,
+    totalRevenue,
     isLoading,
     refetchStudents,
     refetchTeachers
@@ -38,8 +39,7 @@ const AdminDashboard = () => {
   const formattedCourses = Array.isArray(courses) ? courses : [];
   const formattedPayments = Array.isArray(payments) ? payments : [];
 
-  // Calcular receita total (cada matrícula vale R$ 997)
-  const totalRevenue = formattedPayments.length * 997;
+  // Calcular receita total formatada
   const formattedRevenue = `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
   const stats = {
