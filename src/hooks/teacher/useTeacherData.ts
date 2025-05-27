@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
@@ -45,8 +44,8 @@ export const useTeacherData = () => {
         teacher_name: (cls.users as any)?.name || 'N/A'
       })) || [];
     },
-    staleTime: 30000, // Reduzindo para 30 segundos
-    gcTime: 1000 * 60 * 5, // Reduzindo cache para 5 minutos
+    staleTime: 30000,
+    gcTime: 1000 * 60 * 5,
   });
 
   const { 
@@ -140,7 +139,7 @@ export const useTeacherData = () => {
     gcTime: 1000 * 60 * 10,
   });
 
-  // Query otimizada para as turmas do professor
+  // Query otimizada para as turmas do professor - ESTE É O IMPORTANTE PARA O FORMULÁRIO DE AULAS
   const {
     data: teacherClasses = [],
     isLoading: isLoadingTeacherClasses,

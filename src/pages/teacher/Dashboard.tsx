@@ -33,6 +33,7 @@ const TeacherDashboard = () => {
   
   const { 
     classes, 
+    teacherClasses,
     studentCount, 
     lessons, 
     isLoading,
@@ -60,7 +61,8 @@ const TeacherDashboard = () => {
     visibility: lesson.visibility as 'all' | 'class_only'
   })) : [];
 
-  const formattedClasses: Class[] = Array.isArray(classes) ? classes.map(cls => ({
+  // Usar teacherClasses em vez de classes para o formulário de aulas
+  const formattedClasses: Class[] = Array.isArray(teacherClasses) ? teacherClasses.map(cls => ({
     id: cls.id,
     name: cls.name
   })) : [];
@@ -146,7 +148,7 @@ const TeacherDashboard = () => {
 
       <main className="container-custom py-4 md:py-8 px-2 md:px-0">
         <DashboardCards 
-          classesCount={classes.length}
+          classesCount={teacherClasses.length}
           lessonsCount={formattedLessons.length}
           studentsCount={studentCountValue}
           onAddLessonClick={() => setIsAddLessonOpen(true)}

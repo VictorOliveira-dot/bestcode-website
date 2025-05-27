@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
 import ClassSelector from "./forms/ClassSelector";
 import LessonDetailsForm from "./forms/LessonDetailsForm";
+import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 
 interface AddLessonFormProps {
   isOpen: boolean;
@@ -30,7 +31,10 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
   availableClasses,
 }) => {
   const { user } = useAuth();
-  const [classes, setClasses] = useState<Class[]>(availableClasses);
+  const { teacherClasses, refetchTeacherClasses } = useTeacherData();
+  
+  // Usar as turmas do professor do hook em vez das passadas por prop
+  const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [lessonDetails, setLessonDetails] = useState({
     title: "",
@@ -39,6 +43,22 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
     date: new Date().toISOString().split("T")[0],
     visibility: "class_only" as 'all' | 'class_only',
   });
+
+  // Atualizar classes quando teacherClasses mudar
+  useEffect(() => {
+    if (teacherClasses && teacherClasses.length > 0) {
+      const formattedClasses = teacherClasses.map(cls => ({
+        id: cls.id,
+        name: cls.name
+      }));
+      setClasses(formattedClasses);
+      
+      // Se não há classe selecionada, selecionar a primeira
+      if (!selectedClassId && formattedClasses.length > 0) {
+        setSelectedClassId(formattedClasses[0].id);
+      }
+    }
+  }, [teacherClasses, selectedClassId]);
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -50,32 +70,18 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
         date: new Date().toISOString().split("T")[0],
         visibility: "class_only",
       });
-      setSelectedClassId(classes.length > 0 ? classes[0].id : "");
+      
+      // Se há turmas disponíveis, selecionar a primeira
+      if (classes.length > 0) {
+        setSelectedClassId(classes[0].id);
+      }
     }
   }, [isOpen, classes]);
 
-  // Update classes when availableClasses prop changes
-  useEffect(() => {
-    setClasses(availableClasses);
-  }, [availableClasses]);
-
   const handleClassesUpdate = async () => {
     try {
-      const { data: updatedClasses, error } = await supabase.rpc('get_teacher_classes', {
-        teacher_id: user?.id
-      });
-
-      if (error) {
-        console.error('Error fetching updated classes:', error);
-        return;
-      }
-
-      const formattedClasses = updatedClasses?.map((cls: any) => ({
-        id: cls.id,
-        name: cls.name
-      })) || [];
-      
-      setClasses(formattedClasses);
+      console.log("Updating classes list...");
+      await refetchTeacherClasses();
     } catch (error) {
       console.error('Error updating classes:', error);
     }
@@ -86,6 +92,24 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
       toast({
         title: "Erro",
         description: "Selecione uma turma para a aula",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!lessonDetails.title.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite um título para a aula",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!lessonDetails.youtubeUrl.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite a URL do vídeo do YouTube",
         variant: "destructive"
       });
       return;
@@ -138,12 +162,18 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
                 onLessonDetailsChange={setLessonDetails}
               />
               
-              <ClassSelector
-                classes={classes}
-                selectedClassId={selectedClassId}
-                onClassChange={setSelectedClassId}
-                onClassesUpdate={handleClassesUpdate}
-              />
+              {classes.length > 0 ? (
+                <ClassSelector
+                  classes={classes}
+                  selectedClassId={selectedClassId}
+                  onClassChange={setSelectedClassId}
+                  onClassesUpdate={handleClassesUpdate}
+                />
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  <p>Nenhuma turma encontrada. Crie uma turma primeiro para adicionar aulas.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -152,7 +182,11 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button type="button" onClick={handleSubmit}>
+          <Button 
+            type="button" 
+            onClick={handleSubmit}
+            disabled={!selectedClassId || classes.length === 0}
+          >
             Adicionar Aula
           </Button>
         </DialogFooter>
