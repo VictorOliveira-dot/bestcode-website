@@ -39,7 +39,8 @@ export const useTeacherData = () => {
         id: cls.id,
         name: cls.name,
         description: cls.description,
-        start_date: cls.start_date,
+        startDate: cls.start_date, // Convert to camelCase
+        studentsCount: 0, // Default value, could be calculated later
         teacher_id: cls.teacher_id,
         teacher_name: cls.users?.name || 'N/A'
       })) || [];
@@ -138,15 +139,55 @@ export const useTeacherData = () => {
     gcTime: 1000 * 60 * 5,
   });
 
+  // Query for teacher's own classes that matches ClassInfo interface
+  const {
+    data: teacherClasses = [],
+    isLoading: isLoadingTeacherClasses,
+    refetch: refetchTeacherClasses
+  } = useQuery({
+    queryKey: ["teacherClasses", user?.id],
+    queryFn: async () => {
+      if (!user?.id) {
+        console.error("No user ID available for querying teacher classes");
+        return [];
+      }
+      
+      console.log("Fetching classes for teacher ID:", user.id);
+      
+      const { data, error } = await supabase.rpc('get_teacher_classes', {
+        p_teacher_id: user.id
+      });
+
+      if (error) {
+        console.error("Error fetching teacher classes:", error);
+        throw error;
+      }
+      
+      console.log("Fetched teacher classes:", data);
+      return data?.map(cls => ({
+        id: cls.id,
+        name: cls.name,
+        description: cls.description,
+        startDate: cls.start_date,
+        studentsCount: cls.students_count || 0
+      })) || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 30000,
+    gcTime: 1000 * 60 * 5,
+  });
+
   return {
-    classes,
+    classes, // All classes in the system
+    teacherClasses, // Only teacher's own classes with proper ClassInfo structure
     studentCount,
     lessons,
     allStudents,
-    isLoading: isLoadingClasses || isLoadingLessons || isLoadingStudentCount || isLoadingAllStudents,
+    isLoading: isLoadingClasses || isLoadingLessons || isLoadingStudentCount || isLoadingAllStudents || isLoadingTeacherClasses,
     error: classesError || lessonsError,
     refetchClasses,
     refetchLessons,
-    refetchAllStudents
+    refetchAllStudents,
+    refetchTeacherClasses
   };
 };

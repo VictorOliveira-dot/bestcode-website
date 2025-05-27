@@ -19,8 +19,8 @@ const ClassManagement = () => {
     startDate: '',
   });
   
-  // Using useTeacherData hook to get classes and refetchClasses
-  const { classes, refetchClasses, isLoading: isLoadingTeacherData } = useTeacherData();
+  // Using useTeacherData hook to get teacher's own classes and refetchTeacherClasses
+  const { teacherClasses, refetchTeacherClasses, isLoading: isLoadingTeacherData } = useTeacherData();
 
   const {
     isLoading: isLoadingManagement,
@@ -45,7 +45,7 @@ const ClassManagement = () => {
         setNewClass({ name: '', description: '', startDate: '' });
         setIsAddClassOpen(false);
         // Reload the list of classes after adding
-        await refetchClasses();
+        await refetchTeacherClasses();
         toast({
           title: "Sucesso",
           description: "Turma adicionada com sucesso",
@@ -68,7 +68,7 @@ const ClassManagement = () => {
         if (success) {
           setIsEditClassOpen(false);
           // Reload the list of classes after editing
-          await refetchClasses();
+          await refetchTeacherClasses();
           toast({
             title: "Sucesso",
             description: "Turma atualizada com sucesso",
@@ -89,7 +89,7 @@ const ClassManagement = () => {
     const success = await handleDeleteClass(classId);
     if (success) {
       // Reload the list of classes after deleting
-      await refetchClasses();
+      await refetchTeacherClasses();
     }
   };
 
@@ -102,12 +102,12 @@ const ClassManagement = () => {
 
       <div className="bg-white rounded-lg overflow-hidden">
         <ClassTable 
-          classes={classes}
+          classes={teacherClasses}
           openEditDialog={openEditDialog}
           handleDeleteClass={handleDelete}
           isLoading={isLoading}
           error={error}
-          refetch={refetchClasses}
+          refetch={refetchTeacherClasses}
         />
       </div>
 
