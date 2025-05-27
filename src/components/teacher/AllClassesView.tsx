@@ -2,21 +2,55 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Users, User, Plus } from "lucide-react";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
+import { useClassManagement } from "@/hooks/teacher/useClassManagement";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import AddClassDialog from "./AddClassDialog";
+import { toast } from "@/hooks/use-toast";
 
 const AllClassesView = () => {
-  const { classes, isLoading, error } = useTeacherData();
+  const { classes, isLoading, error, refetchClasses } = useTeacherData();
+  const { handleAddClass, isLoading: isLoadingManagement } = useClassManagement();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddClassOpen, setIsAddClassOpen] = useState(false);
+  const [newClass, setNewClass] = useState({
+    name: '',
+    description: '',
+    startDate: '',
+  });
 
   const filteredClasses = classes.filter(cls => 
     cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cls.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cls.teacher_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const onAddClass = async () => {
+    try {
+      const success = await handleAddClass(newClass);
+      if (success) {
+        setNewClass({ name: '', description: '', startDate: '' });
+        setIsAddClassOpen(false);
+        // Recarregar a lista de turmas após adicionar
+        await refetchClasses();
+        toast({
+          title: "Sucesso",
+          description: "Turma criada com sucesso",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error adding class:", error);
+      toast({
+        title: "Erro",
+        description: error?.message || "Ocorreu um erro ao criar a turma",
+        variant: "destructive"
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -45,6 +79,14 @@ const AllClassesView = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Todas as Turmas ({classes.length})</h2>
+        <Button 
+          onClick={() => setIsAddClassOpen(true)} 
+          className="flex items-center gap-2"
+          disabled={isLoadingManagement}
+        >
+          <Plus className="h-4 w-4" />
+          {isLoadingManagement ? "Carregando..." : "Nova Turma"}
+        </Button>
       </div>
       
       <Input
@@ -97,6 +139,15 @@ const AllClassesView = () => {
           <p>Nenhuma turma cadastrada no sistema.</p>
         </div>
       )}
+
+      <AddClassDialog
+        isOpen={isAddClassOpen}
+        onOpenChange={setIsAddClassOpen}
+        newClass={newClass}
+        setNewClass={setNewClass}
+        handleAddClass={onAddClass}
+        isLoading={isLoadingManagement}
+      />
     </div>
   );
 };
