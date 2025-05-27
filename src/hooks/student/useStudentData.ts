@@ -3,6 +3,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
+import { 
+  Enrollment, 
+  LessonData, 
+  ProgressData, 
+  NotificationData 
+} from "@/components/student/types";
 
 export const useStudentData = () => {
   const { user } = useAuth();
@@ -15,19 +21,13 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentEnrollments", user?.id],
     queryFn: async () => {
-      console.log("Fetching student enrollments");
-      const { data, error } = await supabase.rpc('get_student_enrollments');
+      const { data, error } = await supabase
+        .rpc('get_student_enrollments');
       
-      if (error) {
-        console.error("Error fetching enrollments:", error);
-        throw error;
-      }
-      console.log("Fetched enrollments:", data);
+      if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id,
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5
+    enabled: !!user?.id
   });
 
   const {
@@ -37,19 +37,14 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentLessons", user?.id],
     queryFn: async () => {
-      console.log("Fetching student lessons");
-      const { data, error } = await supabase.rpc('get_student_lessons');
+      const { data, error } = await supabase
+        .rpc('get_student_lessons');
 
-      if (error) {
-        console.error("Error fetching lessons:", error);
-        throw error;
-      }
-      console.log("Fetched lessons:", data);
+      if (error) throw error;
+      
       return data || [];
     },
-    enabled: !!user?.id,
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5
+    enabled: !!user?.id
   });
 
   const {
@@ -59,19 +54,14 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentProgress", user?.id],
     queryFn: async () => {
-      console.log("Fetching student progress");
-      const { data, error } = await supabase.rpc('get_student_progress');
+      const { data, error } = await supabase
+        .rpc('get_student_progress');
 
-      if (error) {
-        console.error("Error fetching progress:", error);
-        throw error;
-      }
-      console.log("Fetched progress:", data);
+      if (error) throw error;
+      
       return data || [];
     },
-    enabled: !!user?.id,
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5
+    enabled: !!user?.id
   });
 
   const {
@@ -81,23 +71,16 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentNotifications", user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
-      
-      console.log("Fetching student notifications");
-      const { data, error } = await supabase.rpc('get_student_notifications', {
-        p_user_id: user.id
-      });
+      const { data, error } = await supabase
+        .rpc('get_student_notifications', {
+          p_user_id: user.id
+        });
 
-      if (error) {
-        console.error("Error fetching notifications:", error);
-        throw error;
-      }
-      console.log("Fetched notifications:", data);
+      if (error) throw error;
+      
       return data || [];
     },
-    enabled: !!user?.id,
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5
+    enabled: !!user?.id
   });
 
   const updateProgressMutation = useMutation({

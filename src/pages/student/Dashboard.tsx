@@ -28,11 +28,6 @@ const StudentDashboard = () => {
     return <Navigate to="/teacher/dashboard" />;
   }
 
-  // Verificar se o estudante está ativo
-  if (!user.is_active) {
-    return <Navigate to="/checkout" />;
-  }
-
   const formattedLessons = Array.isArray(lessons) ? lessons.map(lesson => ({
     id: lesson.id,
     title: lesson.title,
