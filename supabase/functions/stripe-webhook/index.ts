@@ -72,7 +72,7 @@ serve(async (req) => {
         const userId = session.metadata?.userId;
         const applicationId = session.metadata?.applicationId;
         const paymentMethod = session.metadata?.paymentMethod;
-        const testMode = session.metadata?.testMode === "true";
+        const testMode = session.livemode === false; // Determine if it's test mode
         const courseTitle = session.metadata?.courseTitle || 'Formação Completa em QA';
         
         logEvent(`💰 Payment successful for session ${session.id}`, { 
@@ -80,7 +80,8 @@ serve(async (req) => {
           customerEmail, 
           paymentMethod, 
           testMode: testMode ? 'Yes' : 'No',
-          courseTitle
+          courseTitle,
+          livemode: session.livemode
         });
 
         // Debug: Check if we have valid user identifiers
@@ -117,38 +118,27 @@ serve(async (req) => {
           if (userData.is_active) {
             logEvent(`ℹ️ User ${userId} is already active`);
           } else {
-            logEvent(`🔄 Activating user ${userId}`);
+            logEvent(`🔄 Activating user ${userId} (Test mode: ${testMode ? 'Yes' : 'No'})`);
           }
           
-          // CRITICAL: Use the RPC call for more direct and reliable activation
-          logEvent("Calling activate_student_account RPC function");
-          const { data: activationData, error: activationError } = await supabaseAdmin
-            .rpc('activate_student_account', { user_id: userId });
+          // CRITICAL: Always activate user regardless of test mode
+          logEvent("🔓 Activating student account (works in both test and live mode)");
+          
+          // Use direct update to ensure activation
+          const { error: activationError } = await supabaseAdmin
+            .from("users")
+            .update({ 
+              is_active: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", userId)
+            .eq("role", "student");
             
           if (activationError) {
-            logEvent("❌ Error updating user status with RPC call:", activationError);
-            logEvent("❌ Error details:", JSON.stringify(activationError));
-            
-            // Direct update as fallback
-            logEvent("Trying direct update as fallback...");
-            const { error: directUpdateError } = await supabaseAdmin
-              .from("users")
-              .update({ 
-                is_active: true,
-                updated_at: new Date().toISOString()
-              })
-              .eq("id", userId)
-              .eq("role", "student");
-              
-            if (directUpdateError) {
-              logEvent("❌ Error with direct update fallback:", directUpdateError);
-              logEvent("❌ Error details:", JSON.stringify(directUpdateError));
-              throw new Error(`Failed to activate student account: ${directUpdateError.message}`);
-            } else {
-              logEvent(`✅ Student ${userId} activated successfully with direct update`);
-            }
+            logEvent("❌ Error activating user account:", activationError);
+            throw new Error(`Failed to activate student account: ${activationError.message}`);
           } else {
-            logEvent(`✅ Student ${userId} activated successfully with RPC call`, { result: activationData });
+            logEvent(`✅ Student ${userId} activated successfully`);
           }
           
           // Verify the activation by checking the user's status again
@@ -193,7 +183,6 @@ serve(async (req) => {
             
           if (paymentError) {
             logEvent("❌ Error recording payment:", paymentError);
-            logEvent("❌ Error details:", JSON.stringify(paymentError));
           } else {
             logEvent(`✅ Payment record created for user ${userId}`);
           }
@@ -205,13 +194,12 @@ serve(async (req) => {
             .insert({
               user_id: userId,
               title: "Pagamento Confirmado",
-              message: `Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso ${courseTitle}.`,
+              message: `Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso ${courseTitle}. ${testMode ? '(Pagamento processado em modo teste)' : ''}`,
               read: false
             });
               
           if (notificationError) {
             logEvent("❌ Error creating notification:", notificationError);
-            logEvent("❌ Error details:", JSON.stringify(notificationError));
           } else {
             logEvent(`✉️ Notification sent to user ${userId} about payment confirmation`);
           }
@@ -226,7 +214,6 @@ serve(async (req) => {
               
             if (applicationError) {
               logEvent("❌ Error updating application status:", applicationError);
-              logEvent("❌ Error details:", JSON.stringify(applicationError));
             } else {
               logEvent(`✅ Application ${applicationId} marked as approved`);
             }
@@ -258,43 +245,28 @@ serve(async (req) => {
             if (userData.is_active) {
               logEvent(`ℹ️ User ${userData.id} is already active`);
             } else {
-              logEvent(`🔄 Activating user ${userData.id} (${userData.email})`);
+              logEvent(`🔄 Activating user ${userData.id} (${userData.email}) - Test mode: ${testMode ? 'Yes' : 'No'}`);
             }
             
             // Update user to active status
             const userId = userData.id;
             
-            // Use the RPC call for more direct and reliable activation
-            logEvent("Calling activate_student_account RPC function");
-            const { data: activationData, error: activationError } = await supabaseAdmin
-              .rpc('activate_student_account', { user_id: userId });
+            // Always activate regardless of test mode
+            logEvent("🔓 Activating student account (works in both test and live mode)");
+            const { error: activationError } = await supabaseAdmin
+              .from("users")
+              .update({ 
+                is_active: true,
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", userId)
+              .eq("role", "student");
               
             if (activationError) {
-              logEvent("❌ Error updating user status with RPC call:", activationError);
-              logEvent("❌ Error details:", JSON.stringify(activationError));
-              
-              // Direct update as fallback
-              logEvent("Trying direct update as fallback...");
-              const { error: directUpdateError } = await supabaseAdmin
-                .from("users")
-                .update({ 
-                  is_active: true,
-                  updated_at: new Date().toISOString()
-                })
-                .eq("id", userId)
-                .eq("role", "student");
-                
-              if (directUpdateError) {
-                logEvent("❌ Error updating user status with direct update:", directUpdateError);
-                logEvent("❌ Error details:", JSON.stringify(directUpdateError));
-                throw new Error(`Failed to activate student account: ${directUpdateError.message}`);
-              } else {
-                logEvent(`✅ User with email ${customerEmail} activated successfully with direct update`);
-              }
+              logEvent("❌ Error updating user status:", activationError);
+              throw new Error(`Failed to activate student account: ${activationError.message}`);
             } else {
-              logEvent(`✅ User with email ${customerEmail} activated successfully with RPC call`, { 
-                result: activationData 
-              });
+              logEvent(`✅ User with email ${customerEmail} activated successfully`);
             }
               
             // Verify the activation worked
@@ -338,7 +310,6 @@ serve(async (req) => {
               
             if (paymentError) {
               logEvent("❌ Error recording payment:", paymentError);
-              logEvent("❌ Error details:", JSON.stringify(paymentError));
             } else {
               logEvent(`✅ Payment record created for user with email ${customerEmail}`);
             }
@@ -350,13 +321,12 @@ serve(async (req) => {
               .insert({
                 user_id: userId,
                 title: "Pagamento Confirmado",
-                message: `Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso ${courseTitle}.`,
+                message: `Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso ${courseTitle}. ${testMode ? '(Pagamento processado em modo teste)' : ''}`,
                 read: false
               });
               
             if (notificationError) {
               logEvent("❌ Error creating notification:", notificationError);
-              logEvent("❌ Error details:", JSON.stringify(notificationError));
             } else {
               logEvent(`✉️ Notification sent to user ${userId} about payment confirmation`);
             }
@@ -370,16 +340,18 @@ serve(async (req) => {
       
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
+        const testMode = paymentIntent.livemode === false;
+        
         logEvent(`PaymentIntent for ${paymentIntent.amount / 100} succeeded`, {
-          id: paymentIntent.id
+          id: paymentIntent.id,
+          testMode: testMode ? 'Yes' : 'No'
         });
         
         // If the payment intent has metadata with user ID, update user status
         const userId = paymentIntent.metadata?.userId;
-        const testMode = paymentIntent.metadata?.testMode === "true";
         
         if (userId) {
-          logEvent(`Processing payment_intent.succeeded for userId: ${userId}`);
+          logEvent(`Processing payment_intent.succeeded for userId: ${userId} (Test mode: ${testMode ? 'Yes' : 'No'})`);
           
           // Check if the user is already active
           const { data: userData, error: checkError } = await supabaseAdmin
@@ -390,44 +362,28 @@ serve(async (req) => {
             
           if (checkError) {
             logEvent("❌ Error checking user status:", checkError);
-            logEvent("❌ Error details:", JSON.stringify(checkError));
           } else if (userData.is_active) {
             logEvent(`ℹ️ User ${userId} is already active`);
           } else if (userData.role !== 'student') {
             logEvent(`⚠️ User ${userId} is not a student. Role: ${userData.role}`);
           } else {
-            logEvent(`🔄 Activating user ${userId} from payment intent`);
+            logEvent(`🔄 Activating user ${userId} from payment intent (Test mode: ${testMode ? 'Yes' : 'No'})`);
             
-            // Use the RPC call to directly update the database
-            logEvent("Calling activate_student_account RPC function");
-            const { data: activationData, error: activationError } = await supabaseAdmin
-              .rpc('activate_student_account', { user_id: userId });
+            // Always activate regardless of test mode
+            logEvent("🔓 Activating student account from payment intent (works in both test and live mode)");
+            const { error: activationError } = await supabaseAdmin
+              .from("users")
+              .update({ 
+                is_active: true,
+                updated_at: new Date().toISOString() 
+              })
+              .eq("id", userId)
+              .eq("role", "student");
               
             if (activationError) {
-              logEvent("❌ Error updating user status from payment intent with RPC call:", activationError);
-              logEvent("❌ Error details:", JSON.stringify(activationError));
-              
-              // Direct update as fallback
-              logEvent("Trying direct update as fallback...");
-              const { error: directUpdateError } = await supabaseAdmin
-                .from("users")
-                .update({ 
-                  is_active: true,
-                  updated_at: new Date().toISOString() 
-                })
-                .eq("id", userId)
-                .eq("role", "student");
-                
-              if (directUpdateError) {
-                logEvent("❌ Error updating user status from payment intent:", directUpdateError);
-                logEvent("❌ Error details:", JSON.stringify(directUpdateError));
-              } else {
-                logEvent(`✅ User ${userId} activated successfully from payment intent with direct update`);
-              }
+              logEvent("❌ Error updating user status from payment intent:", activationError);
             } else {
-              logEvent(`✅ User ${userId} activated successfully from payment intent with RPC call`, {
-                result: activationData
-              });
+              logEvent(`✅ User ${userId} activated successfully from payment intent`);
             }
             
             // Verify activation worked
@@ -453,13 +409,12 @@ serve(async (req) => {
               .insert({
                 user_id: userId,
                 title: "Pagamento Confirmado",
-                message: "Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso.",
+                message: `Seu pagamento foi confirmado! Sua conta está ativa e você já tem acesso completo ao curso. ${testMode ? '(Pagamento processado em modo teste)' : ''}`,
                 read: false
               });
               
             if (notificationError) {
               logEvent("❌ Error creating payment notification:", notificationError);
-              logEvent("❌ Error details:", JSON.stringify(notificationError));
             } else {
               logEvent(`✉️ Notification sent about payment confirmation`);
             }
@@ -478,7 +433,6 @@ serve(async (req) => {
             
           if (paymentUpdateError) {
             logEvent("❌ Error updating payment status from payment intent:", paymentUpdateError);
-            logEvent("❌ Error details:", JSON.stringify(paymentUpdateError));
           } else {
             logEvent(`✅ Payment status updated to completed for user ${userId}`);
           }
@@ -510,7 +464,6 @@ serve(async (req) => {
             
           if (paymentUpdateError) {
             logEvent("❌ Error updating payment status to failed:", paymentUpdateError);
-            logEvent("❌ Error details:", JSON.stringify(paymentUpdateError));
           } else {
             logEvent(`✅ Payment status updated to failed for user ${userId}`);
           }
@@ -528,47 +481,11 @@ serve(async (req) => {
             
           if (notificationError) {
             logEvent("❌ Error creating failed payment notification:", notificationError);
-            logEvent("❌ Error details:", JSON.stringify(notificationError));
           } else {
             logEvent(`✉️ Notification sent about failed payment`);
           }
         } else {
           logEvent("⚠️ No userId found in payment intent metadata for failed payment");
-        }
-        break;
-      }
-      
-      // Handle PIX-specific events
-      case 'payment_intent.processing': {
-        const paymentIntent = event.data.object;
-        logEvent(`Payment processing: ${paymentIntent.id}`);
-        
-        // Check if this is a PIX payment
-        const paymentMethod = paymentIntent.payment_method_types?.includes('pix') ? 'pix' : '';
-        
-        if (paymentMethod === 'pix') {
-          const userId = paymentIntent.metadata?.userId;
-          
-          if (userId) {
-            logEvent(`Updating PIX payment status to processing for userId: ${userId}`);
-            const { error: paymentUpdateError } = await supabaseAdmin
-              .from("user_payments")
-              .update({ 
-                payment_status: "processing",
-                updated_at: new Date().toISOString()
-              })
-              .eq("user_id", userId)
-              .eq("payment_status", "pending");
-              
-            if (paymentUpdateError) {
-              logEvent("❌ Error updating PIX payment status to processing:", paymentUpdateError);
-              logEvent("❌ Error details:", JSON.stringify(paymentUpdateError));
-            } else {
-              logEvent(`✅ PIX payment status updated to processing for user ${userId}`);
-            }
-          } else {
-            logEvent("⚠️ No userId found in payment intent metadata for PIX payment");
-          }
         }
         break;
       }

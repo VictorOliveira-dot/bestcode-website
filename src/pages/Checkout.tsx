@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -29,7 +30,7 @@ const Checkout = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   
   const isCanceled = new URLSearchParams(location.search).get("canceled") === "true";
   const isSuccess = new URLSearchParams(location.search).get("success") === "true";
@@ -63,10 +64,14 @@ const Checkout = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      // When payment is successful, check user active status
-      const verifyUserActivation = async () => {
+      console.log("🎉 Payment success detected, starting user activation process");
+      
+      // When payment is successful, check user active status and update if needed
+      const verifyAndActivateUser = async () => {
         try {
           if (user) {
+            console.log("Checking user activation status for:", user.email);
+            
             // Check if the user has been activated
             const { data: userData, error } = await supabase
               .from('users')
@@ -82,51 +87,55 @@ const Checkout = () => {
                 variant: "destructive"
               });
             } else if (userData?.is_active) {
+              console.log("✅ User is already active, updating context and redirecting");
               toast({
                 title: "Pagamento confirmado!",
                 description: "Sua conta foi ativada. Redirecionando para a plataforma..."
               });
               
               // Update the user in auth context to include active status
-              if (userData) {
-                const updatedUser = { ...user, is_active: true };
-                // Explicitly update the user in the auth context
-                const { setUser } = useAuth();
-                setUser(updatedUser);
-              }
+              const updatedUser = { ...user, is_active: true };
+              setUser(updatedUser);
+              
+              // Redirect to dashboard
+              setTimeout(() => {
+                navigate("/student/dashboard");
+              }, 2000);
             } else {
-              console.log("User not activated yet, attempting to activate");
-              // Try to activate the user directly
+              console.log("❌ User not activated yet, forcing activation");
+              
+              // Force activate the user (in case webhook didn't process yet)
               const { error: updateError } = await supabase
                 .from('users')
                 .update({ is_active: true })
-                .eq('id', user.id);
+                .eq('id', user.id)
+                .eq('role', 'student');
                 
               if (updateError) {
-                console.error("Error activating user account:", updateError);
+                console.error("Error force activating user account:", updateError);
                 toast({
                   title: "Erro na ativação",
                   description: "Seu pagamento foi processado, mas houve um erro ao ativar sua conta. Por favor, contate o suporte.",
                   variant: "destructive"
                 });
               } else {
+                console.log("✅ User force activated successfully");
                 toast({
                   title: "Pagamento confirmado!",
-                  description: "Sua conta foi ativada. Redirecionando para a plataforma..."
+                  description: "Sua conta foi ativada com sucesso. Redirecionando para a plataforma..."
                 });
                 
                 // Update the local user state with is_active = true
                 const updatedUser = { ...user, is_active: true };
-                const { setUser } = useAuth();
                 setUser(updatedUser);
+                
+                // Redirect to dashboard
+                setTimeout(() => {
+                  navigate("/student/dashboard");
+                }, 2000);
               }
             }
           }
-          
-          // Redirect to dashboard after confirmation
-          setTimeout(() => {
-            navigate("/student/dashboard");
-          }, 3000);
         } catch (error) {
           console.error("Error in payment success handler:", error);
           toast({
@@ -137,7 +146,7 @@ const Checkout = () => {
         }
       };
       
-      verifyUserActivation();
+      verifyAndActivateUser();
       return;
     }
 
@@ -187,6 +196,7 @@ const Checkout = () => {
         
         // Redirect already active students
         if (userData?.is_active) {
+          console.log("User is already active, redirecting to dashboard");
           toast({
             title: "Conta já ativa",
             description: "Sua conta já está ativa. Redirecionando para a área de alunos."
@@ -247,16 +257,16 @@ const Checkout = () => {
       }
     };
 
-    if (user) {
+    if (user && !isSuccess) {
       checkUserStatus();
-    } else {
+    } else if (!user && !isSuccess) {
       toast({
         title: "Acesso restrito",
         description: "Você precisa estar logado para acessar esta página"
       });
       navigate("/login");
     }
-  }, [user, navigate, isCanceled, isSuccess]);
+  }, [user, navigate, isCanceled, isSuccess, setUser]);
 
   const handleCardInputChange = (field: string, value: string) => {
     setCardData(prev => ({
@@ -280,6 +290,8 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
+      console.log("🛒 Starting payment process for user:", user.email);
+      
       // Get application ID if available
       const { data: applicationData, error: appError } = await supabase
         .from("student_applications")
@@ -294,6 +306,7 @@ const Checkout = () => {
       const applicationId = applicationData?.id;
 
       // Process payment based on selected method
+      console.log("💳 Processing payment with method:", paymentMethod);
       const { data, error } = await supabase.functions.invoke('process-payment', {
         body: {
           paymentMethod,
@@ -309,13 +322,18 @@ const Checkout = () => {
       
       if (error) throw new Error(error.message || "Ocorreu um erro ao processar o pagamento");
       
+      console.log("💰 Payment processing response:", data);
+      
       // Store testMode flag in localStorage
       if (data.testMode) {
         localStorage.setItem('payment_test_mode', 'true');
+        console.log("🧪 Test mode detected, payment will be processed in test environment");
       }
       
       // Redirect to Stripe Checkout or show success based on payment method
       if (data?.url) {
+        console.log("🔗 Redirecting to Stripe Checkout:", data.url);
+        
         // Store email data for checkout recovery
         localStorage.setItem('checkout_session', JSON.stringify({
           sessionId: data.id,
@@ -336,7 +354,6 @@ const Checkout = () => {
         // For non-redirect methods like PIX or boleto
         if (data.pixCode) {
           // Handle PIX code display
-          // Could redirect to a PIX instructions page
           navigate(`/payment/pix?code=${data.pixCode}`);
           return;
         } else if (data.boleto) {
@@ -360,7 +377,7 @@ const Checkout = () => {
   };
 
   // If still checking profile status, show loading
-  if (!isProfileComplete && user) {
+  if (!isProfileComplete && user && !isSuccess) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -378,15 +395,15 @@ const Checkout = () => {
       <main className="flex-grow bg-gray-50 py-12">
         <div className="container-custom">
           {/* Test mode banner */}
-          {/* <div className="mb-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-center gap-2">
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-center gap-2">
             <AlertTriangle className="text-amber-500" size={20} />
             <div>
               <p className="font-medium text-amber-800">Ambiente de Testes</p>
               <p className="text-sm text-amber-700">
-                Este é um ambiente de teste do Stripe. Nenhuma cobrança real será processada.
+                Este é um ambiente de teste do Stripe. Use dados de teste para simular pagamentos reais.
               </p>
             </div>
-          </div> */}
+          </div>
           
           <div>
             <div className="mb-8">

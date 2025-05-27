@@ -30,9 +30,15 @@ export const useAuthState = () => {
           setUser(null);
           setLoading(false);
         } else if (event === 'SIGNED_IN' && session?.user) {
-          console.log("User signed in, fetching user data");
+          console.log("User signed in, fetching user data with is_active status");
           const userData = await fetchUserData(session.user);
           if (userData) {
+            console.log("User data fetched:", {
+              id: userData.id,
+              email: userData.email,
+              role: userData.role,
+              is_active: userData.is_active
+            });
             setUser({
               id: userData.id,
               email: userData.email,
@@ -52,9 +58,15 @@ export const useAuthState = () => {
         console.log("Initial session check: No active session");
         setLoading(false);
       } else {
-        console.log("Initial session check: Session exists, fetching user data");
+        console.log("Initial session check: Session exists, fetching user data with is_active status");
         const userData = await fetchUserData(session.user);
         if (userData) {
+          console.log("Initial user data fetched:", {
+            id: userData.id,
+            email: userData.email,
+            role: userData.role,
+            is_active: userData.is_active
+          });
           setUser({
             id: userData.id,
             email: userData.email,
