@@ -10,6 +10,7 @@ import LoginFormActions from "./LoginFormActions";
 import { useAuth } from "@/contexts/auth";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchUserData } from "@/services/authService";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -38,9 +39,25 @@ const LoginForm = () => {
         toast.error("Não foi possível fazer login", {
           description: result.message || "Login inválido. Tente novamente.",
         });
-      } else if (result.user) {
-        console.log("Login successful, checking user status and redirecting");
-        await checkUserStatusAndRedirect(result.user);
+      } else {
+        // Login bem-sucedido, vamos verificar o status do usuário e redirecionar
+        
+        // Buscar dados do usuário após login bem-sucedido
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const userData = await fetchUserData(session.user);
+          if (userData) {
+            const authUser = {
+              id: session.user.id,
+              email: session.user.email || '',
+              name: userData.name,
+              role: userData.role as 'admin' | 'teacher' | 'student',
+            };
+            
+            setUser(authUser);
+            await checkUserStatusAndRedirect(authUser);
+          }
+        }
       }
     } catch (error: any) {
       console.error("Login error:", error);
@@ -58,32 +75,6 @@ const LoginForm = () => {
     if (!user) return;
     
     try {
-      console.log("Checking user status for:", user.email, "Role:", user.role);
-      
-      // Para admins e professores, redirecionar diretamente
-      if (user.role === 'admin' || user.role === 'teacher') {
-        let redirectPath = "/";
-        
-        if (user.role === "admin") {
-          redirectPath = "/admin/dashboard";
-          console.log("Redirecting admin to dashboard");
-        } else if (user.role === "teacher") {
-          redirectPath = "/teacher/dashboard";
-          console.log("Redirecting teacher to dashboard");
-        }
-        
-        // Show success message
-        toast.success("Login bem-sucedido!", {
-          description: `Bem-vindo de volta, ${user.name}!`,
-        });
-        
-        // Navigate to dashboard
-        console.log("Final redirect path:", redirectPath);
-        navigate(redirectPath, { replace: true });
-        return;
-      }
-      
-      // Verificações específicas apenas para estudantes
       if (user.role === 'student') {
         // Verificar o status da inscrição e pagamento para estudantes
         const { data: applicationData, error: applicationError } = await supabase
@@ -133,26 +124,36 @@ const LoginForm = () => {
           console.error("Error fetching user active status:", userError);
         }
         
-        console.log("User is_active status:", userData?.is_active);
-        
         if (!userData?.is_active) {
           console.log("User not active, redirecting to checkout");
           toast.info("Por favor, complete o pagamento para acessar o curso.");
           navigate('/checkout', { replace: true });
           return;
         }
-        
-        // Atualizar o usuário no contexto com o status ativo
-        const updatedUser = { ...user, is_active: true };
-        setUser(updatedUser);
-        
-        // Redirecionar estudante para o dashboard
-        console.log("Redirecting student to dashboard");
-        toast.success("Login bem-sucedido!", {
-          description: `Bem-vindo de volta, ${user.name}!`,
-        });
-        navigate("/student/dashboard", { replace: true });
       }
+      
+      // Redirecionar com base na função do usuário
+      let redirectPath = "/";
+      
+      if (user.role === "admin") {
+        redirectPath = "/admin/dashboard";
+        console.log("Redirecting to admin dashboard");
+      } else if (user.role === "teacher") {
+        redirectPath = "/teacher/dashboard";
+        console.log("Redirecting to teacher dashboard");
+      } else if (user.role === "student") {
+        redirectPath = "/student/dashboard";
+        console.log("Redirecting to student dashboard");
+      }
+      
+      // Show success message
+      toast.success("Login bem-sucedido!", {
+        description: `Bem-vindo de volta, ${user.name}!`,
+      });
+      
+      // Navigate to dashboard
+      console.log("Final redirect path:", redirectPath);
+      navigate(redirectPath, { replace: true });
       
     } catch (error) {
       console.error("Error checking user status:", error);

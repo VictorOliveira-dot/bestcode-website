@@ -30,15 +30,9 @@ export const useAuthState = () => {
           setUser(null);
           setLoading(false);
         } else if (event === 'SIGNED_IN' && session?.user) {
-          console.log("User signed in, fetching user data with is_active status");
+          console.log("User signed in, fetching user data");
           const userData = await fetchUserData(session.user);
           if (userData) {
-            console.log("User data fetched:", {
-              id: userData.id,
-              email: userData.email,
-              role: userData.role,
-              is_active: userData.is_active
-            });
             setUser({
               id: userData.id,
               email: userData.email,
@@ -52,51 +46,30 @@ export const useAuthState = () => {
       }
     );
 
-    // Check initial session with timeout to prevent infinite loading
-    const checkInitialSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          console.log("Initial session check: No active session");
-          setLoading(false);
-        } else {
-          console.log("Initial session check: Session exists, fetching user data with is_active status");
-          const userData = await fetchUserData(session.user);
-          if (userData) {
-            console.log("Initial user data fetched:", {
-              id: userData.id,
-              email: userData.email,
-              role: userData.role,
-              is_active: userData.is_active
-            });
-            setUser({
-              id: userData.id,
-              email: userData.email,
-              name: userData.name,
-              role: userData.role as 'admin' | 'teacher' | 'student',
-              is_active: userData.is_active
-            });
-          }
-          setLoading(false);
+    // Check initial session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) {
+        console.log("Initial session check: No active session");
+        setLoading(false);
+      } else {
+        console.log("Initial session check: Session exists, fetching user data");
+        const userData = await fetchUserData(session.user);
+        if (userData) {
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            role: userData.role as 'admin' | 'teacher' | 'student',
+            is_active: userData.is_active
+          });
         }
-      } catch (error) {
-        console.error("Error checking initial session:", error);
         setLoading(false);
       }
-    };
-
-    // Set a timeout to ensure loading doesn't stay true indefinitely
-    const loadingTimeout = setTimeout(() => {
-      console.log("Auth loading timeout reached, setting loading to false");
-      setLoading(false);
-    }, 3000); // 3 second timeout
-
-    checkInitialSession();
+    });
 
     return () => {
       console.log("Cleaning up auth subscription");
       subscription.unsubscribe();
-      clearTimeout(loadingTimeout);
     };
   }, []);
 
