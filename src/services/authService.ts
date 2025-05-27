@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { AuthUser } from "@/hooks/useAuthState";
@@ -69,7 +68,7 @@ export const fetchUserData = async (authUser: User) => {
       }
     }
 
-    console.log("Found user data in public.users with role:", userData.role);
+    console.log("Found user data in public.users with role:", userData.role, "is_active:", userData.is_active);
     return userData;
   } catch (error) {
     console.error('Error in fetchUserData:', error);
@@ -101,6 +100,13 @@ export const loginUser = async (email: string, password: string) => {
       const userData = await fetchUserData(data.user);
       
       if (userData) {
+        console.log('User data with is_active status:', {
+          id: userData.id,
+          email: userData.email,
+          role: userData.role,
+          is_active: userData.is_active
+        });
+        
         // Return the complete user data with the success message
         return { 
           success: true, 
