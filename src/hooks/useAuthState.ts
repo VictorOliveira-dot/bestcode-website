@@ -33,6 +33,7 @@ export const useAuthState = () => {
           console.log("User signed in, fetching user data");
           const userData = await fetchUserData(session.user);
           if (userData) {
+            console.log("Setting user data with is_active:", userData.is_active);
             setUser({
               id: userData.id,
               email: userData.email,
@@ -55,6 +56,7 @@ export const useAuthState = () => {
         console.log("Initial session check: Session exists, fetching user data");
         const userData = await fetchUserData(session.user);
         if (userData) {
+          console.log("Initial session - Setting user data with is_active:", userData.is_active);
           setUser({
             id: userData.id,
             email: userData.email,

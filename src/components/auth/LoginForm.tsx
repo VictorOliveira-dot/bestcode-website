@@ -9,8 +9,6 @@ import PasswordField from "./PasswordField";
 import LoginFormActions from "./LoginFormActions";
 import { useAuth } from "@/contexts/auth";
 import ForgotPasswordModal from "./ForgotPasswordModal";
-import { supabase } from "@/integrations/supabase/client";
-import { fetchUserData } from "@/services/authService";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -19,7 +17,7 @@ const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const { login, setUser } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,24 +37,43 @@ const LoginForm = () => {
         toast.error("Não foi possível fazer login", {
           description: result.message || "Login inválido. Tente novamente.",
         });
-      } else {
-        // Login bem-sucedido, vamos verificar o status do usuário e redirecionar
+      } else if (result.user) {
+        // Login bem-sucedido, verificar dados do usuário e redirecionar
+        console.log("Login successful, user data:", result.user);
         
-        // Buscar dados do usuário após login bem-sucedido
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const userData = await fetchUserData(session.user);
-          if (userData) {
-            const authUser = {
-              id: session.user.id,
-              email: session.user.email || '',
-              name: userData.name,
-              role: userData.role as 'admin' | 'teacher' | 'student',
-            };
-            
-            setUser(authUser);
-            await checkUserStatusAndRedirect(authUser);
+        // Redirecionar com base no papel e status do usuário
+        if (result.user.role === "admin") {
+          console.log("Redirecting admin to dashboard");
+          toast.success("Login bem-sucedido!", {
+            description: `Bem-vindo de volta, ${result.user.name}!`,
+          });
+          navigate("/admin/dashboard", { replace: true });
+        } else if (result.user.role === "teacher") {
+          console.log("Redirecting teacher to dashboard");
+          toast.success("Login bem-sucedido!", {
+            description: `Bem-vindo de volta, ${result.user.name}!`,
+          });
+          navigate("/teacher/dashboard", { replace: true });
+        } else if (result.user.role === "student") {
+          console.log("Student login - is_active:", result.user.is_active);
+          
+          if (result.user.is_active) {
+            // Estudante ativo - redirecionar para dashboard
+            console.log("Student is active, redirecting to dashboard");
+            toast.success("Login bem-sucedido!", {
+              description: `Bem-vindo de volta, ${result.user.name}!`,
+            });
+            navigate("/student/dashboard", { replace: true });
+          } else {
+            // Estudante não ativo - redirecionar para checkout
+            console.log("Student not active, redirecting to checkout");
+            toast.info("Por favor, complete o pagamento para acessar o curso.");
+            navigate("/checkout", { replace: true });
           }
+        } else {
+          // Fallback para página inicial
+          console.log("Unknown role, redirecting to home");
+          navigate("/", { replace: true });
         }
       }
     } catch (error: any) {
@@ -67,97 +84,6 @@ const LoginForm = () => {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Função para verificar o status do usuário e redirecionar
-  const checkUserStatusAndRedirect = async (user: any) => {
-    if (!user) return;
-    
-    try {
-      if (user.role === 'student') {
-        // Verificar o status da inscrição e pagamento para estudantes
-        const { data: applicationData, error: applicationError } = await supabase
-          .from('student_applications')
-          .select('status')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (applicationError && applicationError.code !== 'PGRST116') {
-          console.error("Error fetching application data:", applicationError);
-        }
-        
-        // Se a aplicação não existe ou está pendente, redirecionar para inscrição
-        if (!applicationData || applicationData.status === 'pending') {
-          console.log("Application not complete, redirecting to enrollment");
-          toast.info("Por favor, complete seu cadastro para continuar.");
-          navigate('/inscricao', { replace: true });
-          return;
-        }
-        
-        // Verificar se o perfil está completo
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('is_profile_complete')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error("Error fetching profile data:", profileError);
-        }
-        
-        if (!profileData || !profileData.is_profile_complete) {
-          console.log("Profile not complete, redirecting to enrollment");
-          toast.info("Por favor, complete seu perfil para continuar.");
-          navigate('/inscricao', { replace: true });
-          return;
-        }
-        
-        // Verificar se o usuário está ativo (pagamento concluído)
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('is_active')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (userError) {
-          console.error("Error fetching user active status:", userError);
-        }
-        
-        if (!userData?.is_active) {
-          console.log("User not active, redirecting to checkout");
-          toast.info("Por favor, complete o pagamento para acessar o curso.");
-          navigate('/checkout', { replace: true });
-          return;
-        }
-      }
-      
-      // Redirecionar com base na função do usuário
-      let redirectPath = "/";
-      
-      if (user.role === "admin") {
-        redirectPath = "/admin/dashboard";
-        console.log("Redirecting to admin dashboard");
-      } else if (user.role === "teacher") {
-        redirectPath = "/teacher/dashboard";
-        console.log("Redirecting to teacher dashboard");
-      } else if (user.role === "student") {
-        redirectPath = "/student/dashboard";
-        console.log("Redirecting to student dashboard");
-      }
-      
-      // Show success message
-      toast.success("Login bem-sucedido!", {
-        description: `Bem-vindo de volta, ${user.name}!`,
-      });
-      
-      // Navigate to dashboard
-      console.log("Final redirect path:", redirectPath);
-      navigate(redirectPath, { replace: true });
-      
-    } catch (error) {
-      console.error("Error checking user status:", error);
-      toast.error("Erro ao verificar status do usuário");
     }
   };
 
