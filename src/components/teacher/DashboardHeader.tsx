@@ -46,7 +46,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
             alt="Code Academy" 
             className="h-8" 
           />
-          <h1 className="text-2xl font-bold text-bestcode-800">Painel do Professor</h1>
+          <h1 className="text-2xl font-bold text-bestcode-800">Painel do {userName}</h1>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-gray-600">Olá, {userName}</span>
