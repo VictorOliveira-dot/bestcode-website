@@ -89,34 +89,62 @@ export const useStudentData = () => {
       watchTimeMinutes: number, 
       progress: number 
     }) => {
+      console.log('Attempting to update progress:', { lessonId, watchTimeMinutes, progress, userId: user?.id });
+      
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       const status = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
       
+      const progressData = {
+        lesson_id: lessonId,
+        student_id: user.id,
+        watch_time_minutes: Math.max(0, Math.floor(watchTimeMinutes)),
+        progress: Math.max(0, Math.min(100, Math.floor(progress))),
+        last_watched: new Date().toISOString(),
+        status
+      };
+
+      console.log('Sending progress data:', progressData);
+
       const result = await supabase
         .from("lesson_progress")
-        .upsert({
-          lesson_id: lessonId,
-          student_id: user?.id,
-          watch_time_minutes: watchTimeMinutes,
-          progress,
-          last_watched: new Date().toISOString(),
-          status
+        .upsert(progressData, {
+          onConflict: 'lesson_id,student_id'
         });
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('Supabase error:', result.error);
+        throw result.error;
+      }
+      
+      console.log('Progress updated successfully:', result.data);
       return result.data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      console.log('Progress update success callback');
       queryClient.invalidateQueries({ queryKey: ["studentProgress"] });
-      toast({
-        title: "Progresso atualizado",
-        description: "Seu progresso foi atualizado com sucesso"
-      });
+      
+      if (variables.progress >= 100) {
+        toast({
+          title: "Aula concluída!",
+          description: "Parabéns! Você completou esta aula.",
+        });
+      } else {
+        toast({
+          title: "Progresso salvo",
+          description: "Seu progresso foi atualizado com sucesso"
+        });
+      }
     },
-    onError: (error: any) => {
-      console.error("Erro ao atualizar progresso:", error);
+    onError: (error: any, variables) => {
+      console.error("Erro detalhado ao atualizar progresso:", error);
+      console.error("Variables:", variables);
+      
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar seu progresso",
+        description: `Não foi possível atualizar seu progresso: ${error.message || 'Erro desconhecido'}`,
         variant: "destructive"
       });
     }
@@ -148,8 +176,14 @@ export const useStudentData = () => {
     }
   });
 
-  const updateProgress = (lessonId: string, watchTimeMinutes: number, progress: number) => {
-    return updateProgressMutation.mutateAsync({ lessonId, watchTimeMinutes, progress });
+  const updateProgress = async (lessonId: string, watchTimeMinutes: number, progress: number) => {
+    try {
+      console.log('updateProgress called with:', { lessonId, watchTimeMinutes, progress });
+      return await updateProgressMutation.mutateAsync({ lessonId, watchTimeMinutes, progress });
+    } catch (error) {
+      console.error('Error in updateProgress:', error);
+      throw error;
+    }
   };
 
   const markNotificationAsRead = (notificationId: string) => {

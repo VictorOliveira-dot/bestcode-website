@@ -23,7 +23,7 @@ interface VideoPlayerModalProps {
     watchTimeMinutes: number;
     progress: number;
   };
-  onProgressUpdate: (lessonId: string, watchTimeMinutes: number, progress: number) => void;
+  onProgressUpdate: (lessonId: string, watchTimeMinutes: number, progress: number) => Promise<void>;
 }
 
 const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
@@ -39,6 +39,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const lastUpdateTimeRef = useRef<number>(Date.now());
   const progressIntervalRef = useRef<number | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Extract video ID from YouTube URL
   const getYoutubeVideoId = (url: string) => {
@@ -95,28 +96,33 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   }, [isOpen, duration]);
 
   // Save progress when modal closes
-  const handleClose = () => {
-    // Save final progress when closing
-    const finalProgress = progress;
-    const finalWatchTime = Math.round(watchTimeRef.current / 60);
+  const handleClose = async () => {
+    if (isSaving) return; // Prevent multiple save attempts
     
-    console.log('Saving progress:', { 
-      lessonId: lesson.id, 
-      watchTime: finalWatchTime, 
-      progress: finalProgress 
-    });
-    
-    // Call the progress update function
-    onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
-    
-    if (finalProgress === 100) {
-      toast({
-        title: "Aula concluída!",
-        description: "Parabéns! Você completou esta aula.",
+    try {
+      setIsSaving(true);
+      
+      // Save final progress when closing
+      const finalProgress = progress;
+      const finalWatchTime = Math.round(watchTimeRef.current / 60);
+      
+      console.log('Saving progress:', { 
+        lessonId: lesson.id, 
+        watchTime: finalWatchTime, 
+        progress: finalProgress 
       });
+      
+      // Call the progress update function and wait for it to complete
+      await onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving progress on close:', error);
+      // Still close the modal even if save fails
+      onClose();
+    } finally {
+      setIsSaving(false);
     }
-    
-    onClose();
   };
 
   // Clean up interval when component unmounts
@@ -199,7 +205,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           </div>
           <Progress value={progress} className="h-2 mb-2" />
           <p className="text-xs text-gray-500">
-            Progresso será salvo quando você sair da aula
+            {isSaving ? 'Salvando progresso...' : 'Progresso será salvo quando você sair da aula'}
           </p>
         </div>
       </DialogContent>
