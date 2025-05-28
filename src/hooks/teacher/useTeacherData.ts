@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
@@ -89,47 +88,17 @@ export const useTeacherData = () => {
       
       console.log("Fetching lessons for teacher ID:", user.id);
       
-      // Buscar diretamente da tabela lessons com JOIN para classes
-      const { data, error } = await supabase
-        .from('lessons')
-        .select(`
-          id,
-          title,
-          description,
-          youtube_url,
-          date,
-          class_id,
-          visibility,
-          classes!inner(
-            id,
-            name,
-            teacher_id
-          )
-        `)
-        .eq('classes.teacher_id', user.id)
-        .order('date', { ascending: false });
+      const { data, error } = await supabase.rpc('get_teacher_lessons', {
+        teacher_id: user.id
+      });
 
       if (error) {
         console.error("Error fetching teacher lessons:", error);
         throw error;
       }
       
-      console.log("Fetched lessons raw data:", data);
-      
-      // Mapear os dados para o formato esperado
-      const mappedLessons = data?.map(lesson => ({
-        id: lesson.id,
-        title: lesson.title,
-        description: lesson.description,
-        youtube_url: lesson.youtube_url,
-        date: lesson.date,
-        class_id: lesson.class_id,
-        class_name: (lesson.classes as any)?.name || 'Turma não encontrada',
-        visibility: lesson.visibility
-      })) || [];
-      
-      console.log("Mapped lessons:", mappedLessons);
-      return mappedLessons;
+      console.log("Fetched lessons:", data);
+      return data || [];
     },
     enabled: !!user?.id,
     staleTime: 30000,
@@ -155,7 +124,7 @@ export const useTeacherData = () => {
           is_active
         `)
         .eq('role', 'student')
-        .eq('is_active', true)
+        .eq('is_active', true) // Apenas alunos ativos para melhor performance
         .order('name');
 
       if (error) {
@@ -170,6 +139,7 @@ export const useTeacherData = () => {
     gcTime: 1000 * 60 * 10,
   });
 
+  // Query otimizada para as turmas do professor - ESTE É O IMPORTANTE PARA O FORMULÁRIO DE AULAS
   const {
     data: teacherClasses = [],
     isLoading: isLoadingTeacherClasses,
@@ -184,18 +154,9 @@ export const useTeacherData = () => {
       
       console.log("Fetching classes for teacher ID:", user.id);
       
-      const { data, error } = await supabase
-        .from('classes')
-        .select(`
-          id,
-          name,
-          description,
-          start_date,
-          created_at
-        `)
-        .eq('teacher_id', user.id)
-        .eq('is_active', true)
-        .order('name');
+      const { data, error } = await supabase.rpc('get_teacher_classes', {
+        p_teacher_id: user.id
+      });
 
       if (error) {
         console.error("Error fetching teacher classes:", error);
@@ -208,7 +169,7 @@ export const useTeacherData = () => {
         name: cls.name,
         description: cls.description,
         startDate: cls.start_date,
-        studentsCount: 0
+        studentsCount: cls.students_count || 0
       })) || [];
     },
     enabled: !!user?.id,

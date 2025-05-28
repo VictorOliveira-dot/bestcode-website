@@ -41,9 +41,6 @@ const TeacherDashboard = () => {
     refetchClasses
   } = useTeacherData();
 
-  console.log("Dashboard - Raw lessons data:", lessons);
-  console.log("Dashboard - Teacher classes:", teacherClasses);
-
   if (!user) {
     return <Navigate to="/login" />;
   }
@@ -52,30 +49,23 @@ const TeacherDashboard = () => {
     return <Navigate to="/student/dashboard" />;
   }
 
-  // Mapear as aulas para o formato esperado pelo componente
-  const formattedLessons: Lesson[] = Array.isArray(lessons) ? lessons.map(lesson => {
-    console.log("Formatting lesson:", lesson);
-    return {
-      id: lesson.id,
-      title: lesson.title,
-      description: lesson.description,
-      youtubeUrl: lesson.youtube_url,
-      date: lesson.date,
-      class: lesson.class_name || 'Turma não encontrada',
-      class_id: lesson.class_id,
-      visibility: lesson.visibility as 'all' | 'class_only'
-    };
-  }) : [];
-
-  console.log("Dashboard - Formatted lessons:", formattedLessons);
+  // Ensure we have the right data types
+  const formattedLessons: Lesson[] = Array.isArray(lessons) ? lessons.map(lesson => ({
+    id: lesson.id,
+    title: lesson.title,
+    description: lesson.description,
+    youtubeUrl: lesson.youtube_url,
+    date: lesson.date,
+    class: lesson.class_name,
+    class_id: lesson.class_id,
+    visibility: lesson.visibility as 'all' | 'class_only'
+  })) : [];
 
   // Usar teacherClasses em vez de classes para o formulário de aulas
   const formattedClasses: Class[] = Array.isArray(teacherClasses) ? teacherClasses.map(cls => ({
     id: cls.id,
     name: cls.name
   })) : [];
-  
-  console.log("Dashboard - Formatted classes:", formattedClasses);
   
   const studentCountValue = typeof studentCount === 'number' ? studentCount : 0;
 
