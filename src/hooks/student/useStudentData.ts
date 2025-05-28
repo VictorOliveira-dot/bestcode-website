@@ -89,13 +89,27 @@ export const useStudentData = () => {
       watchTimeMinutes: number, 
       progress: number 
     }) => {
-      console.log('Attempting to update progress:', { lessonId, watchTimeMinutes, progress, userId: user?.id });
+      console.log('🚀 updateProgressMutation called with:', { 
+        lessonId, 
+        watchTimeMinutes, 
+        progress, 
+        userId: user?.id 
+      });
       
       if (!user?.id) {
+        console.error('❌ User not authenticated');
         throw new Error('User not authenticated');
       }
 
       const status = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
+      
+      console.log('📊 Calling upsert_lesson_progress with:', {
+        p_lesson_id: lessonId,
+        p_student_id: user.id,
+        p_watch_time_minutes: Math.max(0, Math.floor(watchTimeMinutes)),
+        p_progress: Math.max(0, Math.min(100, Math.floor(progress))),
+        p_status: status
+      });
       
       // Use RPC function to avoid RLS issues
       const { data, error } = await supabase.rpc('upsert_lesson_progress', {
@@ -107,15 +121,15 @@ export const useStudentData = () => {
       });
 
       if (error) {
-        console.error('Supabase RPC error:', error);
+        console.error('❌ Supabase RPC error:', error);
         throw error;
       }
       
-      console.log('Progress updated successfully via RPC:', data);
+      console.log('✅ Progress updated successfully via RPC:', data);
       return data;
     },
     onSuccess: (data, variables) => {
-      console.log('Progress update success callback');
+      console.log('✅ Progress update success callback triggered');
       queryClient.invalidateQueries({ queryKey: ["studentProgress"] });
       
       if (variables.progress >= 100) {
@@ -131,7 +145,7 @@ export const useStudentData = () => {
       }
     },
     onError: (error: any, variables) => {
-      console.error("Erro detalhado ao atualizar progresso:", error);
+      console.error("❌ Erro detalhado ao atualizar progresso:", error);
       console.error("Variables:", variables);
       
       toast({
@@ -170,10 +184,10 @@ export const useStudentData = () => {
 
   const updateProgress = async (lessonId: string, watchTimeMinutes: number, progress: number) => {
     try {
-      console.log('updateProgress called with:', { lessonId, watchTimeMinutes, progress });
+      console.log('🔄 updateProgress called with:', { lessonId, watchTimeMinutes, progress });
       return await updateProgressMutation.mutateAsync({ lessonId, watchTimeMinutes, progress });
     } catch (error) {
-      console.error('Error in updateProgress:', error);
+      console.error('❌ Error in updateProgress:', error);
       throw error;
     }
   };

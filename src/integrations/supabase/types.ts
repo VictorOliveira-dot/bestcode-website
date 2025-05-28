@@ -856,6 +856,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      upsert_lesson_progress: {
+        Args: {
+          p_lesson_id: string
+          p_student_id: string
+          p_watch_time_minutes: number
+          p_progress: number
+          p_status: string
+        }
+        Returns: undefined
+      }
       user_can_access_class: {
         Args: { class_id: string }
         Returns: boolean

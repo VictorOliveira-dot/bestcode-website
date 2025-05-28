@@ -56,12 +56,18 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const startTime = Math.floor(savedProgress.watchTimeMinutes * 60);
       const newVideoUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&start=${startTime}`;
       setVideoUrl(newVideoUrl);
+      console.log('🎥 Video URL set:', newVideoUrl);
     }
   }, [isOpen, videoId, lesson.id]);
 
   // Initialize progress when modal opens
   useEffect(() => {
     if (isOpen) {
+      console.log('📊 Initializing progress:', {
+        lessonId: lesson.id,
+        savedProgress: savedProgress.progress,
+        savedWatchTime: savedProgress.watchTimeMinutes
+      });
       setProgress(savedProgress.progress);
       watchTimeRef.current = savedProgress.watchTimeMinutes * 60;
       lastUpdateTimeRef.current = Date.now();
@@ -71,6 +77,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   // Start tracking progress when modal opens
   useEffect(() => {
     if (isOpen) {
+      console.log('⏱️ Starting progress tracking for lesson:', lesson.id);
       // Set up interval to track time spent watching
       progressIntervalRef.current = window.setInterval(() => {
         const now = Date.now();
@@ -84,6 +91,11 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         if (duration > 0) {
           const newProgress = Math.min(Math.round((watchTimeRef.current / duration) * 100), 100);
           setProgress(newProgress);
+          
+          // Log every 10% progress milestone
+          if (newProgress % 10 === 0 && newProgress !== progress) {
+            console.log(`📈 Progress milestone: ${newProgress}% for lesson ${lesson.id}`);
+          }
         }
       }, 1000);
       
@@ -97,7 +109,10 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   // Save progress when modal closes
   const handleClose = async () => {
-    if (isSaving) return; // Prevent multiple save attempts
+    if (isSaving) {
+      console.log('⚠️ Already saving progress, skipping...');
+      return;
+    }
     
     try {
       setIsSaving(true);
@@ -106,7 +121,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const finalProgress = progress;
       const finalWatchTime = Math.round(watchTimeRef.current / 60);
       
-      console.log('Saving progress:', { 
+      console.log('💾 Saving progress on close:', { 
         lessonId: lesson.id, 
         watchTime: finalWatchTime, 
         progress: finalProgress 
@@ -115,9 +130,10 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       // Call the progress update function and wait for it to complete
       await onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
       
+      console.log('✅ Progress saved successfully');
       onClose();
     } catch (error) {
-      console.error('Error saving progress on close:', error);
+      console.error('❌ Error saving progress on close:', error);
       // Still close the modal even if save fails
       onClose();
     } finally {
