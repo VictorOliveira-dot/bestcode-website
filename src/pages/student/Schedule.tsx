@@ -4,14 +4,17 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useStudentData } from "@/hooks/student/useStudentData";
+import StudentDocumentation from "@/components/student/StudentDocumentation";
+import { useState } from "react";
 
 const StudentSchedule = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { lessons, isLoading } = useStudentData();
+  const { lessons, isLoading, enrollments } = useStudentData();
+  const [showDocumentation, setShowDocumentation] = useState(false);
 
   // Redirect if not authenticated or not a student
   if (!user) {
@@ -22,16 +25,23 @@ const StudentSchedule = () => {
     return <Navigate to="/teacher/dashboard" />;
   }
 
+  // Get student class name from enrollments
+  const studentClass = enrollments && enrollments.length > 0 
+    ? enrollments[0].class_name 
+    : "default";
+
   // Transform lessons data for schedule display
-  const scheduleItems = Array.isArray(lessons) ? lessons.map(lesson => ({
-    id: lesson.id,
-    title: lesson.title,
-    type: "Aula",
-    date: `${lesson.date}T10:00:00`, // Default time since we don't have specific time in lessons
-    duration: 90, // Default duration
-    instructor: lesson.class_name ? `Turma: ${lesson.class_name}` : null,
-    description: lesson.description
-  })) : [];
+  const scheduleItems = Array.isArray(lessons) ? lessons
+    .filter(lesson => lesson.visibility === 'all' || lesson.class_name === studentClass)
+    .map(lesson => ({
+      id: lesson.id,
+      title: lesson.title,
+      type: "Aula",
+      date: `${lesson.date}T10:00:00`, // Default time since we don't have specific time in lessons
+      duration: 90, // Default duration
+      instructor: lesson.class_name ? `Turma: ${lesson.class_name}` : null,
+      description: lesson.description
+    })) : [];
 
   // Sort items by date (most recent first)
   const sortedItems = [...scheduleItems].sort(
@@ -44,8 +54,7 @@ const StudentSchedule = () => {
   };
 
   const handleViewLesson = (lessonId: string) => {
-    // Navigate to courses page and somehow trigger the lesson modal
-    // For now, let's navigate to courses page with a lesson parameter
+    // Navigate to courses page and trigger lesson view
     navigate(`/student/courses?lesson=${lessonId}`);
   };
 
@@ -81,6 +90,15 @@ const StudentSchedule = () => {
         <div className="container-custom flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
           <h1 className="text-2xl font-bold text-bestcode-800">Minha Agenda</h1>
           <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDocumentation(true)}
+              className="flex items-center gap-2"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Documentação
+            </Button>
             <span className="text-gray-600">Olá, {user.name}</span>
             <Link to="/student/dashboard">
               <Button variant="outline" className="flex items-center gap-2">
@@ -98,6 +116,9 @@ const StudentSchedule = () => {
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-bestcode-600" />
               Próximas Atividades
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                - Turma: {studentClass}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -138,6 +159,7 @@ const StudentSchedule = () => {
                         size="sm" 
                         variant="outline"
                         onClick={() => handleViewLesson(item.id)}
+                        className="bg-bestcode-600 text-white hover:bg-bestcode-700"
                       >
                         Ver Aula
                       </Button>
@@ -146,13 +168,18 @@ const StudentSchedule = () => {
                 ))
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  Nenhuma aula programada encontrada.
+                  Nenhuma aula programada encontrada para sua turma: {studentClass}
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
       </main>
+
+      <StudentDocumentation 
+        isOpen={showDocumentation}
+        onClose={() => setShowDocumentation(false)}
+      />
     </div>
   );
 };

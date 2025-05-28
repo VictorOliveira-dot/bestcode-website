@@ -1,8 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
 import VideoPlayerModal from "./VideoPlayerModal";
 import LessonsList from "./LessonsList";
+import StudentDocumentation from "./StudentDocumentation";
 import { useLessonState } from "./hooks/useLessonState";
 import { Lesson, LessonProgress } from "./types/lesson";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +25,8 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
   updateLessonProgress,
   isLoading = false
 }) => {
+  const [showDocumentation, setShowDocumentation] = useState(false);
+
   const {
     selectedLesson,
     isVideoModalOpen,
@@ -30,6 +35,7 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
     recentLessons,
     completedLessons,
     notStartedLessons,
+    complementaryLessons,
     handleLessonClick,
     handleProgressUpdate,
     handleNextLesson,
@@ -59,25 +65,28 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
     <div className="bg-white p-4 rounded-lg shadow">
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <h2 className="text-xl font-bold">Minhas Aulas</h2>
-        <div className="text-sm text-gray-500">Turma: {studentClass}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-sm text-gray-500">Turma: {studentClass}</div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDocumentation(true)}
+            className="flex items-center gap-2"
+          >
+            <HelpCircle className="h-4 w-4" />
+            Documentação
+          </Button>
+        </div>
       </div>
       
-      <Tabs defaultValue="recent">
+      <Tabs defaultValue="not_started">
         <TabsList className="mb-4 w-full overflow-x-auto flex flex-nowrap">
-          <TabsTrigger value="recent">Continuar Assistindo</TabsTrigger>
           <TabsTrigger value="not_started">Não Iniciadas</TabsTrigger>
+          <TabsTrigger value="recent">Continuar Assistindo</TabsTrigger>
           <TabsTrigger value="completed">Concluídas</TabsTrigger>
+          <TabsTrigger value="complementary">Cursos Complementares</TabsTrigger>
           <TabsTrigger value="all">Todas</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="recent">
-          <LessonsList
-            lessons={recentLessons}
-            getLessonProgress={getLessonProgress}
-            onLessonClick={handleLessonClick}
-            emptyMessage="Você não tem aulas em andamento. Comece uma nova aula!"
-          />
-        </TabsContent>
         
         <TabsContent value="not_started">
           <LessonsList
@@ -88,12 +97,30 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
           />
         </TabsContent>
         
+        <TabsContent value="recent">
+          <LessonsList
+            lessons={recentLessons}
+            getLessonProgress={getLessonProgress}
+            onLessonClick={handleLessonClick}
+            emptyMessage="Você não tem aulas em andamento. Comece uma nova aula!"
+          />
+        </TabsContent>
+        
         <TabsContent value="completed">
           <LessonsList
             lessons={completedLessons}
             getLessonProgress={getLessonProgress}
             onLessonClick={handleLessonClick}
             emptyMessage="Você ainda não concluiu nenhuma aula."
+          />
+        </TabsContent>
+
+        <TabsContent value="complementary">
+          <LessonsList
+            lessons={complementaryLessons}
+            getLessonProgress={getLessonProgress}
+            onLessonClick={handleLessonClick}
+            emptyMessage="Nenhum curso complementar disponível no momento."
           />
         </TabsContent>
         
@@ -129,6 +156,11 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
           hasPreviousLesson={!!getPreviousLesson(selectedLesson.id)}
         />
       )}
+
+      <StudentDocumentation 
+        isOpen={showDocumentation}
+        onClose={() => setShowDocumentation(false)}
+      />
     </div>
   );
 };

@@ -34,7 +34,8 @@ const StudentCourseList = () => {
     lessons, 
     progress: lessonProgress, 
     updateProgress,
-    isLoading: isLoadingLessons 
+    isLoading: isLoadingLessons,
+    enrollments
   } = useStudentData();
 
   if (!user) {
@@ -149,6 +150,10 @@ const StudentCourseList = () => {
 
   // Show lessons panel if requested
   if (showLessons) {
+    const studentClass = enrollments && enrollments.length > 0 
+      ? enrollments[0].class_name 
+      : "default";
+
     return (
       <div className="min-h-screen bg-slate-50">
         <header className="bg-white shadow py-4">
@@ -176,7 +181,7 @@ const StudentCourseList = () => {
         <main className="container-custom py-8">
           <StudentLessonsPanel
             lessons={lessons || []}
-            studentClass={user.student_class || 'default'}
+            studentClass={studentClass}
             lessonProgress={lessonProgress || []}
             updateLessonProgress={updateProgress}
             isLoading={isLoadingLessons}

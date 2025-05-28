@@ -1,15 +1,20 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
+import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
 import StudentLessonsPanel from "@/components/student/StudentLessonsPanel";
 import StudentNotifications from "@/components/student/StudentNotifications";
+import StudentDocumentation from "@/components/student/StudentDocumentation";
 import DashboardHeader from "@/components/student/DashboardHeader";
 import DashboardStatsCards from "@/components/student/DashboardStatsCards";
 import { useStudentData } from "@/hooks/student/useStudentData";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
+  const [showDocumentation, setShowDocumentation] = useState(false);
+  
   const { 
     lessons,
     progress,
@@ -36,7 +41,7 @@ const StudentDashboard = () => {
     date: lesson.date,
     class: lesson.class_name,
     class_id: lesson.class_id,
-    visibility: lesson.visibility as 'all' | 'class_only'
+    visibility: lesson.visibility as 'all' | 'class_only' | 'complementary'
   })) : [];
 
   const formattedProgress = Array.isArray(progress) ? progress.map(p => ({
@@ -68,11 +73,22 @@ const StudentDashboard = () => {
   // Get student class from enrollments data
   const studentClass = enrollments && enrollments.length > 0 
     ? enrollments[0].class_name
-    : "";
+    : "default";
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <DashboardHeader userName={user.name} />
+      <div className="flex justify-between items-center p-4">
+        <DashboardHeader userName={user.name} />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowDocumentation(true)}
+          className="flex items-center gap-2"
+        >
+          <HelpCircle className="h-4 w-4" />
+          Documentação
+        </Button>
+      </div>
 
       <main className="container-custom py-8">
         <DashboardStatsCards {...stats} />
@@ -96,6 +112,11 @@ const StudentDashboard = () => {
           </div>
         </div>
       </main>
+
+      <StudentDocumentation 
+        isOpen={showDocumentation}
+        onClose={() => setShowDocumentation(false)}
+      />
     </div>
   );
 };

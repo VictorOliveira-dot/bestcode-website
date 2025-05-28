@@ -17,6 +17,11 @@ export function useLessonState(
     lesson.visibility === 'all' || lesson.class === studentClass
   );
 
+  // Filter complementary lessons (assuming they have a specific visibility type)
+  const complementaryLessons = lessons.filter(lesson => 
+    lesson.visibility === 'complementary'
+  );
+
   // Get recent and completed lessons based on progress
   const recentLessons = availableLessons
     .filter(lesson => {
@@ -38,10 +43,12 @@ export function useLessonState(
     return progress && progress.status === 'completed';
   });
 
-  const notStartedLessons = availableLessons.filter(lesson => {
-    const progress = lessonProgress.find(p => p.lessonId === lesson.id);
-    return !progress || progress.status === 'not_started';
-  });
+  const notStartedLessons = availableLessons
+    .filter(lesson => {
+      const progress = lessonProgress.find(p => p.lessonId === lesson.id);
+      return !progress || progress.status === 'not_started';
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort by date, oldest first for priority
 
   const handleLessonClick = (lesson: Lesson) => {
     setSelectedLesson(lesson);
@@ -142,6 +149,7 @@ export function useLessonState(
     recentLessons,
     completedLessons,
     notStartedLessons,
+    complementaryLessons,
     handleLessonClick,
     handleProgressUpdate,
     handleNextLesson,
