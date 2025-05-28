@@ -17,11 +17,11 @@ interface ClassItemProps {
 
 const ClassItem: React.FC<ClassItemProps> = ({ classInfo, onEdit, onDelete }) => {
   return (
-    <div className="bg-white p-4 rounded-lg shadow mb-4 border border-gray-200">
+    <div className="bg-white p-4 rounded shadow border border-gray-200">
       <div className="flex flex-col md:flex-row justify-between">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold">{classInfo.name}</h3>
-          <p className="text-gray-600 mb-2">{classInfo.description}</p>
+          <h3 className="text-start text-lg font-semibold">{classInfo.name}</h3>
+          <p className="text-start text-gray-600 mb-2">{classInfo.description}</p>
           <div className="text-sm text-gray-500 flex flex-wrap gap-x-4">
             <span>Data de Início: {new Date(classInfo.startDate).toLocaleDateString('pt-BR')}</span>
             <span>Alunos: {classInfo.studentsCount}</span>
