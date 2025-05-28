@@ -79,15 +79,6 @@ const StudentDashboard = () => {
     <div className="min-h-screen bg-slate-50">
       <div className="flex justify-between items-center p-4">
         <DashboardHeader userName={user.name} />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowDocumentation(true)}
-          className="flex items-center gap-2"
-        >
-          <HelpCircle className="h-4 w-4" />
-          Documentação
-        </Button>
       </div>
 
       <main className="container-custom py-8">
@@ -112,11 +103,6 @@ const StudentDashboard = () => {
           </div>
         </div>
       </main>
-
-      <StudentDocumentation 
-        isOpen={showDocumentation}
-        onClose={() => setShowDocumentation(false)}
-      />
     </div>
   );
 };

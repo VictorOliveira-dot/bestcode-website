@@ -25,7 +25,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </DialogHeader>
         
         <div className="py-6 space-y-4">
-          <div className="flex items-center justify-between">
+          {/* <div className="flex items-center justify-between">
             <label htmlFor="dark-mode" className="text-sm font-medium">
               Tema Escuro
             </label>
@@ -38,7 +38,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           
           <div className="text-sm text-muted-foreground">
             Mais configurações serão adicionadas em breve...
-          </div>
+          </div> */}
         </div>
       </DialogContent>
     </Dialog>
