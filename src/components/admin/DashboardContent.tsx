@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { UserPlus } from "lucide-react";
 import StudentsTable from "./tables/StudentsTable";
 import TeachersTable from "./tables/TeachersTable";
 import CoursesTable from "./tables/CoursesTable";
@@ -10,6 +12,8 @@ import EnrollmentsChart from "./EnrollmentsChart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminData } from "@/hooks/admin/useAdminData";
 import RevenueTable from "./tables/RevenueTable";
+import { EnrollStudentModal } from "./modals/EnrollStudentModal";
+import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 
 interface DashboardContentProps {
   activeTab: string;
@@ -21,6 +25,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   activeTab, 
   setActiveTab 
 }) => {
+  const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+  
   const { 
     students, 
     teachers, 
@@ -29,6 +35,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     enrollmentStats,
     isLoading 
   } = useAdminData();
+
+  const { allStudents } = useTeacherData();
 
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -39,11 +47,24 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const safeStudents = Array.isArray(students) ? students : [];
   const safeTeachers = Array.isArray(teachers) ? teachers : [];
 
+  // Estudantes disponíveis para vincular
+  const availableStudents = Array.isArray(allStudents) ? allStudents.map(student => ({
+    id: student.id,
+    name: student.name,
+    email: student.email
+  })) : [];
+
   return (
     <Card className="mt-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsContent value="students" className="p-4">
-          <h2 className="text-2xl font-bold mb-4">Gestão de Alunos</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">Gestão de Alunos</h2>
+            <Button onClick={() => setIsEnrollModalOpen(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Vincular Aluno à Turma
+            </Button>
+          </div>
           {isLoading ? (
             <div className="space-y-4">
               <Skeleton className="h-12 w-full" />
@@ -113,6 +134,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           )}
         </TabsContent>
       </Tabs>
+
+      <EnrollStudentModal
+        isOpen={isEnrollModalOpen}
+        onClose={() => setIsEnrollModalOpen(false)}
+        availableStudents={availableStudents}
+      />
     </Card>
   );
 };
