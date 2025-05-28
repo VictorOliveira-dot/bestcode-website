@@ -73,6 +73,14 @@ export function useLessonState(
     return null;
   };
 
+  const getPreviousLesson = (currentLessonId: string): Lesson | null => {
+    const currentIndex = availableLessons.findIndex(lesson => lesson.id === currentLessonId);
+    if (currentIndex > 0) {
+      return availableLessons[currentIndex - 1];
+    }
+    return null;
+  };
+
   const handleNextLesson = () => {
     if (selectedLesson) {
       const nextLesson = getNextLesson(selectedLesson.id);
@@ -87,6 +95,24 @@ export function useLessonState(
         toast({
           title: "Parabéns!",
           description: "Você completou todas as aulas disponíveis!",
+        });
+      }
+    }
+  };
+
+  const handlePreviousLesson = () => {
+    if (selectedLesson) {
+      const previousLesson = getPreviousLesson(selectedLesson.id);
+      if (previousLesson) {
+        setSelectedLesson(previousLesson);
+        toast({
+          title: "Aula anterior",
+          description: `Iniciando: ${previousLesson.title}`,
+        });
+      } else {
+        toast({
+          title: "Primeira aula",
+          description: "Esta é a primeira aula do curso.",
         });
       }
     }
@@ -119,7 +145,9 @@ export function useLessonState(
     handleLessonClick,
     handleProgressUpdate,
     handleNextLesson,
+    handlePreviousLesson,
     getNextLesson,
+    getPreviousLesson,
     getLessonProgress
   };
 }

@@ -33,7 +33,9 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
     handleLessonClick,
     handleProgressUpdate,
     handleNextLesson,
+    handlePreviousLesson,
     getNextLesson,
+    getPreviousLesson,
     getLessonProgress
   } = useLessonState(lessons, studentClass, lessonProgress, updateLessonProgress);
 
@@ -122,7 +124,9 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
           }}
           onProgressUpdate={handleProgressUpdate}
           onNextLesson={handleNextLesson}
+          onPreviousLesson={handlePreviousLesson}
           hasNextLesson={!!getNextLesson(selectedLesson.id)}
+          hasPreviousLesson={!!getPreviousLesson(selectedLesson.id)}
         />
       )}
     </div>

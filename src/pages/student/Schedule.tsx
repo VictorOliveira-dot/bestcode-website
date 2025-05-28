@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useStudentData } from "@/hooks/student/useStudentData";
 
 const StudentSchedule = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { lessons, isLoading } = useStudentData();
 
   // Redirect if not authenticated or not a student
@@ -40,6 +41,12 @@ const StudentSchedule = () => {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleViewLesson = (lessonId: string) => {
+    // Navigate to courses page and somehow trigger the lesson modal
+    // For now, let's navigate to courses page with a lesson parameter
+    navigate(`/student/courses?lesson=${lessonId}`);
   };
 
   if (isLoading) {
@@ -127,8 +134,12 @@ const StudentSchedule = () => {
                       <span className="px-2 py-1 bg-bestcode-100 text-bestcode-800 rounded text-xs">
                         {item.type}
                       </span>
-                      <Button size="sm" variant="outline">
-                        Ver Detalhes
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewLesson(item.id)}
+                      >
+                        Ver Aula
                       </Button>
                     </div>
                   </div>

@@ -1,11 +1,14 @@
+
 import React, { useEffect, useState } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import StudentLessonsPanel from "@/components/student/StudentLessonsPanel";
+import { useStudentData } from "@/hooks/student/useStudentData";
 
 interface CourseData {
   class_id: string;
@@ -19,9 +22,20 @@ interface CourseData {
 
 const StudentCourseList = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const lessonId = searchParams.get('lesson');
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showLessons, setShowLessons] = useState(false);
+
+  const { 
+    lessons, 
+    progress: lessonProgress, 
+    updateProgress,
+    isLoading: isLoadingLessons 
+  } = useStudentData();
 
   if (!user) {
     return <Navigate to="/login" />;
@@ -81,6 +95,19 @@ const StudentCourseList = () => {
     fetchCourses();
   }, []);
 
+  // Effect to handle lesson parameter from schedule
+  useEffect(() => {
+    if (lessonId && lessons && lessons.length > 0) {
+      setShowLessons(true);
+      // Clear the URL parameter
+      navigate('/student/courses', { replace: true });
+    }
+  }, [lessonId, lessons, navigate]);
+
+  const handleAccessLessons = () => {
+    setShowLessons(true);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50">
@@ -115,6 +142,45 @@ const StudentCourseList = () => {
               </Card>
             ))}
           </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Show lessons panel if requested
+  if (showLessons) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <header className="bg-white shadow py-4">
+          <div className="container-custom flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-bestcode-800">Minhas Aulas</h1>
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowLessons(false)}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar aos Cursos
+              </Button>
+              <Link to="/student/dashboard">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Voltar ao Painel
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <main className="container-custom py-8">
+          <StudentLessonsPanel
+            lessons={lessons || []}
+            studentClass={user.student_class || 'default'}
+            lessonProgress={lessonProgress || []}
+            updateLessonProgress={updateProgress}
+            isLoading={isLoadingLessons}
+          />
         </main>
       </div>
     );
@@ -186,8 +252,11 @@ const StudentCourseList = () => {
                       </span>
                     </div>
                   </div>
-                  <Button className="w-full mt-4 bg-bestcode-600 hover:bg-bestcode-700">
-                    Acessar Curso
+                  <Button 
+                    className="w-full mt-4 bg-bestcode-600 hover:bg-bestcode-700"
+                    onClick={handleAccessLessons}
+                  >
+                    Acessar Aulas
                   </Button>
                 </CardContent>
               </Card>

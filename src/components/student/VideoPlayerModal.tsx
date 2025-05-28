@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import { 
   Dialog,
@@ -9,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { ExternalLink, Save, ChevronRight } from "lucide-react";
+import { ExternalLink, Save, ChevronRight, ChevronLeft, CheckCircle } from "lucide-react";
 
 interface VideoPlayerModalProps {
   isOpen: boolean;
@@ -25,7 +26,9 @@ interface VideoPlayerModalProps {
   };
   onProgressUpdate: (lessonId: string, watchTimeMinutes: number, progress: number) => Promise<void>;
   onNextLesson?: () => void;
+  onPreviousLesson?: () => void;
   hasNextLesson?: boolean;
+  hasPreviousLesson?: boolean;
 }
 
 const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
@@ -35,7 +38,9 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   savedProgress,
   onProgressUpdate,
   onNextLesson,
-  hasNextLesson = false
+  onPreviousLesson,
+  hasNextLesson = false,
+  hasPreviousLesson = false
 }) => {
   const [duration, setDuration] = useState(600); // Default 10 minutes
   const [progress, setProgress] = useState(savedProgress.progress);
@@ -184,7 +189,41 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     }
   };
 
-  // Complete lesson and go to next
+  // Complete lesson
+  const handleCompleteLesson = async () => {
+    try {
+      setIsSaving(true);
+      
+      const finalProgress = 100; // Mark as completed
+      const finalWatchTime = Math.round(watchTimeRef.current / 60);
+      
+      console.log('🎯 Completing lesson:', { 
+        lessonId: lesson.id, 
+        watchTime: finalWatchTime, 
+        progress: finalProgress 
+      });
+      
+      await onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
+      setProgress(100);
+      
+      toast({
+        title: "Aula concluída!",
+        description: "Parabéns! Você completou esta aula.",
+      });
+      
+    } catch (error) {
+      console.error('❌ Error completing lesson:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível completar a aula",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Go to next lesson
   const handleNextLesson = async () => {
     try {
       setIsSaving(true);
@@ -193,7 +232,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const finalProgress = Math.max(progress, 100); // Mark as completed if going to next
       const finalWatchTime = Math.round(watchTimeRef.current / 60);
       
-      console.log('🎯 Completing lesson and going to next:', { 
+      console.log('🎯 Going to next lesson:', { 
         lessonId: lesson.id, 
         watchTime: finalWatchTime, 
         progress: finalProgress 
@@ -205,12 +244,44 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         onNextLesson();
       }
       
-      onClose();
     } catch (error) {
-      console.error('❌ Error completing lesson:', error);
+      console.error('❌ Error going to next lesson:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível completar a aula",
+        description: "Não foi possível ir para a próxima aula",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Go to previous lesson
+  const handlePreviousLesson = async () => {
+    try {
+      setIsSaving(true);
+      
+      // Save current progress before going to previous lesson
+      const currentProgress = progress;
+      const currentWatchTime = Math.round(watchTimeRef.current / 60);
+      
+      console.log('🔙 Going to previous lesson:', { 
+        lessonId: lesson.id, 
+        watchTime: currentWatchTime, 
+        progress: currentProgress 
+      });
+      
+      await onProgressUpdate(lesson.id, currentWatchTime, currentProgress);
+      
+      if (onPreviousLesson) {
+        onPreviousLesson();
+      }
+      
+    } catch (error) {
+      console.error('❌ Error going to previous lesson:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível ir para a aula anterior",
         variant: "destructive"
       });
     } finally {
@@ -298,28 +369,51 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           </div>
           <Progress value={progress} className="h-2 mb-4" />
           
-          {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-2 justify-between">
-            <Button
-              onClick={handleSaveProgress}
-              disabled={isSaving}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Save size={16} />
-              {isSaving ? 'Salvando...' : 'Salvar Progresso'}
-            </Button>
+          {/* Navigation and action buttons */}
+          <div className="space-y-3">
+            {/* Top row - Main actions */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                onClick={handleSaveProgress}
+                disabled={isSaving}
+                variant="outline"
+                className="flex items-center gap-2 flex-1"
+              >
+                <Save size={16} />
+                {isSaving ? 'Salvando...' : 'Salvar Progresso'}
+              </Button>
+              
+              <Button
+                onClick={handleCompleteLesson}
+                disabled={isSaving || progress >= 100}
+                className="flex items-center gap-2 flex-1 bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle size={16} />
+                {progress >= 100 ? 'Aula Concluída' : 'Concluir Aula'}
+              </Button>
+            </div>
             
-            {hasNextLesson && (
+            {/* Bottom row - Navigation */}
+            <div className="flex gap-2">
+              <Button
+                onClick={handlePreviousLesson}
+                disabled={isSaving || !hasPreviousLesson}
+                variant="outline"
+                className="flex items-center gap-2 flex-1"
+              >
+                <ChevronLeft size={16} />
+                Aula Anterior
+              </Button>
+              
               <Button
                 onClick={handleNextLesson}
-                disabled={isSaving}
-                className="flex items-center gap-2"
+                disabled={isSaving || !hasNextLesson}
+                className="flex items-center gap-2 flex-1"
               >
-                {progress >= 100 ? 'Próxima Aula' : 'Completar e Próxima'}
+                Próxima Aula
                 <ChevronRight size={16} />
               </Button>
-            )}
+            </div>
           </div>
           
           <p className="text-xs text-gray-500 mt-2">
