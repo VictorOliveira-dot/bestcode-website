@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { ExternalLink } from "lucide-react";
 
 interface VideoPlayerModalProps {
   isOpen: boolean;
@@ -55,7 +56,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const newVideoUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&start=${startTime}`;
       setVideoUrl(newVideoUrl);
     }
-  }, [isOpen, videoId, lesson.id]); // Only depend on isOpen, videoId, and lesson.id
+  }, [isOpen, videoId, lesson.id]);
 
   // Initialize progress when modal opens
   useEffect(() => {
@@ -93,12 +94,19 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     }
   }, [isOpen, duration]);
 
-  // Save progress only when modal closes
+  // Save progress when modal closes
   const handleClose = () => {
     // Save final progress when closing
     const finalProgress = progress;
     const finalWatchTime = Math.round(watchTimeRef.current / 60);
     
+    console.log('Saving progress:', { 
+      lessonId: lesson.id, 
+      watchTime: finalWatchTime, 
+      progress: finalProgress 
+    });
+    
+    // Call the progress update function
     onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
     
     if (finalProgress === 100) {
@@ -124,6 +132,10 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleVideoLinkClick = () => {
+    window.open(lesson.youtubeUrl, '_blank');
   };
 
   return (
@@ -154,6 +166,27 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               {videoId ? "Carregando vídeo..." : "Não foi possível carregar o vídeo. URL inválida."}
             </div>
           )}
+        </div>
+        
+        {/* Video link backup */}
+        <div className="mt-2 p-3 bg-gray-50 rounded-lg border">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">
+              Link direto do vídeo (caso haja problemas):
+            </span>
+            <button
+              onClick={handleVideoLinkClick}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              Abrir no YouTube
+              <ExternalLink size={16} />
+            </button>
+          </div>
+          <div className="mt-1">
+            <code className="text-xs text-gray-500 break-all">
+              {lesson.youtubeUrl}
+            </code>
+          </div>
         </div>
         
         <div className="mt-4">
