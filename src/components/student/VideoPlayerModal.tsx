@@ -32,11 +32,12 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   savedProgress,
   onProgressUpdate
 }) => {
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(600); // Default 10 minutes
   const [progress, setProgress] = useState(savedProgress.progress);
   const watchTimeRef = useRef<number>(savedProgress.watchTimeMinutes * 60);
   const lastUpdateTimeRef = useRef<number>(Date.now());
   const progressIntervalRef = useRef<number | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string>("");
 
   // Extract video ID from YouTube URL
   const getYoutubeVideoId = (url: string) => {
@@ -47,15 +48,28 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   const videoId = getYoutubeVideoId(lesson.youtubeUrl);
   
+  // Set video URL only once when modal opens or lesson changes
+  useEffect(() => {
+    if (isOpen && videoId) {
+      const startTime = Math.floor(savedProgress.watchTimeMinutes * 60);
+      const newVideoUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&start=${startTime}`;
+      setVideoUrl(newVideoUrl);
+    }
+  }, [isOpen, videoId, lesson.id]); // Only depend on isOpen, videoId, and lesson.id
+
+  // Initialize progress when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setProgress(savedProgress.progress);
+      watchTimeRef.current = savedProgress.watchTimeMinutes * 60;
+      lastUpdateTimeRef.current = Date.now();
+    }
+  }, [isOpen, savedProgress.progress, savedProgress.watchTimeMinutes]);
+  
   // Start tracking progress when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Initialize with saved progress
-      watchTimeRef.current = savedProgress.watchTimeMinutes * 60;
-      setProgress(savedProgress.progress);
-      lastUpdateTimeRef.current = Date.now();
-      
-      // Set up interval to track time spent watching (but don't save continuously)
+      // Set up interval to track time spent watching
       progressIntervalRef.current = window.setInterval(() => {
         const now = Date.now();
         const elapsed = (now - lastUpdateTimeRef.current) / 1000;
@@ -77,7 +91,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         }
       };
     }
-  }, [isOpen, duration, savedProgress.watchTimeMinutes, savedProgress.progress]);
+  }, [isOpen, duration]);
 
   // Save progress only when modal closes
   const handleClose = () => {
@@ -112,17 +126,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const handleIframeLoad = (iframe: HTMLIFrameElement) => {
-    if (iframe && iframe.contentWindow) {
-      try {
-        setDuration(600); // Default to 10 minutes if can't determine
-      } catch (error) {
-        console.error("Could not determine video duration:", error);
-        setDuration(600); // Default to 10 minutes
-      }
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
@@ -134,21 +137,21 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </DialogHeader>
         
         <div className="flex-1 min-h-[50vh] relative">
-          {videoId ? (
+          {videoUrl ? (
             <iframe
-              ref={handleIframeLoad}
+              key={`video-${lesson.id}`}
               width="100%"
               height="100%"
-              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&start=${Math.floor(watchTimeRef.current)}`}
+              src={videoUrl}
               title={lesson.title}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               className="absolute inset-0"
-            ></iframe>
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-500">
-              Não foi possível carregar o vídeo. URL inválida.
+              {videoId ? "Carregando vídeo..." : "Não foi possível carregar o vídeo. URL inválida."}
             </div>
           )}
         </div>
