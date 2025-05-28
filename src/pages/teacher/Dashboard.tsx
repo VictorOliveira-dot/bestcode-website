@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth";
 import DashboardHeader from "@/components/teacher/DashboardHeader";
 import DashboardCards from "@/components/teacher/DashboardCards";
 import DashboardContent from "@/components/teacher/DashboardContent";
-import AddLessonForm from "@/components/teacher/AddLessonForm";
+import AddLessonModal from "@/components/teacher/modals/AddLessonModal";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -167,7 +167,7 @@ const TeacherDashboard = () => {
         />
       </main>
 
-      <AddLessonForm 
+      <AddLessonModal 
         isOpen={isAddLessonOpen}
         onOpenChange={setIsAddLessonOpen}
         onAddLesson={async () => { 
