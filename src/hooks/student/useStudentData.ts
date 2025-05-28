@@ -97,30 +97,22 @@ export const useStudentData = () => {
 
       const status = progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "not_started";
       
-      const progressData = {
-        lesson_id: lessonId,
-        student_id: user.id,
-        watch_time_minutes: Math.max(0, Math.floor(watchTimeMinutes)),
-        progress: Math.max(0, Math.min(100, Math.floor(progress))),
-        last_watched: new Date().toISOString(),
-        status
-      };
+      // Use RPC function to avoid RLS issues
+      const { data, error } = await supabase.rpc('upsert_lesson_progress', {
+        p_lesson_id: lessonId,
+        p_student_id: user.id,
+        p_watch_time_minutes: Math.max(0, Math.floor(watchTimeMinutes)),
+        p_progress: Math.max(0, Math.min(100, Math.floor(progress))),
+        p_status: status
+      });
 
-      console.log('Sending progress data:', progressData);
-
-      const result = await supabase
-        .from("lesson_progress")
-        .upsert(progressData, {
-          onConflict: 'lesson_id,student_id'
-        });
-
-      if (result.error) {
-        console.error('Supabase error:', result.error);
-        throw result.error;
+      if (error) {
+        console.error('Supabase RPC error:', error);
+        throw error;
       }
       
-      console.log('Progress updated successfully:', result.data);
-      return result.data;
+      console.log('Progress updated successfully via RPC:', data);
+      return data;
     },
     onSuccess: (data, variables) => {
       console.log('Progress update success callback');
