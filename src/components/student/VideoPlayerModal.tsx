@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from "react";
 import { 
   Dialog,
@@ -7,9 +6,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Save, ChevronRight } from "lucide-react";
 
 interface VideoPlayerModalProps {
   isOpen: boolean;
@@ -24,6 +24,8 @@ interface VideoPlayerModalProps {
     progress: number;
   };
   onProgressUpdate: (lessonId: string, watchTimeMinutes: number, progress: number) => Promise<void>;
+  onNextLesson?: () => void;
+  hasNextLesson?: boolean;
 }
 
 const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
@@ -31,7 +33,9 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   onClose,
   lesson,
   savedProgress,
-  onProgressUpdate
+  onProgressUpdate,
+  onNextLesson,
+  hasNextLesson = false
 }) => {
   const [duration, setDuration] = useState(600); // Default 10 minutes
   const [progress, setProgress] = useState(savedProgress.progress);
@@ -141,6 +145,79 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     }
   };
 
+  // Manually save progress
+  const handleSaveProgress = async () => {
+    if (isSaving) {
+      console.log('⚠️ Already saving progress, skipping...');
+      return;
+    }
+    
+    try {
+      setIsSaving(true);
+      
+      const currentProgress = progress;
+      const currentWatchTime = Math.round(watchTimeRef.current / 60);
+      
+      console.log('💾 Manually saving progress:', { 
+        lessonId: lesson.id, 
+        watchTime: currentWatchTime, 
+        progress: currentProgress 
+      });
+      
+      await onProgressUpdate(lesson.id, currentWatchTime, currentProgress);
+      
+      toast({
+        title: "Progresso salvo",
+        description: "Seu progresso foi salvo com sucesso!"
+      });
+      
+      console.log('✅ Progress saved successfully');
+    } catch (error) {
+      console.error('❌ Error saving progress:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o progresso",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Complete lesson and go to next
+  const handleNextLesson = async () => {
+    try {
+      setIsSaving(true);
+      
+      // Auto-save progress before going to next lesson
+      const finalProgress = Math.max(progress, 100); // Mark as completed if going to next
+      const finalWatchTime = Math.round(watchTimeRef.current / 60);
+      
+      console.log('🎯 Completing lesson and going to next:', { 
+        lessonId: lesson.id, 
+        watchTime: finalWatchTime, 
+        progress: finalProgress 
+      });
+      
+      await onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
+      
+      if (onNextLesson) {
+        onNextLesson();
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('❌ Error completing lesson:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível completar a aula",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Clean up interval when component unmounts
   useEffect(() => {
     return () => {
@@ -166,7 +243,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         <DialogHeader>
           <DialogTitle>{lesson.title}</DialogTitle>
           <DialogDescription>
-            Seu progresso será salvo quando você sair da aula
+            Seu progresso será salvo automaticamente
           </DialogDescription>
         </DialogHeader>
         
@@ -219,9 +296,34 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               {duration > 0 ? ` / ${formatTime(duration)}` : ''}
             </span>
           </div>
-          <Progress value={progress} className="h-2 mb-2" />
-          <p className="text-xs text-gray-500">
-            {isSaving ? 'Salvando progresso...' : 'Progresso será salvo quando você sair da aula'}
+          <Progress value={progress} className="h-2 mb-4" />
+          
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row gap-2 justify-between">
+            <Button
+              onClick={handleSaveProgress}
+              disabled={isSaving}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Save size={16} />
+              {isSaving ? 'Salvando...' : 'Salvar Progresso'}
+            </Button>
+            
+            {hasNextLesson && (
+              <Button
+                onClick={handleNextLesson}
+                disabled={isSaving}
+                className="flex items-center gap-2"
+              >
+                {progress >= 100 ? 'Próxima Aula' : 'Completar e Próxima'}
+                <ChevronRight size={16} />
+              </Button>
+            )}
+          </div>
+          
+          <p className="text-xs text-gray-500 mt-2">
+            {isSaving ? 'Salvando progresso...' : 'Progresso salvo automaticamente ao fechar'}
           </p>
         </div>
       </DialogContent>

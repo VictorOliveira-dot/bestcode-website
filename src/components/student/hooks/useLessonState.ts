@@ -65,11 +65,37 @@ export function useLessonState(
     }
   };
 
+  const getNextLesson = (currentLessonId: string): Lesson | null => {
+    const currentIndex = availableLessons.findIndex(lesson => lesson.id === currentLessonId);
+    if (currentIndex >= 0 && currentIndex < availableLessons.length - 1) {
+      return availableLessons[currentIndex + 1];
+    }
+    return null;
+  };
+
+  const handleNextLesson = () => {
+    if (selectedLesson) {
+      const nextLesson = getNextLesson(selectedLesson.id);
+      if (nextLesson) {
+        setSelectedLesson(nextLesson);
+        toast({
+          title: "Próxima aula",
+          description: `Iniciando: ${nextLesson.title}`,
+        });
+      } else {
+        setIsVideoModalOpen(false);
+        toast({
+          title: "Parabéns!",
+          description: "Você completou todas as aulas disponíveis!",
+        });
+      }
+    }
+  };
+
   const getLessonProgress = (lessonId: string): LessonProgress => {
     const progress = lessonProgress.find(p => p.lessonId === lessonId);
     
     if (!progress) {
-      // Return an object that matches the LessonProgress interface
       return {
         lessonId: lessonId,
         watchTimeMinutes: 0,
@@ -92,6 +118,8 @@ export function useLessonState(
     notStartedLessons,
     handleLessonClick,
     handleProgressUpdate,
+    handleNextLesson,
+    getNextLesson,
     getLessonProgress
   };
 }
