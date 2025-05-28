@@ -27,10 +27,15 @@ const LessonsPanel: React.FC<LessonsPanelProps> = ({
   onDeleteLesson,
   onEditLesson
 }) => {
+  console.log("LessonsPanel - Received lessons:", lessons);
+  console.log("LessonsPanel - Available classes:", availableClasses);
+
   // Sort lessons by date (more recent first)
   const sortedLessons = [...lessons].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+
+  console.log("LessonsPanel - Sorted lessons:", sortedLessons);
 
   // Group lessons by class
   const lessonsByClass = availableClasses.map(classInfo => ({
@@ -39,6 +44,8 @@ const LessonsPanel: React.FC<LessonsPanelProps> = ({
       lesson.class === classInfo.name || lesson.visibility === 'all'
     )
   }));
+
+  console.log("LessonsPanel - Lessons by class:", lessonsByClass);
 
   return (
     <Tabs defaultValue="all">
@@ -52,18 +59,22 @@ const LessonsPanel: React.FC<LessonsPanelProps> = ({
       <TabsContent value="all">
         <div className="space-y-4">
           {sortedLessons.length > 0 ? (
-            sortedLessons.map(lesson => (
-              <LessonItem 
-                key={lesson.id} 
-                lesson={lesson} 
-                onDelete={onDeleteLesson}
-                onEdit={onEditLesson}
-                availableClasses={availableClasses}
-              />
-            ))
+            sortedLessons.map(lesson => {
+              console.log("Rendering lesson:", lesson);
+              return (
+                <LessonItem 
+                  key={lesson.id} 
+                  lesson={lesson} 
+                  onDelete={onDeleteLesson}
+                  onEdit={onEditLesson}
+                  availableClasses={availableClasses}
+                />
+              );
+            })
           ) : (
             <div className="text-center py-8 text-gray-500">
-              Nenhuma aula cadastrada. Adicione sua primeira aula!
+              <p>Nenhuma aula cadastrada. Adicione sua primeira aula!</p>
+              <p className="text-sm mt-2">Debug: Recebidas {lessons.length} aulas</p>
             </div>
           )}
         </div>
