@@ -664,6 +664,10 @@ export type Database = {
         Args: { p_student_id: string; p_class_id: string; p_status: string }
         Returns: undefined
       }
+      admin_update_student_status: {
+        Args: { p_student_id: string; p_is_active: boolean }
+        Returns: undefined
+      }
       can_access_class: {
         Args: { class_id: string }
         Returns: boolean

@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/auth";
 import { StudentActions } from "./StudentActions";
 import { useStudentsTable } from "@/hooks/admin/useStudentsTable";
 import StudentProgress from "./StudentProgress";
+import { StudentStatusSwitch } from "../StudentStatusSwitch";
 import { Link } from "react-router-dom";
 
 const StudentsTable: React.FC = () => {
@@ -69,6 +70,7 @@ const StudentsTable: React.FC = () => {
             <TableHead>Turmas</TableHead>
             <TableHead className="hidden md:table-cell">Última Atividade</TableHead>
             <TableHead>Progresso</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -90,6 +92,13 @@ const StudentsTable: React.FC = () => {
                   completedLessons={Math.round((student.progress_average / 100) * student.classes_count)}
                   totalLessons={student.classes_count}
                   progress={student.progress_average}
+                />
+              </TableCell>
+              <TableCell>
+                <StudentStatusSwitch
+                  studentId={student.user_id}
+                  isActive={student.is_active || false}
+                  studentName={student.name}
                 />
               </TableCell>
               <TableCell className="text-right">

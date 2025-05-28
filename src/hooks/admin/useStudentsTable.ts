@@ -12,6 +12,7 @@ export interface Student {
   classes_count: number;
   last_active: string | null;
   progress_average: number;
+  is_active?: boolean;
 }
 
 export function useStudentsTable() {
@@ -26,15 +27,36 @@ export function useStudentsTable() {
     queryKey: ['students'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase.rpc('admin_get_students_data');
+        // Primeiro buscar dados básicos dos alunos
+        const { data: studentsData, error: studentsError } = await supabase.rpc('admin_get_students_data');
         
-        if (error) {
-          console.error("Failed to fetch students:", error);
-          throw error;
+        if (studentsError) {
+          console.error("Failed to fetch students:", studentsError);
+          throw studentsError;
         }
 
-        console.log("Students data fetched successfully:", data.length);
-        return data || [];
+        // Buscar informações adicionais incluindo is_active
+        const { data: usersData, error: usersError } = await supabase
+          .from('users')
+          .select('id, is_active')
+          .eq('role', 'student');
+
+        if (usersError) {
+          console.error("Failed to fetch users data:", usersError);
+          throw usersError;
+        }
+
+        // Combinar os dados
+        const combinedData = studentsData.map(student => {
+          const userInfo = usersData.find(user => user.id === student.user_id);
+          return {
+            ...student,
+            is_active: userInfo?.is_active || false
+          };
+        });
+
+        console.log("Students data fetched successfully:", combinedData.length);
+        return combinedData || [];
       } catch (err: any) {
         console.error("Error fetching students:", err);
         toast({
