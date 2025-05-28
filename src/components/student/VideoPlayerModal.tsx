@@ -32,13 +32,11 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   savedProgress,
   onProgressUpdate
 }) => {
-  const [videoElement, setVideoElement] = useState<HTMLIFrameElement | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(savedProgress.progress);
-  const progressIntervalRef = useRef<number | null>(null);
   const watchTimeRef = useRef<number>(savedProgress.watchTimeMinutes * 60);
   const lastUpdateTimeRef = useRef<number>(Date.now());
+  const progressIntervalRef = useRef<number | null>(null);
 
   // Extract video ID from YouTube URL
   const getYoutubeVideoId = (url: string) => {
@@ -55,8 +53,9 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       // Initialize with saved progress
       watchTimeRef.current = savedProgress.watchTimeMinutes * 60;
       setProgress(savedProgress.progress);
+      lastUpdateTimeRef.current = Date.now();
       
-      // Set up interval to track time spent watching
+      // Set up interval to track time spent watching (but don't save continuously)
       progressIntervalRef.current = window.setInterval(() => {
         const now = Date.now();
         const elapsed = (now - lastUpdateTimeRef.current) / 1000;
@@ -69,15 +68,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         if (duration > 0) {
           const newProgress = Math.min(Math.round((watchTimeRef.current / duration) * 100), 100);
           setProgress(newProgress);
-          
-          // Update progress every 10 seconds
-          if (Math.floor(watchTimeRef.current) % 10 === 0) {
-            onProgressUpdate(
-              lesson.id, 
-              Math.round(watchTimeRef.current / 60), 
-              newProgress
-            );
-          }
         }
       }, 1000);
       
@@ -85,15 +75,27 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         if (progressIntervalRef.current) {
           clearInterval(progressIntervalRef.current);
         }
-        // Save progress when component unmounts
-        onProgressUpdate(
-          lesson.id, 
-          Math.round(watchTimeRef.current / 60), 
-          progress
-        );
       };
     }
-  }, [isOpen, duration, lesson.id, savedProgress.watchTimeMinutes, savedProgress.progress]);
+  }, [isOpen, duration, savedProgress.watchTimeMinutes, savedProgress.progress]);
+
+  // Save progress only when modal closes
+  const handleClose = () => {
+    // Save final progress when closing
+    const finalProgress = progress;
+    const finalWatchTime = Math.round(watchTimeRef.current / 60);
+    
+    onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
+    
+    if (finalProgress === 100) {
+      toast({
+        title: "Aula concluída!",
+        description: "Parabéns! Você completou esta aula.",
+      });
+    }
+    
+    onClose();
+  };
 
   // Clean up interval when component unmounts
   useEffect(() => {
@@ -111,13 +113,8 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   };
 
   const handleIframeLoad = (iframe: HTMLIFrameElement) => {
-    setVideoElement(iframe);
-    
-    // Attempt to get video duration - this might not work directly with YouTube iframe
-    // A more robust solution would require YouTube API
     if (iframe && iframe.contentWindow) {
       try {
-        // This is a simplified approach, in a real app you'd use YouTube Player API
         setDuration(600); // Default to 10 minutes if can't determine
       } catch (error) {
         console.error("Could not determine video duration:", error);
@@ -127,12 +124,12 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{lesson.title}</DialogTitle>
           <DialogDescription>
-            Seu progresso será salvo automaticamente enquanto assiste
+            Seu progresso será salvo quando você sair da aula
           </DialogDescription>
         </DialogHeader>
         
@@ -166,7 +163,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           </div>
           <Progress value={progress} className="h-2 mb-2" />
           <p className="text-xs text-gray-500">
-            Seu progresso é salvo automaticamente e não pode ser manipulado
+            Progresso será salvo quando você sair da aula
           </p>
         </div>
       </DialogContent>
