@@ -713,6 +713,29 @@ export type Database = {
         Args: { p_class_id: string; p_teacher_id: string }
         Returns: undefined
       }
+      get_all_classes_for_teachers: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          description: string
+          start_date: string
+          teacher_id: string
+          teacher_name: string
+          students_count: number
+          is_active: boolean
+        }[]
+      }
+      get_all_students_for_teachers: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          email: string
+          created_at: string
+          is_active: boolean
+        }[]
+      }
       get_my_class_enrollments: {
         Args: Record<PropertyKey, never>
         Returns: {

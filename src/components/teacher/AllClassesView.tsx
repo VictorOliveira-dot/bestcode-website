@@ -179,6 +179,11 @@ const AllClassesView = () => {
                       Início: {new Date(classInfo.startDate).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
+
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4 shrink-0" />
+                    <span>Alunos: {classInfo.studentsCount}</span>
+                  </div>
                 </CardContent>
               </Card>
             ))}

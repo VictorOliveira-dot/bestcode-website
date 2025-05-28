@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
@@ -13,20 +14,9 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["allClasses"],
     queryFn: async () => {
-      console.log("Fetching all classes");
+      console.log("Fetching all classes for teachers");
       
-      const { data, error } = await supabase
-        .from('classes')
-        .select(`
-          id,
-          name,
-          description,
-          start_date,
-          teacher_id,
-          users!classes_teacher_id_fkey(name)
-        `)
-        .eq('is_active', true)
-        .order('name');
+      const { data, error } = await supabase.rpc('get_all_classes_for_teachers');
 
       if (error) {
         console.error("Error fetching all classes:", error);
@@ -39,9 +29,9 @@ export const useTeacherData = () => {
         name: cls.name,
         description: cls.description,
         startDate: cls.start_date,
-        studentsCount: 0,
+        studentsCount: cls.students_count || 0,
         teacher_id: cls.teacher_id,
-        teacher_name: (cls.users as any)?.name || 'N/A'
+        teacher_name: cls.teacher_name || 'N/A'
       })) || [];
     },
     staleTime: 30000,
@@ -56,18 +46,15 @@ export const useTeacherData = () => {
     queryFn: async () => {
       console.log("Fetching total student count");
       
-      const { data, error, count } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'student');
+      const { data, error } = await supabase.rpc('get_all_students_for_teachers');
 
       if (error) {
         console.error("Error fetching total student count:", error);
         throw error;
       }
       
-      console.log("Fetched total student count:", count);
-      return count || 0;
+      console.log("Fetched total student count:", data?.length || 0);
+      return data?.length || 0;
     },
     staleTime: 60000,
     gcTime: 1000 * 60 * 10,
@@ -112,20 +99,9 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["allStudents"],
     queryFn: async () => {
-      console.log("Fetching all students");
+      console.log("Fetching all students for teachers");
       
-      const { data, error } = await supabase
-        .from('users')
-        .select(`
-          id,
-          name,
-          email,
-          created_at,
-          is_active
-        `)
-        .eq('role', 'student')
-        .eq('is_active', true) // Apenas alunos ativos para melhor performance
-        .order('name');
+      const { data, error } = await supabase.rpc('get_all_students_for_teachers');
 
       if (error) {
         console.error("Error fetching all students:", error);
