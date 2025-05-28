@@ -19,13 +19,15 @@ interface LessonsPanelProps {
   availableClasses: Class[];
   onDeleteLesson: (id: string) => void;
   onEditLesson: (id: string, updatedLesson: any) => void;
+  isLoading: boolean;
 }
 
 const LessonsPanel: React.FC<LessonsPanelProps> = ({ 
   lessons, 
   availableClasses, 
   onDeleteLesson,
-  onEditLesson
+  onEditLesson,
+  isLoading
 }) => {
   // Sort lessons by date (more recent first)
   const sortedLessons = [...lessons].sort((a, b) => 
@@ -39,6 +41,14 @@ const LessonsPanel: React.FC<LessonsPanelProps> = ({
       lesson.class === classInfo.name || lesson.visibility === 'all'
     )
   }));
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Carregando aulas...
+      </div>
+    );
+  }
 
   return (
     <Tabs defaultValue="all">
