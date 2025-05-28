@@ -11,7 +11,7 @@ interface StudentLessonsPanelProps {
   lessons: Lesson[];
   studentClass: string;
   lessonProgress: LessonProgress[];
-  updateLessonProgress: (lessonId: string, watchTimeMinutes: number, progress: number) => void;
+  updateLessonProgress: (lessonId: string, watchTimeMinutes: number, progress: number) => Promise<void>;
   isLoading?: boolean;
 }
 
