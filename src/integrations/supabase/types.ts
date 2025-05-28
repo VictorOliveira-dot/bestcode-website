@@ -713,6 +713,10 @@ export type Database = {
         Args: { p_class_id: string; p_teacher_id: string }
         Returns: undefined
       }
+      delete_lesson: {
+        Args: { p_lesson_id: string; p_teacher_id: string }
+        Returns: undefined
+      }
       get_all_classes_for_teachers: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -875,6 +879,19 @@ export type Database = {
           p_name: string
           p_description: string
           p_start_date: string
+          p_teacher_id: string
+        }
+        Returns: undefined
+      }
+      update_lesson: {
+        Args: {
+          p_lesson_id: string
+          p_title: string
+          p_description: string
+          p_youtube_url: string
+          p_date: string
+          p_class_id: string
+          p_visibility: string
           p_teacher_id: string
         }
         Returns: undefined

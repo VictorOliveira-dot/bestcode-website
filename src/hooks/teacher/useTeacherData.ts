@@ -115,7 +115,6 @@ export const useTeacherData = () => {
     gcTime: 1000 * 60 * 10,
   });
 
-  // Query otimizada para as turmas do professor - ESTE É O IMPORTANTE PARA O FORMULÁRIO DE AULAS
   const {
     data: teacherClasses = [],
     isLoading: isLoadingTeacherClasses,

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -71,10 +70,10 @@ const TeacherDashboard = () => {
 
   const handleDeleteLesson = async (lessonId: string) => {
     try {
-      const { error } = await supabase
-        .from('lessons')
-        .delete()
-        .eq('id', lessonId);
+      const { error } = await supabase.rpc('delete_lesson', {
+        p_lesson_id: lessonId,
+        p_teacher_id: user.id
+      });
 
       if (error) {
         console.error('Error deleting lesson:', error);
@@ -104,17 +103,16 @@ const TeacherDashboard = () => {
 
   const handleEditLesson = async (lessonId: string, updatedLesson: any) => {
     try {
-      const { error } = await supabase
-        .from('lessons')
-        .update({
-          title: updatedLesson.title,
-          description: updatedLesson.description,
-          youtube_url: updatedLesson.youtubeUrl,
-          date: updatedLesson.date,
-          class_id: updatedLesson.classId,
-          visibility: updatedLesson.visibility
-        })
-        .eq('id', lessonId);
+      const { error } = await supabase.rpc('update_lesson', {
+        p_lesson_id: lessonId,
+        p_title: updatedLesson.title,
+        p_description: updatedLesson.description,
+        p_youtube_url: updatedLesson.youtubeUrl,
+        p_date: updatedLesson.date,
+        p_class_id: updatedLesson.classId,
+        p_visibility: updatedLesson.visibility,
+        p_teacher_id: user.id
+      });
 
       if (error) {
         console.error('Error updating lesson:', error);
