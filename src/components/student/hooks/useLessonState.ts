@@ -7,7 +7,7 @@ export function useLessonState(
   lessons: Lesson[],
   studentClass: string,
   lessonProgress: LessonProgress[],
-  updateLessonProgress: (lessonId: string, watchTimeMinutes: number, progress: number) => void
+  updateLessonProgress: (lessonId: string, watchTimeMinutes: number, progress: number) => Promise<void>
 ) {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -48,15 +48,20 @@ export function useLessonState(
     setIsVideoModalOpen(true);
   };
 
-  const handleProgressUpdate = (lessonId: string, watchTimeMinutes: number, progress: number) => {
-    updateLessonProgress(lessonId, watchTimeMinutes, progress);
-    
-    // Show completion toast when a lesson reaches 100%
-    if (progress === 100) {
-      toast({
-        title: "Aula concluída!",
-        description: "Parabéns! Você completou esta aula.",
-      });
+  const handleProgressUpdate = async (lessonId: string, watchTimeMinutes: number, progress: number) => {
+    try {
+      await updateLessonProgress(lessonId, watchTimeMinutes, progress);
+      
+      // Show completion toast when a lesson reaches 100%
+      if (progress >= 100) {
+        toast({
+          title: "Aula concluída!",
+          description: "Parabéns! Você completou esta aula.",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating progress in hook:', error);
+      // The error handling is already done in the updateProgress function
     }
   };
 
