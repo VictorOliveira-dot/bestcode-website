@@ -84,7 +84,11 @@ const StudentProgressTable: React.FC<StudentProgressTableProps> = ({
                     <span className="font-medium">Turma:</span> {student.className}
                   </div>
                   <div className="text-xs">
-                    <span className="font-medium">Atividade:</span> {new Date(student.lastActivity).toLocaleDateString('pt-BR')}
+                    <span className="font-medium">Atividade:</span> {
+                      student.lastActivity 
+                        ? new Date(student.lastActivity).toLocaleDateString('pt-BR')
+                        : 'Nunca acessou'
+                    }
                   </div>
                   <div className="text-xs">
                     <span className="font-medium">Aulas:</span> {student.completedLessons}/{student.totalLessons}
@@ -133,7 +137,12 @@ const StudentProgressTable: React.FC<StudentProgressTableProps> = ({
                 <TableCell className="font-medium">{student.name}</TableCell>
                 <TableCell>{student.email}</TableCell>
                 <TableCell>{student.className}</TableCell>
-                <TableCell>{new Date(student.lastActivity).toLocaleDateString('pt-BR')}</TableCell>
+                <TableCell>
+                  {student.lastActivity 
+                    ? new Date(student.lastActivity).toLocaleDateString('pt-BR')
+                    : 'Nunca acessou'
+                  }
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Progress value={student.progress} className="w-[100px] h-2" />

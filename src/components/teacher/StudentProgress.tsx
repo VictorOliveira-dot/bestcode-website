@@ -6,7 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import StudentSearchBar from "./student/StudentSearchBar";
 import StudentProgressTable from "./student/StudentProgressTable";
 import StudentDetailsModal from "./student/StudentDetailsModal";
-import { useTeacherData } from "@/hooks/teacher/useTeacherData";
+import { useStudentProgress } from "@/hooks/teacher/useStudentProgress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { LessonStatus } from "./types/student";
@@ -23,7 +23,7 @@ interface StudentProgress {
 }
 
 const StudentProgressTracker = () => {
-  const { allStudents, classes, isLoading, error } = useTeacherData();
+  const { students, availableClasses, isLoading, error, fetchStudentLessonDetails } = useStudentProgress();
   const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [studentLessons, setStudentLessons] = useState<LessonStatus[]>([]);
@@ -33,15 +33,15 @@ const StudentProgressTracker = () => {
   const { user } = useAuth();
 
   // Transform students data to component format
-  const transformedStudents: StudentProgress[] = allStudents.map((student: any) => ({
+  const transformedStudents: StudentProgress[] = students.map((student: any) => ({
     id: student.id,
     name: student.name,
     email: student.email,
-    className: "Todas as turmas", // Since we're showing all students
-    lastActivity: null, // This would need to be fetched separately if needed
-    completedLessons: 0, // This would need to be calculated if needed
-    totalLessons: 0, // This would need to be calculated if needed
-    progress: 0 // This would need to be calculated if needed
+    className: student.class_name || "Sem turma",
+    lastActivity: student.last_activity,
+    completedLessons: student.completed_lessons || 0,
+    totalLessons: student.total_lessons || 0,
+    progress: Math.round(student.progress || 0)
   }));
 
   const filteredStudents = transformedStudents.filter(student => {
@@ -53,35 +53,32 @@ const StudentProgressTracker = () => {
   const viewStudentDetails = async (student: StudentProgress) => {
     setSelectedStudent(student);
     
-    // Generate mock lesson data matching the imported LessonStatus interface
-    const mockLessons: LessonStatus[] = [
-      {
-        id: "1",
-        title: "Introdução ao Curso",
-        date: "2024-01-15",
-        status: "completed",
-        watchTimeMinutes: 45,
-        lastWatch: "2024-01-15T10:30:00Z"
-      },
-      {
-        id: "2", 
-        title: "Fundamentos",
-        date: "2024-01-16",
-        status: "in_progress",
-        watchTimeMinutes: 25,
-        lastWatch: "2024-01-16T14:20:00Z"
-      },
-      {
-        id: "3",
-        title: "Projeto Prático",
-        date: "2024-01-17",
-        status: "not_started",
-        watchTimeMinutes: 0,
-        lastWatch: null
-      }
-    ];
+    try {
+      const lessonDetails = await fetchStudentLessonDetails(student.id);
+      
+      // Transform lesson details to match LessonStatus interface
+      const transformedLessons: LessonStatus[] = lessonDetails.map(lesson => ({
+        id: lesson.lesson_id,
+        title: lesson.lesson_title,
+        date: lesson.lesson_date,
+        status: lesson.status as "completed" | "in_progress" | "not_started",
+        watchTimeMinutes: lesson.watch_time_minutes,
+        lastWatch: lesson.last_watch
+      }));
+      
+      setStudentLessons(transformedLessons);
+    } catch (error) {
+      console.error("Error fetching student lesson details:", error);
+      toast({
+        title: "Erro ao carregar detalhes",
+        description: "Não foi possível carregar os detalhes do aluno.",
+        variant: "destructive"
+      });
+      
+      // Set empty lessons on error
+      setStudentLessons([]);
+    }
     
-    setStudentLessons(mockLessons);
     setIsDetailModalOpen(true);
   };
 
@@ -111,7 +108,7 @@ const StudentProgressTracker = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Todos os Alunos ({allStudents.length})</h2>
+        <h2 className="text-xl font-semibold">Meus Alunos ({transformedStudents.length})</h2>
       </div>
 
       <StudentSearchBar 
@@ -119,7 +116,7 @@ const StudentProgressTracker = () => {
         setSearchTerm={setSearchTerm}
         classFilter={classFilter}
         setClassFilter={setClassFilter}
-        availableClasses={[]}
+        availableClasses={availableClasses}
       />
 
       <StudentProgressTable 

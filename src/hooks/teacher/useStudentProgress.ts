@@ -14,6 +14,16 @@ export interface StudentProgressData {
   progress: number;
 }
 
+export interface StudentLessonDetail {
+  lesson_id: string;
+  lesson_title: string;
+  lesson_date: string;
+  status: string;
+  watch_time_minutes: number;
+  last_watch: string | null;
+  progress: number;
+}
+
 export const useStudentProgress = () => {
   const { user } = useAuth();
 
@@ -34,7 +44,7 @@ export const useStudentProgress = () => {
       
       try {
         const { data, error } = await supabase.rpc('get_teacher_student_progress', {
-          teacher_id: user.id
+          p_teacher_id: user.id
         });
 
         if (error) {
@@ -85,11 +95,36 @@ export const useStudentProgress = () => {
     gcTime: 1000 * 60 * 5,
   });
 
+  const fetchStudentLessonDetails = async (studentId: string): Promise<StudentLessonDetail[]> => {
+    if (!user?.id) {
+      throw new Error("Teacher ID not available");
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('get_student_lesson_details', {
+        p_student_id: studentId,
+        p_teacher_id: user.id
+      });
+
+      if (error) {
+        console.error("Error fetching student lesson details:", error);
+        throw error;
+      }
+      
+      console.log("Fetched student lesson details:", data);
+      return data || [];
+    } catch (err) {
+      console.error("Failed to fetch student lesson details:", err);
+      throw err;
+    }
+  };
+
   return {
     students,
     availableClasses,
     isLoading: isLoading || isLoadingClasses,
     error,
-    refetch
+    refetch,
+    fetchStudentLessonDetails
   };
 };

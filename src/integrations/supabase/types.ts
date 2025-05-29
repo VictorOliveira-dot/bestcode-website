@@ -57,6 +57,54 @@ export type Database = {
           },
         ]
       }
+      complementary_courses: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string | null
+          youtube_url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string | null
+          youtube_url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string | null
+          youtube_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complementary_courses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "class_enrollments_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "complementary_courses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           class_id: string
@@ -690,6 +738,15 @@ export type Database = {
           start_date: string
         }[]
       }
+      create_complementary_course: {
+        Args: {
+          p_title: string
+          p_description: string
+          p_youtube_url: string
+          p_teacher_id: string
+        }
+        Returns: string
+      }
       create_lesson: {
         Args: {
           p_title: string
@@ -711,6 +768,10 @@ export type Database = {
       }
       delete_class: {
         Args: { p_class_id: string; p_teacher_id: string }
+        Returns: undefined
+      }
+      delete_complementary_course: {
+        Args: { p_course_id: string; p_teacher_id: string }
         Returns: undefined
       }
       delete_lesson: {
@@ -762,6 +823,18 @@ export type Database = {
           teacher_name: string
         }[]
       }
+      get_student_lesson_details: {
+        Args: { p_student_id: string; p_teacher_id: string }
+        Returns: {
+          lesson_id: string
+          lesson_title: string
+          lesson_date: string
+          status: string
+          watch_time_minutes: number
+          last_watch: string
+          progress: number
+        }[]
+      }
       get_student_lessons: {
         Args: { filter_date?: string }
         Returns: {
@@ -810,6 +883,17 @@ export type Database = {
         Returns: {
           id: string
           name: string
+        }[]
+      }
+      get_teacher_complementary_courses: {
+        Args: { p_teacher_id: string }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          youtube_url: string
+          created_at: string
+          is_active: boolean
         }[]
       }
       get_teacher_lessons: {
@@ -879,6 +963,16 @@ export type Database = {
           p_name: string
           p_description: string
           p_start_date: string
+          p_teacher_id: string
+        }
+        Returns: undefined
+      }
+      update_complementary_course: {
+        Args: {
+          p_course_id: string
+          p_title: string
+          p_description: string
+          p_youtube_url: string
           p_teacher_id: string
         }
         Returns: undefined
