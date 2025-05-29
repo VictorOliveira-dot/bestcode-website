@@ -708,6 +708,26 @@ export type Database = {
           students_count: number
         }[]
       }
+      admin_update_student_data: {
+        Args: {
+          p_student_id: string
+          p_name?: string
+          p_email?: string
+          p_first_name?: string
+          p_last_name?: string
+          p_phone?: string
+          p_whatsapp?: string
+          p_cpf?: string
+          p_birth_date?: string
+          p_address?: string
+          p_education?: string
+          p_professional_area?: string
+          p_experience_level?: string
+          p_goals?: string
+          p_study_availability?: string
+        }
+        Returns: undefined
+      }
       admin_update_student_enrollment: {
         Args: { p_student_id: string; p_class_id: string; p_status: string }
         Returns: undefined

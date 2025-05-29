@@ -14,6 +14,7 @@ import { useStudentActions } from "@/hooks/admin/useStudentActions";
 import { StudentDetailsModal } from "../modals/StudentDetailsModal";
 import { StudentEditModal } from "../modals/StudentEditModal";
 import { DeleteStudentDialog } from "../modals/DeleteStudentDialog";
+import { StudentDataEditModal } from "../modals/StudentDataEditModal";
 
 export interface StudentActionsProps {
   student: {
@@ -28,6 +29,7 @@ export interface StudentActionsProps {
 export function StudentActions({ student, onViewDetails, onEdit, onDelete }: StudentActionsProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDataEdit, setShowDataEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [details, setDetails] = useState(null);
   
@@ -64,6 +66,16 @@ export function StudentActions({ student, onViewDetails, onEdit, onDelete }: Stu
       }
     } catch (error) {
       console.error("Error fetching student details for edit:", error);
+    }
+  };
+
+  const handleDataEdit = async () => {
+    try {
+      const details = await fetchStudentDetails(student.user_id);
+      setDetails(details);
+      setShowDataEdit(true);
+    } catch (error) {
+      console.error("Error fetching student details for data edit:", error);
     }
   };
 
@@ -107,7 +119,11 @@ export function StudentActions({ student, onViewDetails, onEdit, onDelete }: Stu
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleEdit}>
             <Pencil className="mr-2 h-4 w-4" />
-            <span>Editar</span>
+            <span>Editar Matrícula</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleDataEdit}>
+            <Pencil className="mr-2 h-4 w-4" />
+            <span>Editar Dados</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={handleDelete}
@@ -129,6 +145,12 @@ export function StudentActions({ student, onViewDetails, onEdit, onDelete }: Stu
         isOpen={showEdit}
         onClose={() => setShowEdit(false)}
         onConfirm={handleUpdateEnrollment}
+        studentDetails={details}
+      />
+
+      <StudentDataEditModal
+        isOpen={showDataEdit}
+        onClose={() => setShowDataEdit(false)}
         studentDetails={details}
       />
 
