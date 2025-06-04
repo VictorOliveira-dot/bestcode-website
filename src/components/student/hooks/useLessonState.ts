@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Lesson, LessonProgress } from "../types/lesson";
@@ -16,21 +15,41 @@ export function useLessonState(
     lessonsCount: lessons.length,
     studentClass,
     progressCount: lessonProgress.length,
-    lessons: lessons.map(l => ({ id: l.id, title: l.title, class: l.class, visibility: l.visibility }))
+    lessons: lessons.map(l => ({ 
+      id: l.id, 
+      title: l.title, 
+      class: l.class, 
+      class_id: l.class_id,
+      visibility: l.visibility 
+    }))
   });
   
-  // Filter lessons available to the student
+  // Filter lessons available to the student - corrigindo a lógica de filtro
   const availableLessons = lessons.filter(lesson => {
-    const isForThisClass = lesson.class === studentClass;
-    const isForAll = lesson.visibility === 'all';
-    const result = isForThisClass || isForAll;
+    console.log(`🔍 Analyzing lesson "${lesson.title}":`, {
+      lessonClass: lesson.class,
+      lessonClassId: lesson.class_id,
+      visibility: lesson.visibility,
+      studentClass: studentClass
+    });
     
-    console.log(`🔍 Lesson "${lesson.title}": class="${lesson.class}", visibility="${lesson.visibility}", studentClass="${studentClass}", available=${result}`);
+    // Aulas visíveis para todos
+    if (lesson.visibility === 'all') {
+      console.log(`✅ Lesson "${lesson.title}" available - visibility: all`);
+      return true;
+    }
     
-    return result;
+    // Aulas específicas da turma do aluno
+    if (lesson.visibility === 'class_only' && lesson.class === studentClass) {
+      console.log(`✅ Lesson "${lesson.title}" available - class match: ${lesson.class} === ${studentClass}`);
+      return true;
+    }
+    
+    console.log(`❌ Lesson "${lesson.title}" NOT available - no match`);
+    return false;
   });
 
-  console.log('✅ Available lessons:', availableLessons.length);
+  console.log('✅ Available lessons after filtering:', availableLessons.length);
 
   // Filter complementary lessons
   const complementaryLessons = lessons.filter(lesson => 
@@ -64,6 +83,14 @@ export function useLessonState(
       return !progress || progress.status === 'not_started';
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  console.log('📊 Lessons categorized:', {
+    available: availableLessons.length,
+    recent: recentLessons.length,
+    completed: completedLessons.length,
+    notStarted: notStartedLessons.length,
+    complementary: complementaryLessons.length
+  });
 
   const handleLessonClick = (lesson: Lesson) => {
     console.log('🎬 Lesson clicked:', lesson.title);

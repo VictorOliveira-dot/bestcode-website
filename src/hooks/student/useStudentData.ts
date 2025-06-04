@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
@@ -40,6 +39,7 @@ export const useStudentData = () => {
     queryFn: async () => {
       console.log('🔍 Fetching student lessons for user:', user?.id);
       
+      // Buscar todas as aulas disponíveis para o estudante
       const { data, error } = await supabase
         .rpc('get_student_lessons');
 
@@ -48,7 +48,56 @@ export const useStudentData = () => {
         throw error;
       }
       
-      console.log('✅ Lessons fetched:', data);
+      console.log('✅ Lessons fetched from database:', data);
+      
+      // Se não conseguir pelas funções RPC, tentar query direta
+      if (!data || data.length === 0) {
+        console.log('🔄 Trying direct query for lessons...');
+        
+        // Buscar aulas diretamente das tabelas
+        const { data: directLessons, error: directError } = await supabase
+          .from('lessons')
+          .select(`
+            id,
+            title,
+            description,
+            youtube_url,
+            date,
+            class_id,
+            visibility,
+            classes:class_id (
+              id,
+              name,
+              enrollments!inner (
+                student_id
+              )
+            )
+          `)
+          .eq('classes.enrollments.student_id', user?.id);
+        
+        if (directError) {
+          console.error('❌ Error in direct lessons query:', directError);
+          throw directError;
+        }
+        
+        console.log('✅ Direct lessons query result:', directLessons);
+        
+        // Transformar dados para o formato esperado
+        const transformedLessons = directLessons?.map(lesson => ({
+          id: lesson.id,
+          title: lesson.title,
+          description: lesson.description,
+          youtube_url: lesson.youtube_url,
+          date: lesson.date,
+          class_id: lesson.class_id,
+          class_name: lesson.classes?.name || 'Turma não encontrada',
+          visibility: lesson.visibility
+        })) || [];
+        
+        console.log('✅ Transformed lessons:', transformedLessons);
+        return transformedLessons;
+      }
+      
       return data || [];
     },
     enabled: !!user?.id
