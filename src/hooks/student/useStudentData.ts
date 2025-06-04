@@ -39,41 +39,10 @@ export const useStudentData = () => {
     queryFn: async () => {
       console.log('🔍 Fetching student lessons for user:', user?.id);
       
-      // Primeiro tentar pela função RPC
-      const { data: rpcData, error: rpcError } = await supabase
-        .rpc('get_student_lessons');
-
-      if (rpcError) {
-        console.error('❌ Error fetching lessons via RPC:', rpcError);
-      }
-      
-      console.log('✅ Lessons fetched from RPC:', rpcData);
-      
-      // Se conseguir dados da RPC, usar eles
-      if (rpcData && rpcData.length > 0) {
-        // Transformar dados da RPC para o formato esperado
-        const transformedRpcLessons = rpcData.map(lesson => ({
-          id: lesson.id,
-          title: lesson.title,
-          description: lesson.description,
-          youtube_url: lesson.youtube_url,
-          date: lesson.date,
-          class_id: lesson.class_id,
-          class_name: lesson.class_name,
-          visibility: lesson.visibility
-        }));
-        
-        console.log('✅ Transformed RPC lessons:', transformedRpcLessons);
-        return transformedRpcLessons;
-      }
-      
-      // Fallback: fazer query direta
-      console.log('🔄 Trying direct query for lessons...');
-      
-      // Buscar as turmas do estudante primeiro
+      // Primeiro buscar as turmas do estudante
       const { data: studentEnrollments, error: enrollError } = await supabase
         .from('enrollments')
-        .select('class_id')
+        .select('class_id, classes!inner(id, name)')
         .eq('student_id', user?.id);
       
       if (enrollError) {
@@ -90,7 +59,7 @@ export const useStudentData = () => {
       
       const classIds = studentEnrollments.map(e => e.class_id);
       
-      // Buscar aulas para as turmas do estudante
+      // Buscar aulas para as turmas do estudante + aulas com visibilidade 'all'
       const { data: directLessons, error: directError } = await supabase
         .from('lessons')
         .select(`
@@ -101,12 +70,12 @@ export const useStudentData = () => {
           date,
           class_id,
           visibility,
-          classes:class_id (
+          classes!inner(
             id,
             name
           )
         `)
-        .in('class_id', classIds);
+        .or(`class_id.in.(${classIds.join(',')}),visibility.eq.all`);
       
       if (directError) {
         console.error('❌ Error in direct lessons query:', directError);
@@ -131,7 +100,7 @@ export const useStudentData = () => {
         };
       }) || [];
       
-      console.log('✅ Transformed direct lessons:', transformedLessons);
+      console.log('✅ Transformed lessons:', transformedLessons);
       return transformedLessons;
     },
     enabled: !!user?.id

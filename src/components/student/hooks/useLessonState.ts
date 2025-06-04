@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Lesson, LessonProgress } from "../types/lesson";
@@ -83,10 +84,20 @@ export function useLessonState(
     return progress && progress.status === 'completed';
   });
 
+  // CORREÇÃO: Aulas não iniciadas devem incluir aulas sem progresso OU com status 'not_started'
   const notStartedLessons = availableLessons
     .filter(lesson => {
       const progress = lessonProgress.find(p => p.lessonId === lesson.id);
-      return !progress || progress.status === 'not_started';
+      // Se não tem progresso OU status é 'not_started', é uma aula não iniciada
+      const isNotStarted = !progress || progress.status === 'not_started';
+      
+      console.log(`📝 Lesson "${lesson.title}" not started check:`, {
+        hasProgress: !!progress,
+        status: progress?.status,
+        isNotStarted
+      });
+      
+      return isNotStarted;
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
