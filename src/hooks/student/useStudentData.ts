@@ -39,7 +39,7 @@ export const useStudentData = () => {
     queryFn: async () => {
       console.log('🔍 Fetching student lessons for user:', user?.id);
       
-      // Buscar todas as aulas disponíveis para o estudante
+      // Primeiro tentar pela função RPC
       const { data, error } = await supabase
         .rpc('get_student_lessons');
 
@@ -48,13 +48,33 @@ export const useStudentData = () => {
         throw error;
       }
       
-      console.log('✅ Lessons fetched from database:', data);
+      console.log('✅ Lessons fetched from RPC:', data);
       
-      // Se não conseguir pelas funções RPC, tentar query direta
+      // Se não conseguir pelas funções RPC ou não retornar dados, fazer query direta
       if (!data || data.length === 0) {
         console.log('🔄 Trying direct query for lessons...');
         
-        // Buscar aulas diretamente das tabelas com tipo correto
+        // Buscar as turmas do estudante primeiro
+        const { data: studentEnrollments, error: enrollError } = await supabase
+          .from('enrollments')
+          .select('class_id')
+          .eq('student_id', user?.id);
+        
+        if (enrollError) {
+          console.error('❌ Error fetching student enrollments:', enrollError);
+          throw enrollError;
+        }
+        
+        console.log('📚 Student enrolled in classes:', studentEnrollments);
+        
+        if (!studentEnrollments || studentEnrollments.length === 0) {
+          console.log('⚠️ Student not enrolled in any classes');
+          return [];
+        }
+        
+        const classIds = studentEnrollments.map(e => e.class_id);
+        
+        // Buscar aulas para as turmas do estudante
         const { data: directLessons, error: directError } = await supabase
           .from('lessons')
           .select(`
@@ -70,7 +90,7 @@ export const useStudentData = () => {
               name
             )
           `)
-          .eq('classes.enrollments.student_id', user?.id);
+          .in('class_id', classIds);
         
         if (directError) {
           console.error('❌ Error in direct lessons query:', directError);
@@ -79,9 +99,8 @@ export const useStudentData = () => {
         
         console.log('✅ Direct lessons query result:', directLessons);
         
-        // Transformar dados para o formato esperado com tipagem correta
+        // Transformar dados para o formato esperado
         const transformedLessons = directLessons?.map(lesson => {
-          // Garantir que classes é um objeto e não um array
           const classInfo = Array.isArray(lesson.classes) ? lesson.classes[0] : lesson.classes;
           
           return {

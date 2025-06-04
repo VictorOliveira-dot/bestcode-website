@@ -24,7 +24,7 @@ export function useLessonState(
     }))
   });
   
-  // Filter lessons available to the student - corrigindo a lógica de filtro
+  // Filter lessons available to the student - todas as aulas da turma do estudante
   const availableLessons = lessons.filter(lesson => {
     console.log(`🔍 Analyzing lesson "${lesson.title}":`, {
       lessonClass: lesson.class,
@@ -33,23 +33,31 @@ export function useLessonState(
       studentClass: studentClass
     });
     
-    // Aulas visíveis para todos
+    // Aulas visíveis para todos sempre são incluídas
     if (lesson.visibility === 'all') {
       console.log(`✅ Lesson "${lesson.title}" available - visibility: all`);
       return true;
     }
     
-    // Aulas específicas da turma do aluno
-    if (lesson.visibility === 'class_only' && lesson.class === studentClass) {
-      console.log(`✅ Lesson "${lesson.title}" available - class match: ${lesson.class} === ${studentClass}`);
-      return true;
+    // Aulas específicas da turma (class_only) - verificar se a turma bate
+    if (lesson.visibility === 'class_only') {
+      // Usar tanto o nome da classe quanto comparar se é da mesma turma
+      const classMatches = lesson.class === studentClass || 
+                          lesson.class_name === studentClass;
+      
+      console.log(`${classMatches ? '✅' : '❌'} Lesson "${lesson.title}" class_only - class match: ${lesson.class || lesson.class_name} === ${studentClass}`);
+      return classMatches;
     }
     
-    console.log(`❌ Lesson "${lesson.title}" NOT available - no match`);
-    return false;
+    // Por padrão, incluir a aula se for da turma do estudante
+    const belongsToStudentClass = lesson.class === studentClass || 
+                                 lesson.class_name === studentClass;
+    
+    console.log(`${belongsToStudentClass ? '✅' : '❌'} Lesson "${lesson.title}" default - belongs to student class: ${belongsToStudentClass}`);
+    return belongsToStudentClass;
   });
 
-  console.log('✅ Available lessons after filtering:', availableLessons.length);
+  console.log('✅ Available lessons after filtering:', availableLessons.length, availableLessons.map(l => l.title));
 
   // Filter complementary lessons
   const complementaryLessons = lessons.filter(lesson => 
