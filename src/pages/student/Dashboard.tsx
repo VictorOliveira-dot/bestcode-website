@@ -33,6 +33,13 @@ const StudentDashboard = () => {
     return <Navigate to="/teacher/dashboard" />;
   }
 
+  console.log('📊 Dashboard data:', {
+    lessons: lessons?.length || 0,
+    progress: progress?.length || 0,
+    enrollments: enrollments?.length || 0,
+    isLoading
+  });
+
   const formattedLessons = Array.isArray(lessons) ? lessons.map(lesson => ({
     id: lesson.id,
     title: lesson.title,
@@ -74,6 +81,8 @@ const StudentDashboard = () => {
   const studentClass = enrollments && enrollments.length > 0 
     ? enrollments[0].class_name
     : "default";
+
+  console.log('🎓 Student class:', studentClass);
 
   return (
     <div className="min-h-screen bg-slate-50">

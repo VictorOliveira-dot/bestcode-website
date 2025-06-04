@@ -58,6 +58,8 @@ const StudentCourseList = () => {
           throw enrollmentsError;
         }
 
+        console.log('📚 Course enrollments:', enrollments);
+
         const { data: progressData, error: progressError } = await supabase
           .rpc('get_student_progress');
 
@@ -68,9 +70,14 @@ const StudentCourseList = () => {
         const coursesWithProgress = enrollments.map(enrollment => {
           const courseProgress = progressData
             ? progressData
-                .filter(p => p.lesson_id === enrollment.class_id)
+                .filter(p => {
+                  // Find lessons for this class and calculate progress
+                  return lessons?.some(l => l.class_id === enrollment.class_id && l.id === p.lesson_id);
+                })
                 .reduce((avg, curr) => avg + curr.progress, 0) / 
-                Math.max(1, progressData.length)
+                Math.max(1, progressData.filter(p => 
+                  lessons?.some(l => l.class_id === enrollment.class_id && l.id === p.lesson_id)
+                ).length)
             : 0;
 
           return {
@@ -94,7 +101,7 @@ const StudentCourseList = () => {
     };
 
     fetchCourses();
-  }, []);
+  }, [lessons]);
 
   // Effect to handle lesson parameter from schedule
   useEffect(() => {
@@ -154,6 +161,27 @@ const StudentCourseList = () => {
       ? enrollments[0].class_name 
       : "default";
 
+    console.log('🎓 Showing lessons for class:', studentClass);
+
+    const formattedLessons = Array.isArray(lessons) ? lessons.map(lesson => ({
+      id: lesson.id,
+      title: lesson.title,
+      description: lesson.description,
+      youtubeUrl: lesson.youtube_url,
+      date: lesson.date,
+      class: lesson.class_name,
+      class_id: lesson.class_id,
+      visibility: lesson.visibility as 'all' | 'class_only' | 'complementary'
+    })) : [];
+
+    const formattedProgress = Array.isArray(lessonProgress) ? lessonProgress.map(p => ({
+      lessonId: p.lesson_id,
+      watchTimeMinutes: p.watch_time_minutes,
+      progress: p.progress,
+      status: p.status as 'completed' | 'in_progress' | 'not_started',
+      lastWatched: p.last_watched
+    })) : [];
+
     return (
       <div className="min-h-screen bg-slate-50">
         <header className="bg-white shadow py-4">
@@ -180,9 +208,9 @@ const StudentCourseList = () => {
 
         <main className="container-custom py-8">
           <StudentLessonsPanel
-            lessons={lessons || []}
+            lessons={formattedLessons}
             studentClass={studentClass}
-            lessonProgress={lessonProgress || []}
+            lessonProgress={formattedProgress}
             updateLessonProgress={updateProgress}
             isLoading={isLoadingLessons}
           />

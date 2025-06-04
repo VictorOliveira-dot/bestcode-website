@@ -3,12 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
-import { 
-  Enrollment, 
-  LessonData, 
-  ProgressData, 
-  NotificationData 
-} from "@/components/student/types";
 
 export const useStudentData = () => {
   const { user } = useAuth();
@@ -21,10 +15,17 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentEnrollments", user?.id],
     queryFn: async () => {
+      console.log('🔍 Fetching student enrollments for user:', user?.id);
+      
       const { data, error } = await supabase
         .rpc('get_student_enrollments');
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching enrollments:', error);
+        throw error;
+      }
+      
+      console.log('✅ Enrollments fetched:', data);
       return data || [];
     },
     enabled: !!user?.id
@@ -37,11 +38,17 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentLessons", user?.id],
     queryFn: async () => {
+      console.log('🔍 Fetching student lessons for user:', user?.id);
+      
       const { data, error } = await supabase
         .rpc('get_student_lessons');
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching lessons:', error);
+        throw error;
+      }
       
+      console.log('✅ Lessons fetched:', data);
       return data || [];
     },
     enabled: !!user?.id
@@ -54,11 +61,17 @@ export const useStudentData = () => {
   } = useQuery({
     queryKey: ["studentProgress", user?.id],
     queryFn: async () => {
+      console.log('🔍 Fetching student progress for user:', user?.id);
+      
       const { data, error } = await supabase
         .rpc('get_student_progress');
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching progress:', error);
+        throw error;
+      }
       
+      console.log('✅ Progress fetched:', data);
       return data || [];
     },
     enabled: !!user?.id
@@ -111,7 +124,6 @@ export const useStudentData = () => {
         p_status: status
       });
       
-      // Use RPC function to avoid RLS issues
       const { data, error } = await supabase.rpc('upsert_lesson_progress', {
         p_lesson_id: lessonId,
         p_student_id: user.id,
@@ -125,29 +137,23 @@ export const useStudentData = () => {
         throw error;
       }
       
-      console.log('✅ Progress updated successfully via RPC:', data);
+      console.log('✅ Progress updated successfully:', data);
       return data;
     },
     onSuccess: (data, variables) => {
-      console.log('✅ Progress update success callback triggered');
+      console.log('✅ Progress update success, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ["studentProgress"] });
+      queryClient.invalidateQueries({ queryKey: ["teacherStudentProgress"] });
       
       if (variables.progress >= 100) {
         toast({
           title: "Aula concluída!",
           description: "Parabéns! Você completou esta aula.",
         });
-      } else {
-        toast({
-          title: "Progresso salvo",
-          description: "Seu progresso foi atualizado com sucesso"
-        });
       }
     },
     onError: (error: any, variables) => {
-      console.error("❌ Erro detalhado ao atualizar progresso:", error);
-      console.error("Variables:", variables);
-      
+      console.error("❌ Erro ao atualizar progresso:", error);
       toast({
         title: "Erro",
         description: `Não foi possível atualizar seu progresso: ${error.message || 'Erro desconhecido'}`,

@@ -30,9 +30,15 @@ const StudentSchedule = () => {
     ? enrollments[0].class_name 
     : "default";
 
+  console.log('📅 Schedule - Student class:', studentClass);
+
   // Transform lessons data for schedule display
   const scheduleItems = Array.isArray(lessons) ? lessons
-    .filter(lesson => lesson.visibility === 'all' || lesson.class_name === studentClass)
+    .filter(lesson => {
+      const isForThisClass = lesson.class_name === studentClass;
+      const isForAll = lesson.visibility === 'all';
+      return isForThisClass || isForAll;
+    })
     .map(lesson => ({
       id: lesson.id,
       title: lesson.title,
@@ -42,6 +48,8 @@ const StudentSchedule = () => {
       instructor: lesson.class_name ? `Turma: ${lesson.class_name}` : null,
       description: lesson.description
     })) : [];
+
+  console.log('📅 Schedule items:', scheduleItems.length);
 
   // Sort items by date (most recent first)
   const sortedItems = [...scheduleItems].sort(

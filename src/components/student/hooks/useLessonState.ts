@@ -12,12 +12,27 @@ export function useLessonState(
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   
-  // Filter lessons available to the student (those for their class or marked as 'all')
-  const availableLessons = lessons.filter(lesson => 
-    lesson.visibility === 'all' || lesson.class === studentClass
-  );
+  console.log('🎯 useLessonState - Input data:', {
+    lessonsCount: lessons.length,
+    studentClass,
+    progressCount: lessonProgress.length,
+    lessons: lessons.map(l => ({ id: l.id, title: l.title, class: l.class, visibility: l.visibility }))
+  });
+  
+  // Filter lessons available to the student
+  const availableLessons = lessons.filter(lesson => {
+    const isForThisClass = lesson.class === studentClass;
+    const isForAll = lesson.visibility === 'all';
+    const result = isForThisClass || isForAll;
+    
+    console.log(`🔍 Lesson "${lesson.title}": class="${lesson.class}", visibility="${lesson.visibility}", studentClass="${studentClass}", available=${result}`);
+    
+    return result;
+  });
 
-  // Filter complementary lessons (assuming they have a specific visibility type)
+  console.log('✅ Available lessons:', availableLessons.length);
+
+  // Filter complementary lessons
   const complementaryLessons = lessons.filter(lesson => 
     lesson.visibility === 'complementary'
   );
@@ -48,18 +63,19 @@ export function useLessonState(
       const progress = lessonProgress.find(p => p.lessonId === lesson.id);
       return !progress || progress.status === 'not_started';
     })
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort by date, oldest first for priority
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const handleLessonClick = (lesson: Lesson) => {
+    console.log('🎬 Lesson clicked:', lesson.title);
     setSelectedLesson(lesson);
     setIsVideoModalOpen(true);
   };
 
   const handleProgressUpdate = async (lessonId: string, watchTimeMinutes: number, progress: number) => {
     try {
+      console.log('📈 Updating progress:', { lessonId, watchTimeMinutes, progress });
       await updateLessonProgress(lessonId, watchTimeMinutes, progress);
       
-      // Show completion toast when a lesson reaches 100%
       if (progress >= 100) {
         toast({
           title: "Aula concluída!",
@@ -67,8 +83,7 @@ export function useLessonState(
         });
       }
     } catch (error) {
-      console.error('Error updating progress in hook:', error);
-      // The error handling is already done in the updateProgress function
+      console.error('❌ Error updating progress in hook:', error);
     }
   };
 
