@@ -40,86 +40,99 @@ export const useStudentData = () => {
       console.log('🔍 Fetching student lessons for user:', user?.id);
       
       // Primeiro tentar pela função RPC
-      const { data, error } = await supabase
+      const { data: rpcData, error: rpcError } = await supabase
         .rpc('get_student_lessons');
 
-      if (error) {
-        console.error('❌ Error fetching lessons:', error);
-        throw error;
+      if (rpcError) {
+        console.error('❌ Error fetching lessons via RPC:', rpcError);
       }
       
-      console.log('✅ Lessons fetched from RPC:', data);
+      console.log('✅ Lessons fetched from RPC:', rpcData);
       
-      // Se não conseguir pelas funções RPC ou não retornar dados, fazer query direta
-      if (!data || data.length === 0) {
-        console.log('🔄 Trying direct query for lessons...');
+      // Se conseguir dados da RPC, usar eles
+      if (rpcData && rpcData.length > 0) {
+        // Transformar dados da RPC para o formato esperado
+        const transformedRpcLessons = rpcData.map(lesson => ({
+          id: lesson.id,
+          title: lesson.title,
+          description: lesson.description,
+          youtube_url: lesson.youtube_url,
+          date: lesson.date,
+          class_id: lesson.class_id,
+          class_name: lesson.class_name,
+          visibility: lesson.visibility
+        }));
         
-        // Buscar as turmas do estudante primeiro
-        const { data: studentEnrollments, error: enrollError } = await supabase
-          .from('enrollments')
-          .select('class_id')
-          .eq('student_id', user?.id);
-        
-        if (enrollError) {
-          console.error('❌ Error fetching student enrollments:', enrollError);
-          throw enrollError;
-        }
-        
-        console.log('📚 Student enrolled in classes:', studentEnrollments);
-        
-        if (!studentEnrollments || studentEnrollments.length === 0) {
-          console.log('⚠️ Student not enrolled in any classes');
-          return [];
-        }
-        
-        const classIds = studentEnrollments.map(e => e.class_id);
-        
-        // Buscar aulas para as turmas do estudante
-        const { data: directLessons, error: directError } = await supabase
-          .from('lessons')
-          .select(`
+        console.log('✅ Transformed RPC lessons:', transformedRpcLessons);
+        return transformedRpcLessons;
+      }
+      
+      // Fallback: fazer query direta
+      console.log('🔄 Trying direct query for lessons...');
+      
+      // Buscar as turmas do estudante primeiro
+      const { data: studentEnrollments, error: enrollError } = await supabase
+        .from('enrollments')
+        .select('class_id')
+        .eq('student_id', user?.id);
+      
+      if (enrollError) {
+        console.error('❌ Error fetching student enrollments:', enrollError);
+        throw enrollError;
+      }
+      
+      console.log('📚 Student enrolled in classes:', studentEnrollments);
+      
+      if (!studentEnrollments || studentEnrollments.length === 0) {
+        console.log('⚠️ Student not enrolled in any classes');
+        return [];
+      }
+      
+      const classIds = studentEnrollments.map(e => e.class_id);
+      
+      // Buscar aulas para as turmas do estudante
+      const { data: directLessons, error: directError } = await supabase
+        .from('lessons')
+        .select(`
+          id,
+          title,
+          description,
+          youtube_url,
+          date,
+          class_id,
+          visibility,
+          classes:class_id (
             id,
-            title,
-            description,
-            youtube_url,
-            date,
-            class_id,
-            visibility,
-            classes:class_id (
-              id,
-              name
-            )
-          `)
-          .in('class_id', classIds);
-        
-        if (directError) {
-          console.error('❌ Error in direct lessons query:', directError);
-          throw directError;
-        }
-        
-        console.log('✅ Direct lessons query result:', directLessons);
-        
-        // Transformar dados para o formato esperado
-        const transformedLessons = directLessons?.map(lesson => {
-          const classInfo = Array.isArray(lesson.classes) ? lesson.classes[0] : lesson.classes;
-          
-          return {
-            id: lesson.id,
-            title: lesson.title,
-            description: lesson.description,
-            youtube_url: lesson.youtube_url,
-            date: lesson.date,
-            class_id: lesson.class_id,
-            class_name: classInfo?.name || 'Turma não encontrada',
-            visibility: lesson.visibility
-          };
-        }) || [];
-        
-        console.log('✅ Transformed lessons:', transformedLessons);
-        return transformedLessons;
+            name
+          )
+        `)
+        .in('class_id', classIds);
+      
+      if (directError) {
+        console.error('❌ Error in direct lessons query:', directError);
+        throw directError;
       }
       
-      return data || [];
+      console.log('✅ Direct lessons query result:', directLessons);
+      
+      // Transformar dados para o formato esperado
+      const transformedLessons = directLessons?.map(lesson => {
+        const classInfo = lesson.classes as any;
+        
+        return {
+          id: lesson.id,
+          title: lesson.title,
+          description: lesson.description,
+          youtube_url: lesson.youtube_url,
+          date: lesson.date,
+          class_id: lesson.class_id,
+          class_name: classInfo?.name || 'Turma não encontrada',
+          visibility: lesson.visibility
+        };
+      }) || [];
+      
+      console.log('✅ Transformed direct lessons:', transformedLessons);
+      return transformedLessons;
     },
     enabled: !!user?.id
   });

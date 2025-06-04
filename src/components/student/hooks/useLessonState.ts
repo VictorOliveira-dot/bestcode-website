@@ -24,7 +24,7 @@ export function useLessonState(
     }))
   });
   
-  // Filter lessons available to the student - todas as aulas da turma do estudante
+  // Filter lessons available to the student
   const availableLessons = lessons.filter(lesson => {
     console.log(`🔍 Analyzing lesson "${lesson.title}":`, {
       lessonClass: lesson.class,
@@ -41,17 +41,15 @@ export function useLessonState(
     
     // Aulas específicas da turma (class_only) - verificar se a turma bate
     if (lesson.visibility === 'class_only') {
-      // Usar tanto o nome da classe quanto comparar se é da mesma turma
-      const classMatches = lesson.class === studentClass || 
-                          lesson.class_name === studentClass;
+      // Usar o nome da classe para comparar
+      const classMatches = lesson.class === studentClass;
       
-      console.log(`${classMatches ? '✅' : '❌'} Lesson "${lesson.title}" class_only - class match: ${lesson.class || lesson.class_name} === ${studentClass}`);
+      console.log(`${classMatches ? '✅' : '❌'} Lesson "${lesson.title}" class_only - class match: ${lesson.class} === ${studentClass}`);
       return classMatches;
     }
     
     // Por padrão, incluir a aula se for da turma do estudante
-    const belongsToStudentClass = lesson.class === studentClass || 
-                                 lesson.class_name === studentClass;
+    const belongsToStudentClass = lesson.class === studentClass;
     
     console.log(`${belongsToStudentClass ? '✅' : '❌'} Lesson "${lesson.title}" default - belongs to student class: ${belongsToStudentClass}`);
     return belongsToStudentClass;

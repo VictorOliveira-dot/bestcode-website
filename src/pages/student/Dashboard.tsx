@@ -40,7 +40,7 @@ const StudentDashboard = () => {
     rawEnrollments: enrollments
   });
 
-  // Get student class from enrollments data - melhorando a lógica
+  // Get student class from enrollments data
   const studentClass = enrollments && enrollments.length > 0 
     ? enrollments[0].class_name
     : null;
