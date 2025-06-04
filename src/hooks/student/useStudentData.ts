@@ -39,10 +39,39 @@ export const useStudentData = () => {
     queryFn: async () => {
       console.log('🔍 Fetching student lessons for user:', user?.id);
       
-      // Primeiro buscar as turmas do estudante
+      // Buscar todas as aulas diretamente para debug
+      const { data: allLessons, error: allLessonsError } = await supabase
+        .from('lessons')
+        .select(`
+          id,
+          title,
+          description,
+          youtube_url,
+          date,
+          class_id,
+          visibility,
+          classes!inner(
+            id,
+            name
+          )
+        `);
+      
+      if (allLessonsError) {
+        console.error('❌ Error fetching all lessons:', allLessonsError);
+      } else {
+        console.log('📚 All lessons in database:', allLessons);
+      }
+      
+      // Buscar matrículas do estudante
       const { data: studentEnrollments, error: enrollError } = await supabase
         .from('enrollments')
-        .select('class_id, classes!inner(id, name)')
+        .select(`
+          class_id,
+          classes!inner(
+            id,
+            name
+          )
+        `)
         .eq('student_id', user?.id);
       
       if (enrollError) {
@@ -58,9 +87,10 @@ export const useStudentData = () => {
       }
       
       const classIds = studentEnrollments.map(e => e.class_id);
+      console.log('🎯 Class IDs for student:', classIds);
       
-      // Buscar aulas para as turmas do estudante + aulas com visibilidade 'all'
-      const { data: directLessons, error: directError } = await supabase
+      // Buscar aulas das turmas do estudante + aulas com visibilidade 'all'
+      const { data: studentLessons, error: lessonsError } = await supabase
         .from('lessons')
         .select(`
           id,
@@ -77,16 +107,24 @@ export const useStudentData = () => {
         `)
         .or(`class_id.in.(${classIds.join(',')}),visibility.eq.all`);
       
-      if (directError) {
-        console.error('❌ Error in direct lessons query:', directError);
-        throw directError;
+      if (lessonsError) {
+        console.error('❌ Error fetching student lessons:', lessonsError);
+        throw lessonsError;
       }
       
-      console.log('✅ Direct lessons query result:', directLessons);
+      console.log('✅ Student lessons query result:', studentLessons);
       
       // Transformar dados para o formato esperado
-      const transformedLessons = directLessons?.map(lesson => {
+      const transformedLessons = studentLessons?.map(lesson => {
         const classInfo = lesson.classes as any;
+        
+        console.log('🔄 Transforming lesson:', {
+          id: lesson.id,
+          title: lesson.title,
+          class_id: lesson.class_id,
+          visibility: lesson.visibility,
+          classInfo
+        });
         
         return {
           id: lesson.id,
@@ -100,7 +138,7 @@ export const useStudentData = () => {
         };
       }) || [];
       
-      console.log('✅ Transformed lessons:', transformedLessons);
+      console.log('✅ Final transformed lessons:', transformedLessons);
       return transformedLessons;
     },
     enabled: !!user?.id

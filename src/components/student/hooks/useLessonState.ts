@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Lesson, LessonProgress } from "../types/lesson";
@@ -25,38 +24,10 @@ export function useLessonState(
     }))
   });
   
-  // Filter lessons available to the student
-  const availableLessons = lessons.filter(lesson => {
-    console.log(`🔍 Analyzing lesson "${lesson.title}":`, {
-      lessonClass: lesson.class,
-      lessonClassId: lesson.class_id,
-      visibility: lesson.visibility,
-      studentClass: studentClass
-    });
-    
-    // Aulas visíveis para todos sempre são incluídas
-    if (lesson.visibility === 'all') {
-      console.log(`✅ Lesson "${lesson.title}" available - visibility: all`);
-      return true;
-    }
-    
-    // Aulas específicas da turma (class_only) - verificar se a turma bate
-    if (lesson.visibility === 'class_only') {
-      // Usar o nome da classe para comparar
-      const classMatches = lesson.class === studentClass;
-      
-      console.log(`${classMatches ? '✅' : '❌'} Lesson "${lesson.title}" class_only - class match: ${lesson.class} === ${studentClass}`);
-      return classMatches;
-    }
-    
-    // Por padrão, incluir a aula se for da turma do estudante
-    const belongsToStudentClass = lesson.class === studentClass;
-    
-    console.log(`${belongsToStudentClass ? '✅' : '❌'} Lesson "${lesson.title}" default - belongs to student class: ${belongsToStudentClass}`);
-    return belongsToStudentClass;
-  });
-
-  console.log('✅ Available lessons after filtering:', availableLessons.length, availableLessons.map(l => l.title));
+  // Usar todas as aulas que chegaram - já foram filtradas no hook useStudentData
+  const availableLessons = lessons;
+  
+  console.log('✅ Available lessons (all passed lessons):', availableLessons.length, availableLessons.map(l => l.title));
 
   // Filter complementary lessons
   const complementaryLessons = lessons.filter(lesson => 
@@ -84,11 +55,10 @@ export function useLessonState(
     return progress && progress.status === 'completed';
   });
 
-  // CORREÇÃO: Aulas não iniciadas devem incluir aulas sem progresso OU com status 'not_started'
+  // Aulas não iniciadas: sem progresso OU com status 'not_started'
   const notStartedLessons = availableLessons
     .filter(lesson => {
       const progress = lessonProgress.find(p => p.lessonId === lesson.id);
-      // Se não tem progresso OU status é 'not_started', é uma aula não iniciada
       const isNotStarted = !progress || progress.status === 'not_started';
       
       console.log(`📝 Lesson "${lesson.title}" not started check:`, {
