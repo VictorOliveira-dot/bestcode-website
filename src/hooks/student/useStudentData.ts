@@ -54,7 +54,7 @@ export const useStudentData = () => {
       if (!data || data.length === 0) {
         console.log('🔄 Trying direct query for lessons...');
         
-        // Buscar aulas diretamente das tabelas
+        // Buscar aulas diretamente das tabelas com tipo correto
         const { data: directLessons, error: directError } = await supabase
           .from('lessons')
           .select(`
@@ -67,10 +67,7 @@ export const useStudentData = () => {
             visibility,
             classes:class_id (
               id,
-              name,
-              enrollments!inner (
-                student_id
-              )
+              name
             )
           `)
           .eq('classes.enrollments.student_id', user?.id);
@@ -82,17 +79,22 @@ export const useStudentData = () => {
         
         console.log('✅ Direct lessons query result:', directLessons);
         
-        // Transformar dados para o formato esperado
-        const transformedLessons = directLessons?.map(lesson => ({
-          id: lesson.id,
-          title: lesson.title,
-          description: lesson.description,
-          youtube_url: lesson.youtube_url,
-          date: lesson.date,
-          class_id: lesson.class_id,
-          class_name: lesson.classes?.name || 'Turma não encontrada',
-          visibility: lesson.visibility
-        })) || [];
+        // Transformar dados para o formato esperado com tipagem correta
+        const transformedLessons = directLessons?.map(lesson => {
+          // Garantir que classes é um objeto e não um array
+          const classInfo = Array.isArray(lesson.classes) ? lesson.classes[0] : lesson.classes;
+          
+          return {
+            id: lesson.id,
+            title: lesson.title,
+            description: lesson.description,
+            youtube_url: lesson.youtube_url,
+            date: lesson.date,
+            class_id: lesson.class_id,
+            class_name: classInfo?.name || 'Turma não encontrada',
+            visibility: lesson.visibility
+          };
+        }) || [];
         
         console.log('✅ Transformed lessons:', transformedLessons);
         return transformedLessons;
