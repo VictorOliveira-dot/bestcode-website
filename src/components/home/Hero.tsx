@@ -59,7 +59,7 @@ const Hero = () => {
               <div className="aspect-video rounded-md overflow-hidden">
                 <iframe 
                   className="w-full h-full"
-                  src="" 
+                  src="https://www.youtube.com/embed/rk-pmBiGI5w"
                   title="Como nosso curso funciona"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowFullScreen

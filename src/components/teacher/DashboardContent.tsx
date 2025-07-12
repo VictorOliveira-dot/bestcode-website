@@ -47,7 +47,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 space-y-6 flex flex-col gap-3">
-      <TabsList className="grid w-full grid-cols-5 bg-bestcode-600 text-white">
+      <TabsList className="flex gap-4 w-full grid grid-cols-5 bg-bestcode-600 text-white">
         <TabsTrigger value="lessons">Aulas</TabsTrigger>
         <TabsTrigger value="classes">Minhas Turmas</TabsTrigger>
         <TabsTrigger value="allClasses">Todas as Turmas</TabsTrigger>
@@ -58,7 +58,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       <TabsContent value="lessons" className="space-y-4">
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center sm:flex-row flex-col gap-4">
               <div>
                 <CardTitle>Minhas Aulas</CardTitle>
               </div>

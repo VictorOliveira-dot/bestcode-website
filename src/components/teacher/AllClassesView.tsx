@@ -109,7 +109,8 @@ const AllClassesView = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <Card className="space-y-6 p-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center sm:text-center gap-4">
         <div>
           <h2 className="text-2xl font-semibold">Todas as Turmas</h2>
           <p className="text-muted-foreground">
@@ -209,6 +210,7 @@ const AllClassesView = () => {
         handleAddClass={onAddClass}
         isLoading={isLoadingManagement}
       />
+      </Card>
     </div>
   );
 };

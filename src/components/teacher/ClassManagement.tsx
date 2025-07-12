@@ -8,6 +8,7 @@ import ClassManagementHeader from "./ClassManagementHeader";
 import { useClassManagement } from "@/hooks/teacher/useClassManagement";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 import { toast } from "@/hooks/use-toast";
+import { Card } from "../ui/card";
 
 const ClassManagement = () => {
   const [isAddClassOpen, setIsAddClassOpen] = useState(false);
@@ -95,6 +96,7 @@ const ClassManagement = () => {
 
   return (
     <div className="space-y-6">
+      <Card className="space-y-6 p-4">
       <ClassManagementHeader 
         onAddClassClick={() => setIsAddClassOpen(true)}
         isLoading={isLoading}
@@ -128,6 +130,7 @@ const ClassManagement = () => {
         handleEditClass={onEditClass}
         isLoading={isLoading}
       />
+      </Card>
     </div>
   );
 };
