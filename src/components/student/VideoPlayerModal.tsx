@@ -372,7 +372,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           {/* Navigation and action buttons */}
           <div className="space-y-3">
             {/* Top row - Main actions */}
-            <div className="flex flex-col sm:flex-row gap-2">
+            {/* <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={handleSaveProgress}
                 disabled={isSaving}
@@ -391,10 +391,10 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 <CheckCircle size={16} />
                 {progress >= 100 ? 'Aula Concluída' : 'Concluir Aula'}
               </Button>
-            </div>
+            </div> */}
             
             {/* Bottom row - Navigation */}
-            <div className="flex gap-2">
+            {/* <div className="flex gap-2">
               <Button
                 onClick={handlePreviousLesson}
                 disabled={isSaving || !hasPreviousLesson}
@@ -413,7 +413,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                 Próxima Aula
                 <ChevronRight size={16} />
               </Button>
-            </div>
+            </div> */}
           </div>
           
           <p className="text-xs text-gray-500 mt-2">
