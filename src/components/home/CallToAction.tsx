@@ -20,17 +20,12 @@ const CallToAction = () => {
                 durante todo o seu percurso de aprendizado.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/register">
+                <a href="https://typebot.co/lead-magnet-r-ki-1-nuh59rv" target="_blank" rel="noopener noreferrer">
                   <Button size="lg" className="bg-bestcode-600 hover:bg-bestcode-700 text-white">
                     Matricule-se Agora
                     <ArrowRight className="ml-2" size={16} />
                   </Button>
-                </Link>
-                <Link to="/contact">
-                  <Button size="lg" variant="outline" className="text-bestcode-600 border-bestcode-600 hover:bg-bestcode-400 hover:text-white">
-                    Fale com um Consultor
-                  </Button>
-                </Link>
+                </a>
               </div>
             </div>
             

@@ -19,7 +19,7 @@ const AdminDashboardCards: React.FC<DashboardCardsProps> = ({
   onChangeTab,
 }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <Card 
         className="cursor-pointer hover:shadow-md transition-shadow" 
         onClick={() => onChangeTab("students")}
@@ -68,21 +68,6 @@ const AdminDashboardCards: React.FC<DashboardCardsProps> = ({
         </CardContent>
       </Card>
 
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-shadow" 
-        onClick={() => onChangeTab("payments")}
-      >
-        <CardContent className="p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Receita</p>
-            <h3 className="text-2xl font-bold mt-1">{revenueAmount}</h3>
-            <p className="text-xs text-gray-500 mt-1">Receita total</p>
-          </div>
-          <div className="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center">
-            <DollarSign className="h-6 w-6 text-yellow-600" />
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

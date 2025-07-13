@@ -12,39 +12,21 @@ const HowItWorks = () => {
   const steps = [
     {
       id: 1,
-      title: "Escolha seu curso",
-      description: "Navegue por nossa oferta de cursos e escolha o que melhor atende às suas necessidades, seja uma formação completa ou um curso específico.",
-      icon: <Laptop className="w-12 h-12 text-bestcode-600" />
-    },
-    {
-      id: 2,
       title: "Estude no seu ritmo",
       description: "Acesse aulas gravadas e materiais complementares quando quiser. Nosso conteúdo está disponível 24/7 para você estudar conforme sua disponibilidade.",
       icon: <Video className="w-12 h-12 text-bestcode-600" />
     },
     {
-      id: 3,
+      id: 2,
       title: "Participe de sessões ao vivo",
       description: "Conecte-se com professores e colegas em aulas ao vivo semanais, tire suas dúvidas e participe de discussões em tempo real.",
       icon: <Users className="w-12 h-12 text-bestcode-600" />
     },
     {
-      id: 4,
-      title: "Receba mentorias individuais",
-      description: "Agende mentorias personalizadas com profissionais experientes para orientação específica sobre seus projetos e carreira.",
-      icon: <MessageSquare className="w-12 h-12 text-bestcode-600" />
-    },
-    {
-      id: 5,
+      id: 3,
       title: "Complete projetos práticos",
       description: "Aplique seu conhecimento em projetos reais que simulam ambientes profissionais e construa um portfólio sólido.",
       icon: <FileCheck className="w-12 h-12 text-bestcode-600" />
-    },
-    {
-      id: 6,
-      title: "Obtenha sua certificação",
-      description: "Ao completar o curso com sucesso, receba um certificado reconhecido pelo mercado que valoriza sua nova qualificação.",
-      icon: <Award className="w-12 h-12 text-bestcode-600" />
     }
   ];
 
@@ -62,11 +44,6 @@ const HowItWorks = () => {
                 iniciantes em profissionais qualificados de QA prontos para o mercado.
               </p>
               <div className="flex justify-center gap-4">
-                <Link to="/courses">
-                  <Button className="bg-bestcode-600 hover:bg-bestcode-700">
-                    Ver cursos disponíveis
-                  </Button>
-                </Link>
                 <Link to="/faq">
                   <Button variant="outline">
                     Perguntas frequentes
@@ -284,11 +261,6 @@ const HowItWorks = () => {
                   description="Projetos reais, simulações de ambiente de trabalho e desafios práticos."
                 />
                 
-                <JourneyStep 
-                  number="4" 
-                  title="Preparação para o Mercado" 
-                  description="Projeto final, simulações de entrevista e certificação."
-                />
               </div>
             </div>
           </div>
@@ -340,14 +312,6 @@ const HowItWorks = () => {
               </Card>
             </div>
             
-            <div className="mt-12">
-              <Link to="/testimonials">
-                <Button variant="secondary" className="bg-white text-bestcode-600 hover:bg-gray-100">
-                  Ver mais depoimentos
-                  <ArrowRight size={16} className="ml-2" />
-                </Button>
-              </Link>
-            </div>
           </div>
         </section>
         

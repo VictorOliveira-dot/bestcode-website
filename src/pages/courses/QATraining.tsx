@@ -37,7 +37,7 @@ const QATraining = () => {
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                   <div className="flex flex-col items-center">
-                    <span className="text-2xl font-bold text-bestcode-600">6</span>
+                    <span className="text-2xl font-bold text-bestcode-600">8</span>
                     <span className="text-sm text-gray-600">Meses</span>
                   </div>
                   <div className="flex flex-col items-center">
@@ -61,31 +61,21 @@ const QATraining = () => {
                     <div className="flex items-center gap-3">
                       <Calendar className="text-bestcode-600" size={24} />
                       <div>
-                        <p className="font-medium">Turma Agosto/2023</p>
-                        <p className="text-sm text-gray-600">Início em 15/08/2023</p>
+                        <p className="font-medium">Turma Agosto/2025</p>
+                        <p className="text-sm text-gray-600">Início em 18/08/2025</p>
                       </div>
                     </div>
-                    <span className="text-sm bg-green-100 text-green-800 py-1 px-3 rounded-full">Vagas disponíveis</span>
+                    <span className="text-sm bg-green-100 text-green-800 py-1 px-3 rounded-full">Turma aberta</span>
                   </div>
                   <div className="p-4 border border-gray-200 rounded-lg flex items-center justify-between hover:border-bestcode-300 transition-colors">
                     <div className="flex items-center gap-3">
                       <Calendar className="text-bestcode-600" size={24} />
                       <div>
-                        <p className="font-medium">Turma Setembro/2023</p>
-                        <p className="text-sm text-gray-600">Início em 12/09/2023</p>
+                        <p className="font-medium">Turma Janeiro/2026</p>
+                        <p className="text-sm text-gray-600">Início em janeiro de 2026</p>
                       </div>
                     </div>
-                    <span className="text-sm bg-yellow-100 text-yellow-800 py-1 px-3 rounded-full">Últimas vagas</span>
-                  </div>
-                  <div className="p-4 border border-gray-200 rounded-lg flex items-center justify-between hover:border-bestcode-300 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="text-bestcode-600" size={24} />
-                      <div>
-                        <p className="font-medium">Turma Outubro/2023</p>
-                        <p className="text-sm text-gray-600">Início em 10/10/2023</p>
-                      </div>
-                    </div>
-                    <span className="text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-full">Inscrições abertas</span>
+                    <span className="text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-full">Próxima turma</span>
                   </div>
                 </div>
               </div>
@@ -104,7 +94,7 @@ const QATraining = () => {
                 </div>
                 <h3 className="text-xl font-bold mb-2">Duração do Curso</h3>
                 <p className="text-gray-600">
-                  6 meses de formação intensiva, com aulas ao vivo semanais e conteúdo gravado para estudar no seu ritmo. 
+                  8 meses de formação intensiva, com aulas ao vivo semanais e conteúdo gravado para estudar no seu ritmo. 
                   Acesso aos materiais por 12 meses após a conclusão.
                 </p>
               </div>

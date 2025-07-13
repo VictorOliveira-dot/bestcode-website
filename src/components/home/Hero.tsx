@@ -40,17 +40,12 @@ const Hero = () => {
             </ul>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/courses/qa-training">
+              <a href="https://typebot.co/lead-magnet-r-ki-1-nuh59rv" target="_blank" rel="noopener noreferrer">
                 <Button size="lg" className="bg-bestcode-500 hover:bg-bestcode-600 text-white">
-                  Conheça Nossos Cursos
+                  Matricule-se
                   <ArrowRight className="ml-2" size={16} />
                 </Button>
-              </Link>
-              <Link to="/how-it-works">
-                <Button size="lg" className="text-white border-white bg-bestcode-500 hover:!bg-bestcode-600 text-white">
-                  Como Funciona
-                </Button>
-              </Link>
+              </a>
             </div>
           </div>
           

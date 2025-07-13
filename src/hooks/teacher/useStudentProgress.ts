@@ -60,8 +60,9 @@ export const useStudentProgress = () => {
       }
     },
     enabled: !!user?.id,
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2, // Cache por 2 minutos
+    gcTime: 1000 * 60 * 10, // Garbage collection em 10 minutos
+    retry: 2,
   });
 
   const {
@@ -91,8 +92,8 @@ export const useStudentProgress = () => {
       }
     },
     enabled: !!user?.id,
-    staleTime: 30000,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
+    gcTime: 1000 * 60 * 15, // Garbage collection em 15 minutos
   });
 
   const fetchStudentLessonDetails = async (studentId: string): Promise<StudentLessonDetail[]> => {

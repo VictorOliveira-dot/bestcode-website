@@ -22,23 +22,13 @@ const Navbar = () => {
 
   const navItems = [
     { 
-      name: "Cursos", 
-      path: "/courses",
-      hasDropdown: true,
-      dropdownItems: [
-        { name: "Formação QA", path: "/courses/qa-training" },
-        { name: "Cursos Complementares", path: "/courses/complementary" },
-        { name: "Todos os Cursos", path: "/courses" },
-      ]
+      name: "Nossos Cursos", 
+      path: "/courses/qa-training",
+      hasDropdown: false
     },
     { 
       name: "Sobre Nós", 
       path: "/about",
-      hasDropdown: false
-    },
-    { 
-      name: "Como Funciona", 
-      path: "/how-it-works",
       hasDropdown: false
     },
     { 
@@ -82,20 +72,6 @@ const Navbar = () => {
                   </button>
                 )}
 
-                {item.hasDropdown && activeDropdown === item.name && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white shadow-md rounded-md overflow-hidden py-1 z-20">
-                    {item.dropdownItems?.map((dropItem) => (
-                      <Link
-                        key={dropItem.name}
-                        to={dropItem.path}
-                        className="block px-4 py-2 text-gray-700 hover:bg-bestcode-50 hover:text-bestcode-600"
-                        onClick={() => setActiveDropdown(null)}
-                      >
-                        {dropItem.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
               </li>
             ))}
           </ul>
@@ -103,9 +79,9 @@ const Navbar = () => {
             <Link to="/login">
               <Button variant="outline" className="font-medium hover:bg-bestcode-600 hover:text-white">Login</Button>
             </Link>
-            <Link to="/register">
+            <a href="https://typebot.co/lead-magnet-r-ki-1-nuh59rv" target="_blank" rel="noopener noreferrer">
               <Button className="bg-bestcode-600 hover:bg-bestcode-700 font-medium">Matricule-se</Button>
-            </Link>
+            </a>
           </div>
         </div>
 
@@ -130,20 +106,6 @@ const Navbar = () => {
                         <ChevronDown size={16} className={`transition-transform ${activeDropdown === item.name ? 'rotate-180' : ''}`} />
                       </button>
                       
-                      {activeDropdown === item.name && (
-                        <div className="bg-gray-50">
-                          {item.dropdownItems?.map((dropItem) => (
-                            <Link
-                              key={dropItem.name}
-                              to={dropItem.path}
-                              className="block p-4 pl-8 text-gray-700 hover:text-bestcode-600"
-                              onClick={toggleMenu}
-                            >
-                              {dropItem.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
                     </>
                   ) : (
                     <button 
@@ -163,9 +125,9 @@ const Navbar = () => {
               <Link to="/login" onClick={toggleMenu}>
                 <Button variant="outline" className="w-full">Login</Button>
               </Link>
-              <Link to="/register" onClick={toggleMenu}>
+              <a href="https://typebot.co/lead-magnet-r-ki-1-nuh59rv" target="_blank" rel="noopener noreferrer" onClick={toggleMenu}>
                 <Button className="w-full bg-bestcode-600 hover:bg-bestcode-700">Matricule-se</Button>
-              </Link>
+              </a>
             </div>
           </div>
         )}

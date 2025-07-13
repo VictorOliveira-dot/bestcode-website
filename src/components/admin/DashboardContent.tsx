@@ -14,6 +14,7 @@ import { useAdminData } from "@/hooks/admin/useAdminData";
 import RevenueTable from "./tables/RevenueTable";
 import { EnrollStudentModal } from "./modals/EnrollStudentModal";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
+import CreateEnrollmentModal from "./modals/CreateEnrollmentModal";
 
 interface DashboardContentProps {
   activeTab: string;
@@ -60,10 +61,13 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         <TabsContent value="students" className="p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Gestão de Alunos</h2>
-            <Button onClick={() => setIsEnrollModalOpen(true)}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Vincular Aluno à Turma
-            </Button>
+            <div className="flex gap-2">
+              <CreateEnrollmentModal onEnrollmentCreated={() => window.location.reload()} />
+              <Button onClick={() => setIsEnrollModalOpen(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Vincular Aluno à Turma
+              </Button>
+            </div>
           </div>
           {isLoading ? (
             <div className="space-y-4">
