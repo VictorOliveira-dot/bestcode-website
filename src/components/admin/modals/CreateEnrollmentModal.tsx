@@ -22,7 +22,7 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
     name: "",
     email: "",
     password: "",
-    classId: ""
+    classId: "no-class"
   });
 
   const { availableClasses, isLoading: isLoadingClasses } = useAvailableClasses();
@@ -67,8 +67,8 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
         console.error("Erro ao criar usuário na tabela:", userError);
       }
 
-      // 3. Criar matrícula se classe selecionada
-      if (formData.classId) {
+      // 3. Criar matrícula se classe selecionada (e não for "no-class")
+      if (formData.classId && formData.classId !== "no-class") {
         const { error: enrollmentError } = await supabase
           .from('enrollments')
           .insert({
@@ -102,7 +102,7 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
         name: "",
         email: "",
         password: "",
-        classId: ""
+        classId: "no-class"
       });
       setOpen(false);
       onEnrollmentCreated?.();
@@ -173,10 +173,10 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
               </SelectTrigger>
               <SelectContent>
                 {isLoadingClasses ? (
-                  <SelectItem value="" disabled>Carregando...</SelectItem>
+                  <SelectItem value="loading" disabled>Carregando...</SelectItem>
                 ) : (
                   <>
-                    <SelectItem value="">Sem turma inicial</SelectItem>
+                    <SelectItem value="no-class">Sem turma inicial</SelectItem>
                     {availableClasses?.map((cls) => (
                       <SelectItem key={cls.id} value={cls.id}>
                         {cls.name} - {cls.teacher_name}
