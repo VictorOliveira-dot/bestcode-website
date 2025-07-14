@@ -67,48 +67,65 @@ function App() {
         <Route path="/courses/qa-training" element={<QATraining />} />
 
         {/* Rotas protegidas para admin */}
-        <Route 
-          path="/admin/*" 
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <Routes>
-                <Route path="/" element={<AdminDashboard />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
-              </Routes>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/dashboard" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
 
         {/* Rotas protegidas para estudantes (requer ativação) */}
-        <Route 
-          path="/student/*" 
-          element={
-            <ActiveUserRoute>
-              <ProtectedRoute allowedRoles={['student']}>
-                <Routes>
-                  <Route path="/" element={<StudentDashboard />} />
-                  <Route path="dashboard" element={<StudentDashboard />} />
-                  <Route path="courses" element={<StudentCourseList />} />
-                  <Route path="progress" element={<StudentProgressDetails />} />
-                  <Route path="schedule" element={<StudentSchedule />} />
-                </Routes>
-              </ProtectedRoute>
-            </ActiveUserRoute>
-          }
-        />
+        <Route path="/student" element={
+          <ActiveUserRoute>
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentDashboard />
+            </ProtectedRoute>
+          </ActiveUserRoute>
+        } />
+        <Route path="/student/dashboard" element={
+          <ActiveUserRoute>
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentDashboard />
+            </ProtectedRoute>
+          </ActiveUserRoute>
+        } />
+        <Route path="/student/courses" element={
+          <ActiveUserRoute>
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentCourseList />
+            </ProtectedRoute>
+          </ActiveUserRoute>
+        } />
+        <Route path="/student/progress" element={
+          <ActiveUserRoute>
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentProgressDetails />
+            </ProtectedRoute>
+          </ActiveUserRoute>
+        } />
+        <Route path="/student/schedule" element={
+          <ActiveUserRoute>
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentSchedule />
+            </ProtectedRoute>
+          </ActiveUserRoute>
+        } />
 
         {/* Rotas protegidas para professores */}
-        <Route 
-          path="/teacher/*" 
-          element={
-            <ProtectedRoute allowedRoles={['teacher']}>
-              <Routes>
-                <Route path="/" element={<TeacherDashboard />} />
-                <Route path="dashboard" element={<TeacherDashboard />} />
-              </Routes>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/teacher" element={
+          <ProtectedRoute allowedRoles={['teacher']}>
+            <TeacherDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/teacher/dashboard" element={
+          <ProtectedRoute allowedRoles={['teacher']}>
+            <TeacherDashboard />
+          </ProtectedRoute>
+        } />
 
         {/* Rota de matrícula - agora é a página para completar perfil (sem requisito de ativação) */}
         <Route path="/enrollment" element={<Enrollment />} />
