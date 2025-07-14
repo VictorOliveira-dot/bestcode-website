@@ -75,7 +75,7 @@ const AdminDashboard = () => {
         setActiveTab={setActiveTab}
       />
 
-      <main className="container-custom py-4 md:py-8 px-2 md:px-0">
+      <main className="container-custom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
         <DashboardActions 
           onTeacherAdded={handleTeacherAdded} 
           onClassAdded={handleClassAdded} 

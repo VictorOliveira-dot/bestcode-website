@@ -14,6 +14,7 @@ import ProfileCompletion from "./pages/ProfileCompletion";
 import Enrollment from "./pages/Enrollment";
 import PaymentPix from "./pages/PaymentPix";
 import PaymentBoleto from "./pages/PaymentBoleto";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Páginas de Cursos
 import AllCourses from "./pages/courses/AllCourses";
@@ -42,7 +43,8 @@ import { Toaster } from "./components/ui/toaster";
 
 function App() {
   return (
-    <>
+    <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Páginas públicas */}
         <Route path="/" element={<Index />} />
@@ -116,7 +118,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
-    </>
+    </BrowserRouter>
   );
 }
 

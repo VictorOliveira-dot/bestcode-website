@@ -12,8 +12,8 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-grow flex items-center justify-center bg-gray-50 py-12">
-        <div className="container-custom">          
+      <main className="flex-grow flex items-center justify-center bg-gray-50 py-8 sm:py-12">
+        <div className="container-custom px-4 sm:px-6 lg:px-8">
           {loading ? (
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bestcode-600"></div>

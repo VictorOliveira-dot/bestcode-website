@@ -102,14 +102,14 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="flex justify-between items-center p-4">
+      <div className="flex justify-between items-center p-3 sm:p-4">
         <DashboardHeader userName={user.name} />
       </div>
 
-      <main className="container-custom py-8">
+      <main className="container-custom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
         <DashboardStatsCards {...stats} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           <div className="lg:col-span-2">
             {studentClass ? (
               <StudentLessonsPanel

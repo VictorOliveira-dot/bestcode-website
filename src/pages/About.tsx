@@ -40,12 +40,12 @@ const About = () => {
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="bg-bestcode-50 py-20">
-          <div className="container-custom">
+        <section className="bg-bestcode-50 py-12 sm:py-16 lg:py-20">
+          <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <Badge className="mb-6 bg-bestcode-100 text-bestcode-800 border-none">Nossa História</Badge>
-              <h1 className="text-4xl font-bold mb-6">Transformando Profissionais em Especialistas de QA</h1>
-              <p className="text-lg text-gray-700">
+              <Badge className="mb-4 sm:mb-6 bg-bestcode-100 text-bestcode-800 border-none text-xs sm:text-sm">Nossa História</Badge>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">Transformando Profissionais em Especialistas de QA</h1>
+              <p className="text-base sm:text-lg text-gray-700">
                 Fundada em 2018 por um grupo de profissionais apaixonados por Quality Assurance,
                 a BestCode nasceu com a missão de oferecer educação prática e de qualidade para
                 formar os melhores profissionais do mercado.
@@ -55,16 +55,16 @@ const About = () => {
         </section>
         
         {/* Mission and Values */}
-        <section className="py-16">
-          <div className="container-custom">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <section className="py-12 sm:py-16">
+          <div className="container-custom px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
               <Card className="bg-bestcode-50 border-none">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-bestcode-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Target className="text-bestcode-600" size={32} />
+                <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-bestcode-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <Target className="text-bestcode-600" size={24} />
                   </div>
-                  <h3 className="text-xl font-bold mb-4">Nossa Missão</h3>
-                  <p className="text-gray-700">
+                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Nossa Missão</h3>
+                  <p className="text-sm sm:text-base text-gray-700">
                     Capacitar profissionais de tecnologia com conhecimentos práticos e relevantes em Quality Assurance,
                     contribuindo para a evolução da qualidade de software no mercado.
                   </p>
@@ -72,12 +72,12 @@ const About = () => {
               </Card>
               
               <Card className="bg-bestcode-50 border-none">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-bestcode-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <User className="text-bestcode-600" size={32} />
+                <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-bestcode-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <User className="text-bestcode-600" size={24} />
                   </div>
-                  <h3 className="text-xl font-bold mb-4">Nossa Visão</h3>
-                  <p className="text-gray-700">
+                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Nossa Visão</h3>
+                  <p className="text-sm sm:text-base text-gray-700">
                     Ser reconhecida como a melhor instituição de ensino em Quality Assurance do Brasil,
                     formando profissionais preparados para os desafios reais do mercado.
                   </p>
@@ -85,12 +85,12 @@ const About = () => {
               </Card>
               
               <Card className="bg-bestcode-50 border-none">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-bestcode-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Heart className="text-bestcode-600" size={32} />
+                <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-bestcode-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <Heart className="text-bestcode-600" size={24} />
                   </div>
-                  <h3 className="text-xl font-bold mb-4">Nossos Valores</h3>
-                  <p className="text-gray-700">
+                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Nossos Valores</h3>
+                  <p className="text-sm sm:text-base text-gray-700">
                     Excelência, Inovação, Foco no aluno, Aplicabilidade prática, Ética e transparência
                     são os valores que norteiam todas as nossas ações.
                   </p>
@@ -101,9 +101,9 @@ const About = () => {
         </section>
         
         {/* Timeline */}
-        <section className="py-16 bg-gray-50">
-          <div className="container-custom">
-            <h2 className="text-3xl font-bold mb-12 text-center">Nossa Trajetória</h2>
+        <section className="py-12 sm:py-16 bg-gray-50">
+          <div className="container-custom px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 text-center">Nossa Trajetória</h2>
             
             <div className="relative max-w-4xl mx-auto">
               {/* Line */}
@@ -158,23 +158,23 @@ const About = () => {
         </section>
         
         {/* Team */}
-        <section className="py-16">
-          <div className="container-custom">
-            <h2 className="text-3xl font-bold mb-12 text-center">Nossa Equipe</h2>
+        <section className="py-12 sm:py-16">
+          <div className="container-custom px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 text-center">Nossa Equipe</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
               {teamMembers.map((member, index) => (
                 <div key={index} className="text-center">
-                  <div className="w-40 h-40 mx-auto rounded-full overflow-hidden mb-4">
+                  <div className="w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 mx-auto rounded-full overflow-hidden mb-3 sm:mb-4">
                     <img 
                       src={member.image} 
                       alt={member.name} 
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <h3 className="text-xl font-bold">{member.name}</h3>
-                  <p className="text-bestcode-600 font-medium mb-2">{member.role}</p>
-                  <p className="text-gray-600 text-sm">{member.description}</p>
+                  <h3 className="text-lg sm:text-xl font-bold">{member.name}</h3>
+                  <p className="text-bestcode-600 font-medium mb-2 text-sm sm:text-base">{member.role}</p>
+                  <p className="text-gray-600 text-xs sm:text-sm">{member.description}</p>
                 </div>
               ))}
             </div>
@@ -182,33 +182,33 @@ const About = () => {
         </section>
         
         {/* Stats */}
-        <section className="py-16 bg-bestcode-600 text-white">
-          <div className="container-custom">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <section className="py-12 sm:py-16 bg-bestcode-600 text-white">
+          <div className="container-custom px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 text-center">
               <div>
-                <div className="text-4xl font-bold mb-2">10.000+</div>
-                <p className="text-bestcode-100">Alunos Formados</p>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">10.000+</div>
+                <p className="text-bestcode-100 text-xs sm:text-sm">Alunos Formados</p>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">15+</div>
-                <p className="text-bestcode-100">Cursos Especializados</p>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">15+</div>
+                <p className="text-bestcode-100 text-xs sm:text-sm">Cursos Especializados</p>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">92%</div>
-                <p className="text-bestcode-100">Taxa de Empregabilidade</p>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">92%</div>
+                <p className="text-bestcode-100 text-xs sm:text-sm">Taxa de Empregabilidade</p>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">4.9/5</div>
-                <p className="text-bestcode-100">Avaliação dos Alunos</p>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">4.9/5</div>
+                <p className="text-bestcode-100 text-xs sm:text-sm">Avaliação dos Alunos</p>
               </div>
             </div>
           </div>
         </section>
         
         {/* Methodology */}
-        <section className="py-16">
-          <div className="container-custom">
-            <h2 className="text-3xl font-bold mb-12 text-center">Nossa Metodologia</h2>
+        <section className="py-12 sm:py-16">
+          <div className="container-custom px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 text-center">Nossa Metodologia</h2>
             
             <Tabs defaultValue="pratica" className="max-w-4xl mx-auto">
               <TabsList className="grid w-full grid-cols-3">

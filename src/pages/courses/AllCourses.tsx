@@ -110,11 +110,11 @@ const AllCourses = () => {
       <Navbar />
       <main className="flex-grow">
         {/* Header */}
-        <section className="bg-bestcode-50 py-16">
-          <div className="container-custom">
+        <section className="bg-bestcode-50 py-12 sm:py-16">
+          <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl font-bold mb-6">Nossos Cursos de Quality Assurance</h1>
-              <p className="text-lg text-gray-700 mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">Nossos Cursos de Quality Assurance</h1>
+              <p className="text-base sm:text-lg text-gray-700 mb-6 sm:mb-8">
                 Explore nossa oferta completa de cursos e formações para Quality Assurance.
                 Do básico ao avançado, temos o curso ideal para impulsionar sua carreira.
               </p>
@@ -124,7 +124,7 @@ const AllCourses = () => {
                 <Input
                   type="text"
                   placeholder="Buscar cursos..."
-                  className="pl-10 h-12"
+                  className="pl-10 h-10 sm:h-12 text-sm sm:text-base"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -134,25 +134,25 @@ const AllCourses = () => {
         </section>
         
         {/* Courses */}
-        <section className="py-16">
-          <div className="container-custom">
-            <Tabs defaultValue="todos" className="mb-12">
-              <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
+        <section className="py-12 sm:py-16">
+          <div className="container-custom px-4 sm:px-6 lg:px-8">
+            <Tabs defaultValue="todos" className="mb-8 sm:mb-12">
+              <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 text-xs sm:text-sm">
                 <TabsTrigger value="todos">Todos os Cursos</TabsTrigger>
                 <TabsTrigger value="formacao">Formações</TabsTrigger>
                 <TabsTrigger value="complementar">Complementares</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="todos" className="mt-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <TabsContent value="todos" className="mt-6 sm:mt-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                   {filteredCourses.map((course) => (
                     <CourseCard key={course.id} course={course} formatPrice={formatPrice} />
                   ))}
                 </div>
               </TabsContent>
               
-              <TabsContent value="formacao" className="mt-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <TabsContent value="formacao" className="mt-6 sm:mt-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                   {filteredCourses
                     .filter(course => course.type === "formacao")
                     .map((course) => (
@@ -161,8 +161,8 @@ const AllCourses = () => {
                 </div>
               </TabsContent>
               
-              <TabsContent value="complementar" className="mt-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <TabsContent value="complementar" className="mt-6 sm:mt-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                   {filteredCourses
                     .filter(course => course.type === "complementar")
                     .map((course) => (
@@ -175,11 +175,11 @@ const AllCourses = () => {
         </section>
         
         {/* Comparison */}
-        <section className="py-16 bg-gray-50">
-          <div className="container-custom">
-            <h2 className="text-3xl font-bold mb-12 text-center">Compare Nossos Planos</h2>
+        <section className="py-12 sm:py-16 bg-gray-50">
+          <div className="container-custom px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 text-center">Compare Nossos Planos</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
               <Card className="border-2 border-gray-200">
                 <CardHeader>
                   <CardTitle className="text-xl text-center">Curso Individual</CardTitle>
