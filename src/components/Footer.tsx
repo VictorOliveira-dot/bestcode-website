@@ -16,7 +16,7 @@ const Footer = () => {
                 className="h-10"
               />
             </Link>
-            <p className="text-gray-300 mb-4">
+            <p className="text-gray-300 mb-4 text-start">
               Transformando profissionais em especialistas de QA através de uma educação 
               prática e de qualidade. Junte-se a nós e impulsione sua carreira.
             </p>
@@ -36,7 +36,7 @@ const Footer = () => {
             </div>
           </div>
 
-          <div>
+          <div className="text-start">
             <h3 className="text-lg font-bold mb-4">Links Rápidos</h3>
             <ul className="space-y-2">
               <li>
@@ -67,7 +67,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div>
+          <div className="text-start">
             <h3 className="text-lg font-bold mb-4">Cursos</h3>
             <ul className="space-y-2">
               <li>
@@ -98,7 +98,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div>
+          <div className="text-start justify-start items-start">
             <h3 className="text-lg font-bold mb-4">Contato</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-3">

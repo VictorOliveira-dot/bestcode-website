@@ -22,37 +22,14 @@ const QATraining = () => {
                   Torne-se um profissional completo em QA com nossa formação abrangente. 
                   Do básico ao avançado, preparamos você para os desafios reais do mercado.
                 </p>
-                <div className="flex flex-wrap gap-4">
-                  <Link to="/enrollment">
+                <div className="flex flex-wrap gap-4 items-center justify-center">
+                  <a href="https://typebot.co/lead-magnet-r-ki-1-nuh59rv" target="_blank" rel="noopener noreferrer">
                     <Button size="lg" className="bg-bestcode-600 hover:bg-bestcode-700">
                       Matricule-se agora
                     </Button>
-                  </Link>
-                  <Link to="/contact">
-                    <Button size="lg" variant="outline">
-                      Fale com um consultor
-                    </Button>
-                  </Link>
+                  </a>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-bold text-bestcode-600">8</span>
-                    <span className="text-sm text-gray-600">Meses</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-bold text-bestcode-600">180</span>
-                    <span className="text-sm text-gray-600">Horas</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-bold text-bestcode-600">12</span>
-                    <span className="text-sm text-gray-600">Projetos</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-bold text-bestcode-600">100%</span>
-                    <span className="text-sm text-gray-600">Online</span>
-                  </div>
-                </div>
               </div>
               <div className="bg-white p-6 rounded-xl shadow-md">
                 <h3 className="text-xl font-bold mb-4">Próximas Turmas</h3>
