@@ -13,7 +13,7 @@ interface LoginFormActionsProps {
 const LoginFormActions = ({ isLoading, onForgotPassword }: LoginFormActionsProps) => {
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ">
         {/* <div className="flex items-center space-x-2">
           <Checkbox id="remember" disabled={isLoading} />
           <Label htmlFor="remember" className="text-sm font-normal">
