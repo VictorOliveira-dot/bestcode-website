@@ -14,16 +14,16 @@ const LoginFormActions = ({ isLoading, onForgotPassword }: LoginFormActionsProps
   return (
     <>
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           <Checkbox id="remember" disabled={isLoading} />
           <Label htmlFor="remember" className="text-sm font-normal">
             Lembrar de mim
           </Label>
-        </div>
+        </div> */}
         <Button
           type="button"
           variant="link"
-          className="text-sm text-bestcode-600 hover:text-bestcode-800"
+          className="text-sm text-bestcode-600 hover:text-bestcode-800 justify-end"
           onClick={onForgotPassword}
           disabled={isLoading}
         >
@@ -41,12 +41,12 @@ const LoginFormActions = ({ isLoading, onForgotPassword }: LoginFormActionsProps
         </Button>
       </div>
       
-      <div className="text-center text-sm">
+      {/* <div className="text-center text-sm">
         Não tem uma conta?{" "}
         <Link to="/register" className="text-bestcode-600 hover:text-bestcode-800 font-medium">
           Registre-se
         </Link>
-      </div>
+      </div> */}
     </>
   );
 };

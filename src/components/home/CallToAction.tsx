@@ -19,7 +19,7 @@ const CallToAction = () => {
                 de QA altamente qualificado e valorizado pelo mercado. Oferecemos suporte 
                 durante todo o seu percurso de aprendizado.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="https://typebot.co/lead-magnet-r-ki-1-nuh59rv" target="_blank" rel="noopener noreferrer">
                   <Button size="lg" className="bg-bestcode-600 hover:bg-bestcode-700 text-white">
                     Matricule-se Agora
