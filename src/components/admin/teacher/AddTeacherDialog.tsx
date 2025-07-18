@@ -84,41 +84,36 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     try {
       console.log("Criando professor com dados:", data);
       
-      // Criar o professor usando a função RPC admin_create_professor
-      const { data: teacherId, error: rpcError } = await supabase.rpc('admin_create_professor', {
-        p_email: data.email,
-        p_name: data.name,
-        p_password: data.password
-      });
+      // Obter token de acesso atual
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (rpcError) {
-        console.error("Erro ao criar professor via RPC:", rpcError);
-        throw rpcError;
+      if (!session?.access_token) {
+        throw new Error("Token de acesso não encontrado");
       }
 
-      console.log("Professor criado com ID:", teacherId);
+      // Chamar a edge function para criar o professor
+      const supabaseUrl = "https://jqnarznabyiyngcdqcff.supabase.co";
+      const response = await fetch(`${supabaseUrl}/functions/v1/admin-create-teacher`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          email: data.email,
+          name: data.name,
+          password: data.password,
+          classId: data.classId === "none" ? undefined : data.classId,
+        }),
+      });
 
-      // Se uma turma foi selecionada, atribuir o professor à turma
-      if (data.classId && data.classId !== "none") {
-        console.log("Atribuindo professor à turma:", data.classId);
-        
-        const { error: updateError } = await supabase
-          .from('classes')
-          .update({ teacher_id: teacherId })
-          .eq('id', data.classId);
+      const result = await response.json();
 
-        if (updateError) {
-          console.error("Erro ao atribuir professor à turma:", updateError);
-          // Não falhar completamente se a atribuição der erro
-          toast({
-            title: "Professor criado com aviso",
-            description: `Professor ${data.name} foi criado, mas houve um problema ao atribuir à turma.`,
-            variant: "default",
-          });
-        } else {
-          console.log("Professor atribuído à turma com sucesso");
-        }
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Erro ao criar professor");
       }
+
+      console.log("Professor criado com sucesso:", result.teacherId);
       
       toast({
         title: "Professor criado com sucesso",
