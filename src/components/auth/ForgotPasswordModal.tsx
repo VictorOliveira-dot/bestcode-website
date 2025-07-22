@@ -45,9 +45,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
 
       if (error) throw error;
 
-      // TODO: Enviar email com o token via edge function
-      // Por enquanto, só mostramos sucesso
+      // Simular envio de email por enquanto
       console.log('Token gerado:', token);
+      console.log('Link de recuperação:', `${window.location.origin}/reset-password?token=${token}`);
 
       setResetSent(true);
       toast({
