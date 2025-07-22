@@ -38,12 +38,16 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsSubmitting(true);
     
     try {
-      // Use o método apropriado para resetar a senha
-      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo: `${window.location.origin}/login`,
+      // Usar nossa função personalizada para criar token
+      const { data: token, error } = await supabase.rpc('create_password_reset_token', {
+        p_email: data.email
       });
 
       if (error) throw error;
+
+      // TODO: Enviar email com o token via edge function
+      // Por enquanto, só mostramos sucesso
+      console.log('Token gerado:', token);
 
       setResetSent(true);
       toast({
@@ -56,7 +60,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       toast({
         variant: "destructive",
         title: "Erro ao enviar email de redefinição",
-        description: error.message || "Não foi possível enviar o email de redefinição. Tente novamente."
+        description: error.message === 'Email não encontrado' 
+          ? "Email não encontrado no sistema." 
+          : "Não foi possível enviar o email de redefinição. Tente novamente."
       });
     } finally {
       setIsSubmitting(false);

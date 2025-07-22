@@ -318,6 +318,48 @@ export type Database = {
           },
         ]
       }
+      password_resets: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          token: string
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "password_resets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "class_enrollments_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "password_resets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_applications: {
         Row: {
           course: string
@@ -749,6 +791,10 @@ export type Database = {
         Args: { p_email: string }
         Returns: boolean
       }
+      cleanup_expired_password_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_class: {
         Args: {
           p_name: string
@@ -781,6 +827,10 @@ export type Database = {
           p_class_id: string
           p_visibility: string
         }
+        Returns: string
+      }
+      create_password_reset_token: {
+        Args: { p_email: string }
         Returns: string
       }
       create_teacher_class: {
@@ -871,6 +921,20 @@ export type Database = {
           class_id: string
           class_name: string
           visibility: string
+        }[]
+      }
+      get_student_lessons_brazil_timezone: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          title: string
+          description: string
+          youtube_url: string
+          date: string
+          class_id: string
+          class_name: string
+          visibility: string
+          scheduled_at_brazil: string
         }[]
       }
       get_student_notifications: {
@@ -976,6 +1040,10 @@ export type Database = {
       }
       mark_notification_as_read: {
         Args: { p_notification_id: string }
+        Returns: boolean
+      }
+      reset_password_with_token: {
+        Args: { p_token: string; p_new_password: string }
         Returns: boolean
       }
       reset_test_users: {

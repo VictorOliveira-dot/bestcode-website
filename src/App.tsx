@@ -8,6 +8,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Checkout from "./pages/Checkout";
 import ProfileCompletion from "./pages/ProfileCompletion";
@@ -54,6 +55,7 @@ function App() {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment/pix" element={<PaymentPix />} />
         <Route path="/payment/boleto" element={<PaymentBoleto />} />

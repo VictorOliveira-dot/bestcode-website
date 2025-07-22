@@ -39,106 +39,31 @@ export const useStudentData = () => {
     queryFn: async () => {
       console.log('🔍 Fetching student lessons for user:', user?.id);
       
-      // Buscar todas as aulas diretamente para debug
-      const { data: allLessons, error: allLessonsError } = await supabase
-        .from('lessons')
-        .select(`
-          id,
-          title,
-          description,
-          youtube_url,
-          date,
-          class_id,
-          visibility,
-          classes!inner(
-            id,
-            name
-          )
-        `);
-      
-      if (allLessonsError) {
-        console.error('❌ Error fetching all lessons:', allLessonsError);
-      } else {
-        console.log('📚 All lessons in database:', allLessons);
-      }
-      
-      // Buscar matrículas do estudante
-      const { data: studentEnrollments, error: enrollError } = await supabase
-        .from('enrollments')
-        .select(`
-          class_id,
-          classes!inner(
-            id,
-            name
-          )
-        `)
-        .eq('student_id', user?.id);
-      
-      if (enrollError) {
-        console.error('❌ Error fetching student enrollments:', enrollError);
-        throw enrollError;
-      }
-      
-      console.log('📚 Student enrolled in classes:', studentEnrollments);
-      
-      if (!studentEnrollments || studentEnrollments.length === 0) {
-        console.log('⚠️ Student not enrolled in any classes');
-        return [];
-      }
-      
-      const classIds = studentEnrollments.map(e => e.class_id);
-      console.log('🎯 Class IDs for student:', classIds);
-      
-      // Buscar aulas das turmas do estudante + aulas com visibilidade 'all'
+      // Usar a função que considera o timezone do Brasil
       const { data: studentLessons, error: lessonsError } = await supabase
-        .from('lessons')
-        .select(`
-          id,
-          title,
-          description,
-          youtube_url,
-          date,
-          class_id,
-          visibility,
-          classes!inner(
-            id,
-            name
-          )
-        `)
-        .or(`class_id.in.(${classIds.join(',')}),visibility.eq.all`);
+        .rpc('get_student_lessons_brazil_timezone');
       
       if (lessonsError) {
-        console.error('❌ Error fetching student lessons:', lessonsError);
+        console.error('❌ Error fetching student lessons with Brazil timezone:', lessonsError);
         throw lessonsError;
       }
       
-      console.log('✅ Student lessons query result:', studentLessons);
+      console.log('✅ Student lessons with Brazil timezone:', studentLessons);
       
       // Transformar dados para o formato esperado
-      const transformedLessons = studentLessons?.map(lesson => {
-        const classInfo = lesson.classes as any;
-        
-        console.log('🔄 Transforming lesson:', {
-          id: lesson.id,
-          title: lesson.title,
-          class_id: lesson.class_id,
-          visibility: lesson.visibility,
-          classInfo
-        });
-        
-        return {
-          id: lesson.id,
-          title: lesson.title,
-          description: lesson.description,
-          youtube_url: lesson.youtube_url,
-          date: lesson.date,
-          class_id: lesson.class_id,
-          class_name: classInfo?.name || 'Turma não encontrada',
-          visibility: lesson.visibility
-        };
-      }) || [];
+      const transformedLessons = studentLessons?.map(lesson => ({
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description,
+        youtube_url: lesson.youtube_url,
+        date: lesson.date,
+        class_id: lesson.class_id,
+        class_name: lesson.class_name,
+        visibility: lesson.visibility,
+        scheduled_at_brazil: lesson.scheduled_at_brazil
+      })) || [];
       
-      console.log('✅ Final transformed lessons:', transformedLessons);
+      console.log('✅ Final transformed lessons with Brazil timezone:', transformedLessons);
       return transformedLessons;
     },
     enabled: !!user?.id
