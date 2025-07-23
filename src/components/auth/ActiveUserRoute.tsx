@@ -93,8 +93,7 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
 
   if (user.role === 'student' && isActive === false) {
     console.log("Student account is not active, redirecting to checkout");
-    toast.error("Sua conta está pendente de ativação. Conclua o pagamento para acessar.");
-    return <Navigate to="/checkout" state={{ from: location }} replace />;
+    toast.error("Sua conta está pendente de ativação. Entre em contato conosco.");;
   }
 
   console.log("Access granted to user:", user.id);

@@ -47,11 +47,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 space-y-6 flex flex-col gap-3">
-      <TabsList className="flex gap-4 w-full grid grid-cols-5 bg-bestcode-600 text-white">
+      <TabsList className="flex gap-4 w-full grid grid-cols-4 bg-bestcode-600 text-white">
         <TabsTrigger value="lessons">Aulas</TabsTrigger>
         <TabsTrigger value="classes">Minhas Turmas</TabsTrigger>
         <TabsTrigger value="allClasses">Todas as Turmas</TabsTrigger>
-        <TabsTrigger value="complementary">Cursos Extras</TabsTrigger>
+        {/* <TabsTrigger value="complementary">Cursos Extras</TabsTrigger> */}
         <TabsTrigger value="students">Alunos</TabsTrigger>
       </TabsList>
 
