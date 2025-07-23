@@ -69,7 +69,7 @@ serve(async (req) => {
       throw new Error("A senha deve ter pelo menos 6 caracteres");
     }
 
-    console.log("Criando professor:", { email, name, classId });
+    // console.log("Criando professor:", { email, name, classId });
 
     // Criar usuário usando Supabase Admin SDK
     const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
@@ -91,7 +91,7 @@ serve(async (req) => {
       throw new Error("Falha ao criar usuário");
     }
 
-    console.log("Usuário criado na auth.users:", newUser.user.id);
+    // console.log("Usuário criado na auth.users:", newUser.user.id);
 
     // Inserir dados adicionais na tabela public.users
     const { error: insertError } = await supabaseAdmin
@@ -113,11 +113,11 @@ serve(async (req) => {
       throw new Error(`Erro ao criar perfil do professor: ${insertError.message}`);
     }
 
-    console.log("Professor inserido na public.users");
+    // console.log("Professor inserido na public.users");
 
     // Se uma turma foi especificada e não é "none", atribuir o professor à turma
     if (classId && classId !== "none") {
-      console.log("Atribuindo professor à turma:", classId);
+      // console.log("Atribuindo professor à turma:", classId);
       
       const { error: classError } = await supabaseAdmin
         .from("classes")
@@ -129,7 +129,7 @@ serve(async (req) => {
         console.error("Erro ao atribuir turma:", classError);
         // Não falhar aqui, apenas logar o erro
       } else {
-        console.log("Professor atribuído à turma com sucesso");
+        // console.log("Professor atribuído à turma com sucesso");
       }
     }
 

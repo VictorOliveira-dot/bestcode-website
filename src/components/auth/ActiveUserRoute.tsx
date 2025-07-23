@@ -23,11 +23,11 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
       }
 
       try {
-        console.log("Checking active status for user:", user.id, "with role:", user.role);
+        // console.log("Checking active status for user:", user.id, "with role:", user.role);
         
         // First check if the user has an is_active property from context
         if (user.hasOwnProperty('is_active') && user.is_active === true) {
-          console.log("User is active based on context data");
+          // console.log("User is active based on context data");
           setIsActive(true);
           setCheckingStatus(false);
           return;
@@ -47,11 +47,11 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
             throw error;
           }
           
-          console.log("User active status from database:", data?.is_active);
+          // console.log("User active status from database:", data?.is_active);
           setIsActive(data?.is_active || false);
         } else {
           // Non-students are always considered "active"
-          console.log("Non-student user, setting active to true");
+          // console.log("Non-student user, setting active to true");
           setIsActive(true);
         }
       } catch (error) {
@@ -69,13 +69,13 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
 
   useEffect(() => {
     // Log current state for debugging purposes
-    console.log("ActiveUserRoute state:", {
-      user: user ? { id: user.id, role: user.role, is_active: user.is_active } : null,
-      isActive,
-      loading,
-      checkingStatus,
-      location: location.pathname
-    });
+    // console.log("ActiveUserRoute state:", {
+    //   user: user ? { id: user.id, role: user.role, is_active: user.is_active } : null,
+    //   isActive,
+    //   loading,
+    //   checkingStatus,
+    //   location: location.pathname
+    // });
   }, [user, isActive, loading, checkingStatus, location]);
 
   if (loading || checkingStatus) {
@@ -92,11 +92,11 @@ const ActiveUserRoute: React.FC<ActiveUserRouteProps> = ({ children }) => {
   }
 
   if (user.role === 'student' && isActive === false) {
-    console.log("Student account is not active, redirecting to checkout");
+    // console.log("Student account is not active, redirecting to checkout");
     toast.error("Sua conta está pendente de ativação. Entre em contato conosco.");;
   }
 
-  console.log("Access granted to user:", user.id);
+  // console.log("Access granted to user:", user.id);
   return <>{children}</>;
 };
 

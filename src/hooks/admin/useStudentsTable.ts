@@ -55,7 +55,7 @@ export function useStudentsTable() {
           };
         });
 
-        console.log("Students data fetched successfully:", combinedData.length);
+        // console.log("Students data fetched successfully:", combinedData.length);
         return combinedData || [];
       } catch (err: any) {
         console.error("Error fetching students:", err);

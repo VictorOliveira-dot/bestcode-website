@@ -30,8 +30,8 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
 
   useEffect(() => {
     if (user) {
-      console.log("Current user in AddClassDialog:", user);
-      console.log("User role:", user.role);
+      // console.log("Current user in AddClassDialog:", user);
+      // console.log("User role:", user.role);
       setAuthReady(true);
     }
   }, [user]);
@@ -43,7 +43,7 @@ const AddClassDialog: React.FC<AddClassDialogProps> = ({ onClassAdded }) => {
   }, [isOpen, fetchTeachers, authReady]);
 
   const handleSubmit = async (data: ClassFormValues) => {
-    console.log("Submitting class creation with data:", data);
+    // console.log("Submitting class creation with data:", data);
     await createClass(data);
   };
 

@@ -107,10 +107,10 @@ const Enrollment = () => {
 
   // If user is not logged in, redirect to login
   useEffect(() => {
-    console.log("Enrollment page auth state:", { user, isLoading });
+    // console.log("Enrollment page auth state:", { user, isLoading });
     
     if (!user && !isLoading) {
-      console.log("Redirecting to login from enrollment page");
+      // console.log("Redirecting to login from enrollment page");
       toast.error("Você precisa estar logado para acessar esta página");
       navigate('/login', { replace: true });
     }

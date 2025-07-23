@@ -30,13 +30,13 @@ serve(async (req) => {
       throw new Error("Configuration error: Test mode requires a Stripe test key.");
     }
     
-    console.log(`Using Stripe in TEST mode with key prefix: ${stripeKey.substring(0, 8)}...`);
+    // console.log(`Using Stripe in TEST mode with key prefix: ${stripeKey.substring(0, 8)}...`);
     
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2022-11-15",
     });
 
-    console.log(`[TEST MODE] Processing payment with method: ${paymentMethod}`);
+    // console.log(`[TEST MODE] Processing payment with method: ${paymentMethod}`);
 
     // Create Supabase client with service role key to update user status
     const supabaseAdmin = createClient(
@@ -165,7 +165,7 @@ serve(async (req) => {
     if (paymentUpdateError) {
       console.error("Error recording payment:", paymentUpdateError);
     } else {
-      console.log(`[TEST MODE] Payment record created for user ${userId}`);
+      // console.log(`[TEST MODE] Payment record created for user ${userId}`);
     }
 
     return new Response(JSON.stringify({ 

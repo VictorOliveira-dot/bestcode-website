@@ -58,7 +58,7 @@ const StudentCourseList = () => {
           throw enrollmentsError;
         }
 
-        console.log('📚 Course enrollments:', enrollments);
+        // console.log('📚 Course enrollments:', enrollments);
 
         const { data: progressData, error: progressError } = await supabase
           .rpc('get_student_progress');
@@ -161,7 +161,7 @@ const StudentCourseList = () => {
       ? enrollments[0].class_name 
       : "default";
 
-    console.log('🎓 Showing lessons for class:', studentClass);
+    // console.log('🎓 Showing lessons for class:', studentClass);
 
     const formattedLessons = Array.isArray(lessons) ? lessons.map(lesson => ({
       id: lesson.id,

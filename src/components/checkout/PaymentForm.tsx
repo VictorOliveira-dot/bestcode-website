@@ -63,7 +63,7 @@ const PaymentForm = ({
       return;
     }
     
-    console.log("Form validated, submitting payment with method:", paymentMethod);
+    // console.log("Form validated, submitting payment with method:", paymentMethod);
     handleSubmit(e);
   };
 
@@ -83,7 +83,7 @@ const PaymentForm = ({
         <RadioGroup
           value={paymentMethod}
           onValueChange={(value) => {
-            console.log("Payment method selected:", value);
+            // console.log("Payment method selected:", value);
             setPaymentMethod(value);
           }}
           className="grid grid-cols-1 md:grid-cols-2 gap-4"

@@ -95,7 +95,7 @@ const Checkout = () => {
                 setUser(updatedUser);
               }
             } else {
-              console.log("User not activated yet, attempting to activate");
+              // console.log("User not activated yet, attempting to activate");
               // Try to activate the user directly
               const { error: updateError } = await supabase
                 .from('users')

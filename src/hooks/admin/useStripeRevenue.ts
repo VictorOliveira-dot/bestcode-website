@@ -21,7 +21,7 @@ export const useStripeRevenue = () => {
     queryKey: ['stripe-revenue'],
     queryFn: async () => {
       try {
-        console.log("Fetching Stripe revenue data");
+        // console.log("Fetching Stripe revenue data");
         
         const { data: paymentsData, error } = await supabase
           .from('user_payments')
@@ -34,7 +34,7 @@ export const useStripeRevenue = () => {
           throw error;
         }
 
-        console.log("Payments data fetched:", paymentsData);
+        // console.log("Payments data fetched:", paymentsData);
         
         const totalRevenue = paymentsData?.reduce((sum, payment) => {
           return sum + (payment.payment_amount || 0);

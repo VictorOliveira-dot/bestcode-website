@@ -14,7 +14,7 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["allClasses"],
     queryFn: async () => {
-      console.log("Fetching all classes for teachers");
+      // console.log("Fetching all classes for teachers");
       
       const { data, error } = await supabase.rpc('get_all_classes_for_teachers');
 
@@ -23,7 +23,7 @@ export const useTeacherData = () => {
         throw error;
       }
       
-      console.log("Fetched all classes:", data);
+      // console.log("Fetched all classes:", data);
       return data?.map(cls => ({
         id: cls.id,
         name: cls.name,
@@ -44,7 +44,7 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["allStudentsCount"],
     queryFn: async () => {
-      console.log("Fetching total student count");
+      // console.log("Fetching total student count");
       
       const { data, error } = await supabase.rpc('get_all_students_for_teachers');
 
@@ -53,7 +53,7 @@ export const useTeacherData = () => {
         throw error;
       }
       
-      console.log("Fetched total student count:", data?.length || 0);
+      // console.log("Fetched total student count:", data?.length || 0);
       return data?.length || 0;
     },
     staleTime: 60000,
@@ -73,7 +73,7 @@ export const useTeacherData = () => {
         return [];
       }
       
-      console.log("Fetching lessons for teacher ID:", user.id);
+      // console.log("Fetching lessons for teacher ID:", user.id);
       
       const { data, error } = await supabase.rpc('get_teacher_lessons', {
         teacher_id: user.id
@@ -84,7 +84,7 @@ export const useTeacherData = () => {
         throw error;
       }
       
-      console.log("Fetched lessons:", data);
+      // console.log("Fetched lessons:", data);
       return data || [];
     },
     enabled: !!user?.id,
@@ -99,7 +99,7 @@ export const useTeacherData = () => {
   } = useQuery({
     queryKey: ["allStudents"],
     queryFn: async () => {
-      console.log("Fetching all students for teachers");
+      // console.log("Fetching all students for teachers");
       
       const { data, error } = await supabase.rpc('get_all_students_for_teachers');
 
@@ -108,7 +108,7 @@ export const useTeacherData = () => {
         throw error;
       }
       
-      console.log("Fetched all students:", data);
+      // console.log("Fetched all students:", data);
       return data || [];
     },
     staleTime: 60000,
@@ -127,7 +127,7 @@ export const useTeacherData = () => {
         return [];
       }
       
-      console.log("Fetching classes for teacher ID:", user.id);
+      // console.log("Fetching classes for teacher ID:", user.id);
       
       const { data, error } = await supabase.rpc('get_teacher_classes', {
         p_teacher_id: user.id
@@ -138,7 +138,7 @@ export const useTeacherData = () => {
         throw error;
       }
       
-      console.log("Fetched teacher classes:", data);
+      // console.log("Fetched teacher classes:", data);
       return data?.map(cls => ({
         id: cls.id,
         name: cls.name,

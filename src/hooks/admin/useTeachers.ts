@@ -25,7 +25,7 @@ export const useTeachers = (shouldFetch: boolean = true) => {
     
     setIsLoading(true);
     try {
-      console.log("Fetching teachers from admin_get_teachers function");
+      // console.log("Fetching teachers from admin_get_teachers function");
       
       const { data: teachersData, error } = await supabase.rpc('admin_get_teachers');
       
@@ -34,7 +34,7 @@ export const useTeachers = (shouldFetch: boolean = true) => {
         throw error;
       }
       
-      console.log("Teachers data retrieved:", teachersData);
+      // console.log("Teachers data retrieved:", teachersData);
       setTeachers(teachersData || []);
     } catch (error: any) {
       console.error("Failed to fetch teachers:", error);

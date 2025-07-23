@@ -17,7 +17,7 @@ export const useCourses = () => {
     queryKey: ['admin-courses'],
     queryFn: async () => {
       // Log the query execution to help with debugging
-      console.log("Fetching courses from Supabase...");
+      // console.log("Fetching courses from Supabase...");
       
       const { data, error } = await supabase
         .rpc('admin_get_courses');
@@ -27,7 +27,7 @@ export const useCourses = () => {
         throw error;
       }
 
-      console.log("Courses fetched successfully:", data);
+      // console.log("Courses fetched successfully:", data);
       return data as Course[];
     }
   });

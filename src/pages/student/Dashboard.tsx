@@ -31,21 +31,21 @@ const StudentDashboard = () => {
     return <Navigate to="/teacher/dashboard" />;
   }
 
-  console.log('📊 Dashboard data:', {
-    lessons: lessons?.length || 0,
-    progress: progress?.length || 0,
-    enrollments: enrollments?.length || 0,
-    isLoading,
-    rawLessons: lessons,
-    rawEnrollments: enrollments
-  });
+  // console.log('📊 Dashboard data:', {
+  //   lessons: lessons?.length || 0,
+  //   progress: progress?.length || 0,
+  //   enrollments: enrollments?.length || 0,
+  //   isLoading,
+  //   rawLessons: lessons,
+  //   rawEnrollments: enrollments
+  // });
 
   // Get student class from enrollments data
   const studentClass = enrollments && enrollments.length > 0 
     ? enrollments[0].class_name
     : null;
 
-  console.log('🎓 Student class determined:', studentClass);
+  // console.log('🎓 Student class determined:', studentClass);
 
   // Se não temos turma, não podemos mostrar aulas
   if (!studentClass && !isLoading) {
@@ -53,12 +53,12 @@ const StudentDashboard = () => {
   }
 
   const formattedLessons = Array.isArray(lessons) ? lessons.map(lesson => {
-    console.log('🔍 Processing lesson:', {
-      id: lesson.id,
-      title: lesson.title,
-      class_name: lesson.class_name,
-      visibility: lesson.visibility
-    });
+    // console.log('🔍 Processing lesson:', {
+    //   id: lesson.id,
+    //   title: lesson.title,
+    //   class_name: lesson.class_name,
+    //   visibility: lesson.visibility
+    // });
     
     return {
       id: lesson.id,
@@ -72,7 +72,7 @@ const StudentDashboard = () => {
     };
   }) : [];
 
-  console.log('✅ Formatted lessons:', formattedLessons.length, formattedLessons);
+  // console.log('✅ Formatted lessons:', formattedLessons.length, formattedLessons);
 
   const formattedProgress = Array.isArray(progress) ? progress.map(p => ({
     lessonId: p.lesson_id,

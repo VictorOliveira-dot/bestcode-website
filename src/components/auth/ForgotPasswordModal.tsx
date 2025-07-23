@@ -46,8 +46,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       if (error) throw error;
 
       // Simular envio de email por enquanto
-      console.log('Token gerado:', token);
-      console.log('Link de recuperação:', `${window.location.origin}/reset-password?token=${token}`);
+      // console.log('Token gerado:', token);
+      // console.log('Link de recuperação:', `${window.location.origin}/reset-password?token=${token}`);
 
       setResetSent(true);
       toast({

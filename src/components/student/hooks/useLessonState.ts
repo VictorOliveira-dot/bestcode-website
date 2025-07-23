@@ -11,23 +11,23 @@ export function useLessonState(
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   
-  console.log('🎯 useLessonState - Input data:', {
-    lessonsCount: lessons.length,
-    studentClass,
-    progressCount: lessonProgress.length,
-    lessons: lessons.map(l => ({ 
-      id: l.id, 
-      title: l.title, 
-      class: l.class, 
-      class_id: l.class_id,
-      visibility: l.visibility 
-    }))
-  });
+  // console.log('🎯 useLessonState - Input data:', {
+  //   lessonsCount: lessons.length,
+  //   studentClass,
+  //   progressCount: lessonProgress.length,
+  //   lessons: lessons.map(l => ({ 
+  //     id: l.id, 
+  //     title: l.title, 
+  //     class: l.class, 
+  //     class_id: l.class_id,
+  //     visibility: l.visibility 
+  //   }))
+  // });
   
   // Usar todas as aulas que chegaram - já foram filtradas no hook useStudentData
   const availableLessons = lessons;
   
-  console.log('✅ Available lessons (all passed lessons):', availableLessons.length, availableLessons.map(l => l.title));
+  // console.log('✅ Available lessons (all passed lessons):', availableLessons.length, availableLessons.map(l => l.title));
 
   // Filter complementary lessons
   const complementaryLessons = lessons.filter(lesson => 
@@ -61,33 +61,33 @@ export function useLessonState(
       const progress = lessonProgress.find(p => p.lessonId === lesson.id);
       const isNotStarted = !progress || progress.status === 'not_started';
       
-      console.log(`📝 Lesson "${lesson.title}" not started check:`, {
-        hasProgress: !!progress,
-        status: progress?.status,
-        isNotStarted
-      });
+      // console.log(`📝 Lesson "${lesson.title}" not started check:`, {
+      //   hasProgress: !!progress,
+      //   status: progress?.status,
+      //   isNotStarted
+      // });
       
       return isNotStarted;
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  console.log('📊 Lessons categorized:', {
-    available: availableLessons.length,
-    recent: recentLessons.length,
-    completed: completedLessons.length,
-    notStarted: notStartedLessons.length,
-    complementary: complementaryLessons.length
-  });
+  // console.log('📊 Lessons categorized:', {
+  //   available: availableLessons.length,
+  //   recent: recentLessons.length,
+  //   completed: completedLessons.length,
+  //   notStarted: notStartedLessons.length,
+  //   complementary: complementaryLessons.length
+  // });
 
   const handleLessonClick = (lesson: Lesson) => {
-    console.log('🎬 Lesson clicked:', lesson.title);
+    // console.log('🎬 Lesson clicked:', lesson.title);
     setSelectedLesson(lesson);
     setIsVideoModalOpen(true);
   };
 
   const handleProgressUpdate = async (lessonId: string, watchTimeMinutes: number, progress: number) => {
     try {
-      console.log('📈 Updating progress:', { lessonId, watchTimeMinutes, progress });
+      // console.log('📈 Updating progress:', { lessonId, watchTimeMinutes, progress });
       await updateLessonProgress(lessonId, watchTimeMinutes, progress);
       
       if (progress >= 100) {

@@ -5,7 +5,7 @@ import { AuthUser } from "@/hooks/useAuthState";
 
 export const fetchUserData = async (authUser: User) => {
   try {
-    console.log("Fetching user data from public.users for:", authUser.email);
+    // console.log("Fetching user data from public.users for:", authUser.email);
     
     // First, check if the user exists in the public.users table
     const { data: userData, error: selectError } = await supabase
@@ -21,7 +21,7 @@ export const fetchUserData = async (authUser: User) => {
     
     // If user is not found, create a new user record
     if (!userData) {
-      console.log("User not found in public.users table, creating record for:", authUser.email);
+      // console.log("User not found in public.users table, creating record for:", authUser.email);
       
       // Extract metadata from auth user or use defaults
       const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
@@ -61,7 +61,7 @@ export const fetchUserData = async (authUser: User) => {
           return null;
         }
         
-        console.log('Created/updated user record with role:', newUser.role);
+        // console.log('Created/updated user record with role:', newUser.role);
         return newUser;
       } catch (error) {
         console.error('Error in user creation/update:', error);
@@ -69,7 +69,7 @@ export const fetchUserData = async (authUser: User) => {
       }
     }
 
-    console.log("Found user data in public.users with role:", userData.role);
+    // console.log("Found user data in public.users with role:", userData.role);
     return userData;
   } catch (error) {
     console.error('Error in fetchUserData:', error);
@@ -79,7 +79,7 @@ export const fetchUserData = async (authUser: User) => {
 
 export const loginUser = async (email: string, password: string) => {
   try {
-    console.log('Attempting login with:', email);
+    // console.log('Attempting login with:', email);
     
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -95,7 +95,7 @@ export const loginUser = async (email: string, password: string) => {
     }
 
     if (data?.user) {
-      console.log('Login successful for:', data.user.email);
+      // console.log('Login successful for:', data.user.email);
       
       // Fetch user data from database after successful login
       const userData = await fetchUserData(data.user);
@@ -132,7 +132,7 @@ export const loginUser = async (email: string, password: string) => {
 
 export const logoutUser = async () => {
   try {
-    console.log('Iniciando processo de logout...');
+    // console.log('Iniciando processo de logout...');
     
     // Use global scope to ensure all sessions are terminated
     const { error } = await supabase.auth.signOut({
@@ -147,7 +147,7 @@ export const logoutUser = async () => {
     // Wait a moment to ensure all state is cleared
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    console.log('Logout realizado com sucesso');
+    // console.log('Logout realizado com sucesso');
     return { success: true };
   } catch (error) {
     console.error('Erro inesperado durante logout:', error);
