@@ -37,7 +37,7 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
 
     setIsCreating(true);
     try {
-      console.log("Creating new class:", newClass);
+      // console.log("Creating new class:", newClass);
       
       const { data, error } = await supabase.rpc('create_teacher_class', {
         p_name: newClass.name,
@@ -50,7 +50,7 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
         throw error;
       }
 
-      console.log("Class created successfully with ID:", data);
+      // console.log("Class created successfully with ID:", data);
       
       toast({
         title: "Turma criada",

@@ -66,7 +66,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
         }
         
         if (profileData) {
-          console.log("Loaded existing profile data", profileData);
+          // console.log("Loaded existing profile data", profileData);
           
           // Format date from YYYY-MM-DD to DD/MM/YYYY if it exists
           let formattedBirthDate = '';

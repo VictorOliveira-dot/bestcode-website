@@ -30,7 +30,7 @@ const StudentSchedule = () => {
     ? enrollments[0].class_name 
     : "default";
 
-  console.log('📅 Schedule - Student class:', studentClass);
+  // console.log('📅 Schedule - Student class:', studentClass);
 
   // Transform lessons data for schedule display
   const scheduleItems = Array.isArray(lessons) ? lessons
@@ -49,7 +49,7 @@ const StudentSchedule = () => {
       description: lesson.description
     })) : [];
 
-  console.log('📅 Schedule items:', scheduleItems.length);
+  // console.log('📅 Schedule items:', scheduleItems.length);
 
   // Sort items by date (most recent first)
   const sortedItems = [...scheduleItems].sort(

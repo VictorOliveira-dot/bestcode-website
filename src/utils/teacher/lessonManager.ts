@@ -10,7 +10,7 @@ export const addLesson = async (
   currentLessons: Lesson[]
 ): Promise<Lesson[]> => {
   try {
-    console.log("Adding lesson:", newLesson);
+    // console.log("Adding lesson:", newLesson);
     
     // Generate a mock ID for the new lesson
     const mockId = Math.random().toString(36).substring(2, 11);
@@ -56,7 +56,7 @@ export const deleteLesson = async (
   currentLessons: Lesson[]
 ): Promise<Lesson[]> => {
   try {
-    console.log("Deleting lesson:", id);
+    // console.log("Deleting lesson:", id);
     
     // Remove the lesson from the current lessons array
     const updatedLessons = currentLessons.filter(lesson => lesson.id !== id);

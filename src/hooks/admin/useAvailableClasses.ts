@@ -31,7 +31,7 @@ export function useAvailableClasses() {
           throw error;
         }
 
-        console.log("Available classes fetched successfully:", data?.length || 0);
+        // console.log("Available classes fetched successfully:", data?.length || 0);
         
         // Transformar os dados para o formato esperado
         return (data || []).map((course: any) => ({

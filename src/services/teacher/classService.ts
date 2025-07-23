@@ -21,7 +21,7 @@ const MOCK_CLASSES: ClassInfo[] = [
 ];
 
 export const fetchClassesForTeacher = async (teacherId: string): Promise<ClassInfo[]> => {
-  console.log(`Fetching classes for teacher ID: ${teacherId} (mock implementation)`);
+  // console.log(`Fetching classes for teacher ID: ${teacherId} (mock implementation)`);
   
   // In a real implementation, this would fetch data from the backend
   // For now, return mock data
@@ -36,7 +36,7 @@ export const addClass = async (
   teacherId: string,
   classData: { name: string; description: string; startDate: string }
 ): Promise<ClassInfo> => {
-  console.log(`Adding class for teacher ID: ${teacherId}`, classData);
+  // console.log(`Adding class for teacher ID: ${teacherId}`, classData);
   
   // Simulate an API delay
   await new Promise(resolve => setTimeout(resolve, 500));
@@ -57,7 +57,7 @@ export const updateClass = async (
   teacherId: string,
   classData: ClassInfo
 ): Promise<void> => {
-  console.log(`Updating class for teacher ID: ${teacherId}`, classData);
+  // console.log(`Updating class for teacher ID: ${teacherId}`, classData);
   
   // Simulate an API delay
   await new Promise(resolve => setTimeout(resolve, 500));
@@ -70,7 +70,7 @@ export const deleteClass = async (
   teacherId: string,
   classId: string
 ): Promise<void> => {
-  console.log(`Deleting class ID: ${classId} for teacher ID: ${teacherId}`);
+  // console.log(`Deleting class ID: ${classId} for teacher ID: ${teacherId}`);
   
   // Simulate an API delay
   await new Promise(resolve => setTimeout(resolve, 500));

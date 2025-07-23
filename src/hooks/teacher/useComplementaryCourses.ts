@@ -36,7 +36,7 @@ export const useComplementaryCourses = () => {
         return [];
       }
       
-      console.log("Fetching complementary courses for teacher ID:", user.id);
+      // console.log("Fetching complementary courses for teacher ID:", user.id);
       
       try {
         const { data, error } = await supabase.rpc('get_teacher_complementary_courses', {
@@ -48,7 +48,7 @@ export const useComplementaryCourses = () => {
           throw error;
         }
         
-        console.log("Fetched complementary courses:", data);
+        // console.log("Fetched complementary courses:", data);
         return data || [];
       } catch (err) {
         console.error("Failed to fetch complementary courses:", err);

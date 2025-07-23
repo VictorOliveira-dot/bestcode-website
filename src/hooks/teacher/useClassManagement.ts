@@ -21,8 +21,8 @@ export const useClassManagement = () => {
     }
     
     try {
-      console.log("Creating class with data:", classData);
-      console.log("Current user:", user);
+      // console.log("Creating class with data:", classData);
+      // console.log("Current user:", user);
       
       if (!user?.id) {
         throw new Error("Usuário não autenticado ou ID não disponível");
@@ -40,7 +40,7 @@ export const useClassManagement = () => {
         throw error;
       }
       
-      console.log("Class created successfully:", data);
+      // console.log("Class created successfully:", data);
       
       toast({
         title: 'Turma criada',
@@ -72,7 +72,7 @@ export const useClassManagement = () => {
     }
     
     try {
-      console.log("Updating class with data:", classData);
+      // console.log("Updating class with data:", classData);
       
       if (!user?.id) {
         throw new Error("Usuário não autenticado ou ID não disponível");
@@ -119,7 +119,7 @@ export const useClassManagement = () => {
     
     setIsLoading(true);
     try {
-      console.log("Deleting class ID:", classId);
+      // console.log("Deleting class ID:", classId);
       
       if (!user?.id) {
         throw new Error("Usuário não autenticado ou ID não disponível");

@@ -20,7 +20,7 @@ export const useRevenue = (filters: RevenueFilters = {}) => {
   return useQuery({
     queryKey: ['admin-revenue', filters],
     queryFn: async () => {
-      console.log("Fetching revenue data with filters:", filters);
+      // console.log("Fetching revenue data with filters:", filters);
       
       const { data, error } = await supabase.rpc('admin_get_revenue_data', {
         p_group_by: filters.groupBy || 'all',
@@ -33,7 +33,7 @@ export const useRevenue = (filters: RevenueFilters = {}) => {
         throw error;
       }
 
-      console.log("Revenue data fetched successfully:", data);
+      // console.log("Revenue data fetched successfully:", data);
       return data as RevenueData[];
     }
   });

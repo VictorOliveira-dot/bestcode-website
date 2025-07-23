@@ -28,13 +28,13 @@ const LoginForm = () => {
     setIsLoading(true);
     setErrorMessage(null);
 
-    console.log("Attempting login with email:", email);
+    // console.log("Attempting login with email:", email);
 
     try {
       const result = await login(email, password);
       
       if (!result.success) {
-        console.log("Login error:", result.message);
+        // console.log("Login error:", result.message);
         setErrorMessage(result.message || "Login inválido. Tente novamente.");
         toast.error("Não foi possível fazer login", {
           description: result.message || "Login inválido. Tente novamente.",
@@ -89,7 +89,7 @@ const LoginForm = () => {
         
         // Se a aplicação não existe ou está pendente, redirecionar para inscrição
         if (!applicationData || applicationData.status === 'pending') {
-          console.log("Application not complete, redirecting to enrollment");
+          // console.log("Application not complete, redirecting to enrollment");
           toast.info("Por favor, complete seu cadastro para continuar.");
           navigate('/inscricao', { replace: true });
           return;
@@ -107,7 +107,7 @@ const LoginForm = () => {
         }
         
         if (!profileData || !profileData.is_profile_complete) {
-          console.log("Profile not complete, redirecting to enrollment");
+          // console.log("Profile not complete, redirecting to enrollment");
           toast.info("Por favor, complete seu perfil para continuar.");
           return;
         }
@@ -124,7 +124,7 @@ const LoginForm = () => {
         }
         
         if (!userData?.is_active) {
-          console.log("User not active, redirecting to checkout");
+          // console.log("User not active, redirecting to checkout");
           toast.info("Por favor, Entre em contato conosco.");
           // navigate('/checkout', { replace: true });
           return;
@@ -136,13 +136,13 @@ const LoginForm = () => {
       
       if (user.role === "admin") {
         redirectPath = "/admin/dashboard";
-        console.log("Redirecting to admin dashboard");
+        // console.log("Redirecting to admin dashboard");
       } else if (user.role === "teacher") {
         redirectPath = "/teacher/dashboard";
-        console.log("Redirecting to teacher dashboard");
+        // console.log("Redirecting to teacher dashboard");
       } else if (user.role === "student") {
         redirectPath = "/student/dashboard";
-        console.log("Redirecting to student dashboard");
+        // console.log("Redirecting to student dashboard");
       }
       
       // Show success message
@@ -151,7 +151,7 @@ const LoginForm = () => {
       });
       
       // Navigate to dashboard
-      console.log("Final redirect path:", redirectPath);
+      // console.log("Final redirect path:", redirectPath);
       navigate(redirectPath, { replace: true });
       
     } catch (error) {

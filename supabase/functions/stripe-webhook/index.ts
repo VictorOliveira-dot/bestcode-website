@@ -15,7 +15,7 @@ const endpointSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
 const logEvent = (message: string, details?: any) => {
   const timestamp = new Date().toISOString();
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[${timestamp}] [STRIPE-WEBHOOK] ${message}${detailsStr}`);
+  // console.log(`[${timestamp}] [STRIPE-WEBHOOK] ${message}${detailsStr}`);
 };
 
 serve(async (req) => {

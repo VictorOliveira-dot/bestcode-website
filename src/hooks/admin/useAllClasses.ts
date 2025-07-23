@@ -29,7 +29,7 @@ export function useAllClasses() {
           throw error;
         }
 
-        console.log("All classes fetched successfully:", data?.length || 0);
+        // console.log("All classes fetched successfully:", data?.length || 0);
         return data || [];
       } catch (err: any) {
         console.error("Error fetching all classes:", err);

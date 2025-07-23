@@ -18,7 +18,7 @@ export const useEnrollmentStats = () => {
     queryKey: ['enrollment-stats'],
     queryFn: async () => {
       try {
-        console.log("Fetching enrollment statistics");
+        // console.log("Fetching enrollment statistics");
         
         // Buscar dados dos últimos 12 meses
         const startDate = new Date();
@@ -37,7 +37,7 @@ export const useEnrollmentStats = () => {
           throw error;
         }
 
-        console.log("Enrollment stats fetched:", data);
+        // console.log("Enrollment stats fetched:", data);
         
         // Processar dados para formato do gráfico
         const processedData = data?.map((item: any) => ({

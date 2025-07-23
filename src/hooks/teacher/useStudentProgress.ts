@@ -40,7 +40,7 @@ export const useStudentProgress = () => {
         return [];
       }
       
-      console.log("Fetching student progress for teacher ID:", user.id);
+      // console.log("Fetching student progress for teacher ID:", user.id);
       
       try {
         const { data, error } = await supabase.rpc('get_teacher_student_progress', {
@@ -52,7 +52,7 @@ export const useStudentProgress = () => {
           throw error;
         }
         
-        console.log("Fetched student progress:", data);
+        // console.log("Fetched student progress:", data);
         return data || [];
       } catch (err) {
         console.error("Failed to fetch student progress:", err);
@@ -112,7 +112,7 @@ export const useStudentProgress = () => {
         throw error;
       }
       
-      console.log("Fetched student lesson details:", data);
+      // console.log("Fetched student lesson details:", data);
       return data || [];
     } catch (err) {
       console.error("Failed to fetch student lesson details:", err);

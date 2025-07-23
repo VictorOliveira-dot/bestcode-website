@@ -22,7 +22,7 @@ export function useDashboardData() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        console.log("Fetching teacher data for user ID:", user.id);
+        // console.log("Fetching teacher data for user ID:", user.id);
         
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
