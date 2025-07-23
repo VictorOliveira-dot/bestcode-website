@@ -1042,6 +1042,10 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: boolean
       }
+      reset_password_send_email: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       reset_password_with_token: {
         Args: { p_token: string; p_new_password: string }
         Returns: boolean
