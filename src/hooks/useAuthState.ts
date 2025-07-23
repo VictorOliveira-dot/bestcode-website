@@ -26,56 +26,24 @@ export const useAuthState = () => {
       async (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
         
+        // Only update the user state to NULL when the event is SIGNED_OUT
         if (event === 'SIGNED_OUT') {
           console.log("User signed out, clearing state");
           setUser(null);
-          setLoading(false);
-        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          if (session?.user) {
-            console.log("Session active, fetching user data");
-            try {
-              const userData = await fetchUserData(session.user);
-              if (userData) {
-                setUser(userData);
-              }
-            } catch (error) {
-              console.error("Error fetching user data:", error);
-              setUser(null);
-            }
-          }
-          setLoading(false);
-        } else if (event === 'INITIAL_SESSION' && session) {
-          console.log("Initial session found, fetching user data");
-          try {
-            const userData = await fetchUserData(session.user);
-            if (userData) {
-              setUser(userData);
-            }
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-            setUser(null);
-          }
           setLoading(false);
         }
       }
     );
 
-    // Check initial session and set user if exists
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Check initial session only to determine if there is loading or not
+    // Don't automatically configure the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         console.log("Initial session check: No active session");
         setLoading(false);
       } else {
-        console.log("Initial session check: Session exists, fetching user data");
-        try {
-          const userData = await fetchUserData(session.user);
-          if (userData) {
-            setUser(userData);
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-          setUser(null);
-        }
+        console.log("Initial session check: Session exists, but not auto-logging in");
+        // Just mark that it's no longer loading, but don't set the user
         setLoading(false);
       }
     });

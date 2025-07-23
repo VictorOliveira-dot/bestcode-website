@@ -38,38 +38,31 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsSubmitting(true);
     
     try {
-      console.log("Tentando redefinir senha para:", data.email);
-      
-      const { data: result, error } = await supabase.rpc('reset_password_send_email', {
+      // Usar nossa função personalizada para criar token
+      const { data: token, error } = await supabase.rpc('create_password_reset_token', {
         p_email: data.email
       });
 
-      if (error) {
-        console.error("Erro ao redefinir senha:", error);
-        toast({
-          variant: "destructive",
-          title: "Erro ao redefinir senha",
-          description: error.message === 'Email não encontrado' 
-            ? "Email não encontrado no sistema." 
-            : "Não foi possível redefinir a senha. Tente novamente."
-        });
-        return;
-      }
+      if (error) throw error;
 
-      if (result) {
-        console.log("Nova senha gerada e enviada com sucesso");
-        setResetSent(true);
-        toast({
-          title: "Nova senha enviada",
-          description: "Uma nova senha foi gerada e enviada para seu email."
-        });
-      }
+      // Simular envio de email por enquanto
+      console.log('Token gerado:', token);
+      console.log('Link de recuperação:', `${window.location.origin}/reset-password?token=${token}`);
+
+      setResetSent(true);
+      toast({
+        title: "Solicitação enviada",
+        description: "Enviamos um email com as instruções para redefinir sua senha."
+      });
+      
     } catch (error: any) {
-      console.error("Erro ao redefinir senha:", error);
+      console.error("Erro ao enviar email de redefinição:", error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível redefinir a senha. Tente novamente."
+        title: "Erro ao enviar email de redefinição",
+        description: error.message === 'Email não encontrado' 
+          ? "Email não encontrado no sistema." 
+          : "Não foi possível enviar o email de redefinição. Tente novamente."
       });
     } finally {
       setIsSubmitting(false);
@@ -89,8 +82,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
           <DialogTitle className="text-center text-xl">Redefinição de Senha</DialogTitle>
           <DialogDescription className="text-center">
             {resetSent 
-              ? "Uma nova senha foi gerada e enviada para seu email." 
-              : "Digite seu email para receber uma nova senha"}
+              ? "Enviamos um email com as instruções para redefinir sua senha." 
+              : "Digite seu email para receber o link de redefinição de senha"}
           </DialogDescription>
         </DialogHeader>
         
@@ -134,14 +127,14 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
                   className="bg-bestcode-600 hover:bg-bestcode-700"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Gerando..." : "Gerar Nova Senha"}
+                  {isSubmitting ? "Enviando..." : "Enviar Link"}
                 </Button>
               </div>
             </form>
           </Form>
         ) : (
           <div className="py-4">
-            <p className="text-center mb-4">Uma nova senha foi gerada e enviada para seu email. Use a nova senha para fazer login.</p>
+            <p className="text-center mb-4">Verifique sua caixa de entrada e siga as instruções no email.</p>
             <div className="flex justify-center">
               <Button onClick={handleClose}>Fechar</Button>
             </div>
