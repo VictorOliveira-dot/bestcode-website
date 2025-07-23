@@ -69,11 +69,11 @@ const StudentProgressTracker = () => {
       setStudentLessons(transformedLessons);
     } catch (error) {
       console.error("Error fetching student lesson details:", error);
-      toast({
-        title: "Erro ao carregar detalhes",
-        description: "Não foi possível carregar os detalhes do aluno.",
-        variant: "destructive"
-      });
+      // toast({
+      //   title: "Erro ao carregar detalhes",
+      //   description: "Não foi possível carregar os detalhes do aluno.",
+      //   variant: "destructive"
+      // });
       
       // Set empty lessons on error
       setStudentLessons([]);

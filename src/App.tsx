@@ -56,7 +56,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/checkout" element={<Checkout />} />
+        {/* <Route path="/checkout" element={<Checkout />} /> */}
         <Route path="/payment/pix" element={<PaymentPix />} />
         <Route path="/payment/boleto" element={<PaymentBoleto />} />
 

@@ -70,19 +70,19 @@ export function useStudentsTable() {
     enabled: !authLoading && user?.role === 'admin'
   });
 
-  const handleViewDetails = (studentId: string) => {
-    toast({
-      title: "Visualizando detalhes do aluno",
-      description: `Redirecionando para a página de detalhes do aluno #${studentId}`,
-    });
-  };
+  // const handleViewDetails = (studentId: string) => {
+  //   toast({
+  //     title: "Visualizando detalhes do aluno",
+  //     description: `Redirecionando para a página de detalhes do aluno #${studentId}`,
+  //   });
+  // };
 
-  const handleEdit = (studentId: string) => {
-    toast({
-      title: "Editando aluno",
-      description: `Redirecionando para a página de edição do aluno #${studentId}`,
-    });
-  };
+  // const handleEdit = (studentId: string) => {
+  //   toast({
+  //     title: "Editando aluno",
+  //     description: `Redirecionando para a página de edição do aluno #${studentId}`,
+  //   });
+  // };
 
   const handleDelete = (studentId: string) => {
     toast({
@@ -97,8 +97,8 @@ export function useStudentsTable() {
     isLoading,
     error,
     refetch,
-    handleViewDetails,
-    handleEdit,
+    // handleViewDetails,
+    // handleEdit,
     handleDelete
   };
 }

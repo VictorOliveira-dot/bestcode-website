@@ -30,12 +30,12 @@ const CoursesTable: React.FC = () => {
   // Log for debugging
   console.log("CoursesTable rendered with:", { courses, isLoading, error });
 
-  const handleViewDetails = (courseId: string) => {
-    toast({
-      title: "Visualizando detalhes do curso",
-      description: `Redirecionando para a página de detalhes do curso #${courseId}`,
-    });
-  };
+  // const handleViewDetails = (courseId: string) => {
+  //   toast({
+  //     title: "Visualizando detalhes do curso",
+  //     description: `Redirecionando para a página de detalhes do curso #${courseId}`,
+  //   });
+  // };
 
   const handleEdit = (courseId: string) => {
     toast({
@@ -94,7 +94,7 @@ const CoursesTable: React.FC = () => {
             <TableHead>Status</TableHead>
             <TableHead className="hidden md:table-cell">Início</TableHead>
             <TableHead className="hidden md:table-cell">Alunos</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+            {/* <TableHead className="text-right">Ações</TableHead> */}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -125,35 +125,6 @@ const CoursesTable: React.FC = () => {
               </TableCell>
               <TableCell className="hidden md:table-cell">{course.students_count}</TableCell>
               <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Abrir menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <TooltipProvider>
-                      <DropdownMenuItem onClick={() => handleViewDetails(course.class_id)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        <span>Detalhes</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleEdit(course.class_id)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        <span>Editar</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleDelete(course.class_id)}
-                        className="text-red-600"
-                      >
-                        <Trash className="mr-2 h-4 w-4" />
-                        <span>Excluir</span>
-                      </DropdownMenuItem>
-                    </TooltipProvider>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

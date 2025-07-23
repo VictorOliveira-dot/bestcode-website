@@ -60,7 +60,6 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({
     { id: 'students', label: 'Alunos' },
     { id: 'teachers', label: 'Professores' },
     { id: 'courses', label: 'Turmas' },
-    { id: 'payments', label: 'Pagamentos' },
     { id: 'enrollments', label: 'Matrículas' },
     { id: 'reports', label: 'Relatórios' }
   ];

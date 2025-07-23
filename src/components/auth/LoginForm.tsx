@@ -109,7 +109,6 @@ const LoginForm = () => {
         if (!profileData || !profileData.is_profile_complete) {
           console.log("Profile not complete, redirecting to enrollment");
           toast.info("Por favor, complete seu perfil para continuar.");
-          navigate('/inscricao', { replace: true });
           return;
         }
         
@@ -126,8 +125,8 @@ const LoginForm = () => {
         
         if (!userData?.is_active) {
           console.log("User not active, redirecting to checkout");
-          toast.info("Por favor, complete o pagamento para acessar o curso.");
-          navigate('/checkout', { replace: true });
+          toast.info("Por favor, Entre em contato conosco.");
+          // navigate('/checkout', { replace: true });
           return;
         }
       }
