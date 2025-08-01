@@ -18,7 +18,8 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    // Set loading to false immediately to avoid infinite loading on login page
+    setLoading(false);
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -30,6 +31,7 @@ export const useAuthState = () => {
           setLoading(false);
         } else if (event === 'SIGNED_IN' && session?.user) {
           // Only fetch user data on successful sign in
+          setLoading(true);
           const userData = await fetchUserData(session.user);
           if (userData) {
             setUser({
@@ -50,15 +52,13 @@ export const useAuthState = () => {
       }
     );
 
-    // Check initial session
+    // Check initial session without setting loading state
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         setUser(null);
-        setLoading(false);
-      } else {
-        // Don't auto-login on initial load
-        setLoading(false);
       }
+      // Always set loading to false regardless of session state
+      setLoading(false);
     });
 
     // Clean up subscription
