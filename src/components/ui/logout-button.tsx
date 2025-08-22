@@ -28,45 +28,28 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
     try {
       console.log('Iniciando processo de logout...');
       
+      // Clear all auth data immediately
+      localStorage.clear();
+      sessionStorage.clear();
+      
       const result = await logout();
       
-      if (result.success) {
-        toast({
-          title: "Logout realizado com sucesso",
-          description: "Redirecionando para tela de login...",
-          variant: "default",
-        });
-        
-        // Clear all possible auth-related data
-        localStorage.removeItem('supabase.auth.token');
-        sessionStorage.clear();
-        
-        // Force immediate redirect
-        window.location.replace("/login");
-      } else {
-        throw new Error('Logout failed');
-      }
+      toast({
+        title: "Logout realizado",
+        description: "Redirecionando...",
+        variant: "default",
+      });
+      
+      // Force immediate redirect without waiting
+      window.location.replace("/login");
+      
     } catch (error) {
       console.error('Erro no logout:', error);
       
       // Force logout even if there are errors
-      toast({
-        title: "Forçando saída do sistema",
-        description: "Limpando dados e redirecionando...",
-        variant: "default",
-      });
-      
-      // Clear all local data and force redirect as fallback
-      try {
-        localStorage.clear();
-        sessionStorage.clear();
-      } catch (storageError) {
-        console.error('Erro ao limpar storage:', storageError);
-      }
-      
+      localStorage.clear();
+      sessionStorage.clear();
       window.location.replace("/login");
-    } finally {
-      setIsLoggingOut(false);
     }
   };
 

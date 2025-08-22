@@ -37,6 +37,7 @@ import TeacherDashboard from "./pages/teacher/Dashboard";
 // Protected Routes
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ActiveUserRoute from "./components/auth/ActiveUserRoute";
+import AuthGuard from "./components/auth/AuthGuard";
 
 // Tema global
 import "./App.css";
@@ -70,63 +71,81 @@ function App() {
 
         {/* Rotas protegidas para admin */}
         <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminDashboard />
-          </ProtectedRoute>
+          <AuthGuard>
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          </AuthGuard>
         } />
         <Route path="/admin/dashboard" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminDashboard />
-          </ProtectedRoute>
+          <AuthGuard>
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          </AuthGuard>
         } />
 
         {/* Rotas protegidas para estudantes (requer ativação) */}
         <Route path="/student" element={
-          <ActiveUserRoute>
-            <ProtectedRoute allowedRoles={['student']}>
-              <StudentDashboard />
-            </ProtectedRoute>
-          </ActiveUserRoute>
+          <AuthGuard>
+            <ActiveUserRoute>
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            </ActiveUserRoute>
+          </AuthGuard>
         } />
         <Route path="/student/dashboard" element={
-          <ActiveUserRoute>
-            <ProtectedRoute allowedRoles={['student']}>
-              <StudentDashboard />
-            </ProtectedRoute>
-          </ActiveUserRoute>
+          <AuthGuard>
+            <ActiveUserRoute>
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            </ActiveUserRoute>
+          </AuthGuard>
         } />
         <Route path="/student/courses" element={
-          <ActiveUserRoute>
-            <ProtectedRoute allowedRoles={['student']}>
-              <StudentCourseList />
-            </ProtectedRoute>
-          </ActiveUserRoute>
+          <AuthGuard>
+            <ActiveUserRoute>
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentCourseList />
+              </ProtectedRoute>
+            </ActiveUserRoute>
+          </AuthGuard>
         } />
         <Route path="/student/progress" element={
-          <ActiveUserRoute>
-            <ProtectedRoute allowedRoles={['student']}>
-              <StudentProgressDetails />
-            </ProtectedRoute>
-          </ActiveUserRoute>
+          <AuthGuard>
+            <ActiveUserRoute>
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentProgressDetails />
+              </ProtectedRoute>
+            </ActiveUserRoute>
+          </AuthGuard>
         } />
         <Route path="/student/schedule" element={
-          <ActiveUserRoute>
-            <ProtectedRoute allowedRoles={['student']}>
-              <StudentSchedule />
-            </ProtectedRoute>
-          </ActiveUserRoute>
+          <AuthGuard>
+            <ActiveUserRoute>
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentSchedule />
+              </ProtectedRoute>
+            </ActiveUserRoute>
+          </AuthGuard>
         } />
 
         {/* Rotas protegidas para professores */}
         <Route path="/teacher" element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <TeacherDashboard />
-          </ProtectedRoute>
+          <AuthGuard>
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherDashboard />
+            </ProtectedRoute>
+          </AuthGuard>
         } />
         <Route path="/teacher/dashboard" element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <TeacherDashboard />
-          </ProtectedRoute>
+          <AuthGuard>
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherDashboard />
+            </ProtectedRoute>
+          </AuthGuard>
         } />
 
         {/* Rota de matrícula - agora é a página para completar perfil (sem requisito de ativação) */}
