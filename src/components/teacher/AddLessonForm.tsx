@@ -44,6 +44,8 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
 
   const createLessonMutation = useMutation({
     mutationFn: async (lessonData: typeof formData) => {
+      console.log('Creating lesson with data:', lessonData);
+      
       const { data, error } = await supabase
         .rpc('create_lesson', {
           p_title: lessonData.title,
@@ -54,10 +56,17 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
           p_visibility: lessonData.visibility
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating lesson:', error);
+        throw new Error(error.message);
+      }
+      
+      console.log('Lesson created successfully:', data);
       return data;
     },
     onSuccess: async (lessonId) => {
+      console.log('Lesson creation successful, lesson ID:', lessonId);
+      
       // Find the class name for the notification
       const selectedClass = availableClasses.find(cls => cls.id === formData.classId);
       
@@ -69,17 +78,23 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
             className: selectedClass.name,
             classId: formData.classId
           });
+          console.log('Notifications created successfully');
         } catch (error) {
           console.error('Erro ao criar notificações:', error);
+          // Don't fail the whole operation if notifications fail
         }
       }
 
+      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["teacherLessons"] });
+      queryClient.invalidateQueries({ queryKey: ["lessons"] });
+      
       toast({
         title: "Aula criada com sucesso!",
         description: "A aula foi adicionada e os alunos foram notificados.",
       });
       
+      // Reset form
       setFormData({
         title: "",
         description: "",
@@ -89,6 +104,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
         visibility: "class_only"
       });
       
+      // Call success callback
       onSuccess?.();
     },
     onError: (error: any) => {
@@ -104,6 +120,11 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent multiple submissions
+    if (createLessonMutation.isPending) {
+      return;
+    }
+    
     if (!formData.title || !formData.description || !formData.youtubeUrl || !formData.date || !formData.classId) {
       toast({
         title: "Campos obrigatórios",
@@ -113,6 +134,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
       return;
     }
 
+    console.log('Submitting lesson form:', formData);
     createLessonMutation.mutate(formData);
   };
 

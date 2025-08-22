@@ -132,25 +132,37 @@ export const loginUser = async (email: string, password: string) => {
 
 export const logoutUser = async () => {
   try {
-    // console.log('Iniciando processo de logout...');
+    console.log('Iniciando processo de logout...');
+    
+    // Clear local storage first to prevent state conflicts
+    localStorage.removeItem('supabase.auth.token');
     
     // Use global scope to ensure all sessions are terminated
     const { error } = await supabase.auth.signOut({
-      scope: 'global' // Garante que todas as sessões sejam encerradas
+      scope: 'global'
     });
     
     if (error) {
       console.error('Erro durante logout:', error.message);
-      throw error; // Throw error to be caught in the component
+      // Even if there's an error, continue with cleanup
     }
     
-    // Wait a moment to ensure all state is cleared
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Force clear any remaining auth state
+    await new Promise(resolve => setTimeout(resolve, 200));
     
-    // console.log('Logout realizado com sucesso');
+    console.log('Logout realizado com sucesso');
     return { success: true };
   } catch (error) {
     console.error('Erro inesperado durante logout:', error);
+    
+    // Force logout even if there are errors
+    try {
+      localStorage.clear();
+      window.location.href = '/login';
+    } catch (e) {
+      console.error('Erro ao forçar logout:', e);
+    }
+    
     return { success: false };
   }
 };

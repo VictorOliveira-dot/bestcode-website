@@ -15,25 +15,36 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
   
   const handleLogout = async () => {
     try {
-      await logout();
+      console.log('Iniciando logout do student dashboard...');
       
-      toast({
-        title: "Logout realizado com sucesso",
-        description: "Redirecionando...",
-        variant: "default",
-        duration: 1500,
-      });
+      const result = await logout();
       
-      // Add delay before redirect to show the toast
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 1500);
+      if (result.success) {
+        toast({
+          title: "Logout realizado com sucesso",
+          description: "Redirecionando para tela de login...",
+          variant: "default",
+        });
+        
+        // Force immediate redirect without delay
+        window.location.replace("/login");
+      } else {
+        throw new Error('Logout failed');
+      }
     } catch (error) {
+      console.error('Erro no logout:', error);
+      
+      // Force logout even if there are errors
       toast({
-        title: "Erro ao sair",
-        description: "Não foi possível realizar o logout. Tente novamente.",
-        variant: "destructive"
+        title: "Forçando saída...",
+        description: "Limpando dados e redirecionando...",
+        variant: "default",
       });
+      
+      // Clear all local data and force redirect
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace("/login");
     }
   };
 

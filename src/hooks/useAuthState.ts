@@ -15,23 +15,21 @@ export interface AuthUser {
 // Convert this hook to a function component to properly access React hooks
 export const useAuthState = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Handle all auth state changes properly
-        if (event === 'SIGNED_OUT' || !session) {
-          // Clear user state immediately on logout
-          setUser(null);
-          setLoading(false);
-        } else if (event === 'SIGNED_IN' && session?.user) {
-          // Only fetch user data on successful sign in
+    let isMounted = true;
+    
+    const initializeAuth = async () => {
+      setLoading(true);
+      
+      try {
+        // Check initial session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user && isMounted) {
           const userData = await fetchUserData(session.user);
-          if (userData) {
+          if (userData && isMounted) {
             setUser({
               id: session.user.id,
               email: session.user.email || '',
@@ -40,29 +38,78 @@ export const useAuthState = () => {
               is_active: userData.is_active,
             });
           }
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        if (isMounted) {
           setLoading(false);
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          // Keep existing user state on token refresh
+        }
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return;
+        
+        console.log('Auth state change:', event, session?.user?.email);
+        
+        if (event === 'SIGNED_OUT' || !session) {
+          // Clear user state immediately on logout
+          setUser(null);
           setLoading(false);
-        } else {
-          setLoading(false);
+        } else if (event === 'SIGNED_IN' && session?.user) {
+          setLoading(true);
+          try {
+            const userData = await fetchUserData(session.user);
+            if (userData && isMounted) {
+              setUser({
+                id: session.user.id,
+                email: session.user.email || '',
+                name: userData.name,
+                role: userData.role as 'admin' | 'teacher' | 'student',
+                is_active: userData.is_active,
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          } finally {
+            if (isMounted) {
+              setLoading(false);
+            }
+          }
+        } else if (event === 'TOKEN_REFRESHED' && session?.user && !user) {
+          // Only fetch user data if we don't have it
+          setLoading(true);
+          try {
+            const userData = await fetchUserData(session.user);
+            if (userData && isMounted) {
+              setUser({
+                id: session.user.id,
+                email: session.user.email || '',
+                name: userData.name,
+                role: userData.role as 'admin' | 'teacher' | 'student',
+                is_active: userData.is_active,
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching user data on token refresh:', error);
+          } finally {
+            if (isMounted) {
+              setLoading(false);
+            }
+          }
         }
       }
     );
 
-    // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        setUser(null);
-        setLoading(false);
-      } else {
-        // Don't auto-login on initial load
-        setLoading(false);
-      }
-    });
+    // Initialize auth state
+    initializeAuth();
 
-    // Clean up subscription
+    // Cleanup function
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);

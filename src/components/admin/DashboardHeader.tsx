@@ -34,25 +34,36 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const handleLogout = async () => {
     try {
-      await logout();
+      console.log('Iniciando logout do admin dashboard...');
       
-      toast({
-        title: "Logout realizado com sucesso",
-        description: "Redirecionando...",
-        variant: "default",
-        duration: 1500,
-      });
+      const result = await logout();
       
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 1500);
+      if (result.success) {
+        toast({
+          title: "Logout realizado com sucesso",
+          description: "Redirecionando para tela de login...",
+          variant: "default",
+        });
+        
+        // Force immediate redirect without delay
+        window.location.replace("/login");
+      } else {
+        throw new Error('Logout failed');
+      }
     } catch (error) {
       console.error("Logout error:", error);
+      
+      // Force logout even if there are errors
       toast({
-        title: "Erro no logout",
-        description: "Não foi possível sair. Tente novamente.",
-        variant: "destructive",
+        title: "Forçando saída...",
+        description: "Limpando dados e redirecionando...",
+        variant: "default",
       });
+      
+      // Clear all local data and force redirect
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace("/login");
     }
   };
 

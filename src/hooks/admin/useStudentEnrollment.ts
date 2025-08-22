@@ -17,12 +17,16 @@ export function useStudentEnrollment() {
       status?: string 
     }) => {
       // Verificar se já existe uma matrícula ativa
-      const { data: existingEnrollment } = await supabase
+      const { data: existingEnrollment, error: checkError } = await supabase
         .from('enrollments')
         .select('id, status')
         .eq('student_id', studentId)
         .eq('class_id', classId)
-        .single();
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw new Error(`Erro ao verificar matrícula existente: ${checkError.message}`);
+      }
 
       if (existingEnrollment) {
         // Se já existe, atualizar o status
