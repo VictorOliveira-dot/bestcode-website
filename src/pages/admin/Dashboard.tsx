@@ -51,10 +51,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      toast({
-        title: "Bem-vindo ao painel de administração",
-        description: `Olá, ${user.name}!`,
-      });
+      
     }
   }, [user]);
 

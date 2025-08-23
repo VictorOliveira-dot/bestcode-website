@@ -77,10 +77,10 @@ const mockPayments = [
 
 const AdminPaymentsTable: React.FC = () => {
   const handleViewDetails = (paymentId: string) => {
-    toast({
-      title: "Visualizando detalhes do pagamento",
-      description: `Redirecionando para a página de detalhes do pagamento #${paymentId}`,
-    });
+    // toast({
+    //   title: "Visualizando detalhes do pagamento",
+    //   description: `Redirecionando para a página de detalhes do pagamento #${paymentId}`,
+    // });
     // In a real app, this would navigate to a payment details page
     // navigate(`/admin/payments/${paymentId}`);
   };

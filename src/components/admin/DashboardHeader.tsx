@@ -162,10 +162,10 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({
                   <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsSettingsModalOpen(true)}>
+                {/* <DropdownMenuItem onClick={() => setIsSettingsModalOpen(true)}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Configurações</span>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
