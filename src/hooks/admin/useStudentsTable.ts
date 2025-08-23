@@ -71,17 +71,17 @@ export function useStudentsTable() {
   });
 
   const handleViewDetails = (studentId: string) => {
-    toast({
-      title: "Visualizando detalhes do aluno",
-      description: `Redirecionando para a página de detalhes do aluno #${studentId}`,
-    });
+    // toast({
+    //   title: "Visualizando detalhes do aluno",
+    //   description: `Redirecionando para a página de detalhes do aluno #${studentId}`,
+    // });
   };
 
   const handleEdit = (studentId: string) => {
-    toast({
-      title: "Editando aluno",
-      description: `Redirecionando para a página de edição do aluno #${studentId}`,
-    });
+    // toast({
+    //   title: "Editando aluno",
+    //   description: `Redirecionando para a página de edição do aluno #${studentId}`,
+    // });
   };
 
   const handleDelete = (studentId: string) => {
