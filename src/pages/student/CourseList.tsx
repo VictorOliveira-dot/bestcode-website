@@ -210,8 +210,6 @@ const StudentCourseList = () => {
           <StudentLessonsPanel
             lessons={formattedLessons}
             studentClass={studentClass}
-            lessonProgress={formattedProgress}
-            updateLessonProgress={updateProgress}
             isLoading={isLoadingLessons}
           />
         </main>

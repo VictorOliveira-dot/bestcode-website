@@ -1,17 +1,19 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, UserPlus, Users, BookOpen } from "lucide-react";
+import { PlusCircle, UserPlus, Users, BookOpen, Bell, Settings } from "lucide-react";
 import LessonsPanel from "./LessonsPanel";
 import ClassManagement from "./ClassManagement";
 import AllClassesView from "./AllClassesView";
 import StudentProgress from "./StudentProgress";
+import AllStudentsTab from "./AllStudentsTab";
 import ComplementaryCoursesPanel from "./ComplementaryCoursesPanel";
 import { EnrollStudentToClassModal } from "./modals/EnrollStudentToClassModal";
+import { SendNotificationModal } from "./modals/SendNotificationModal";
 import AddComplementaryCourseModal from "./modals/AddComplementaryCourseModal";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardContentProps {
   activeTab: string;
@@ -34,8 +36,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   handleEditLesson,
   isLoading
 }) => {
+  const navigate = useNavigate();
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const { allStudents } = useTeacherData();
 
   // Estudantes disponíveis para vincular
@@ -46,96 +50,97 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   })) : [];
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 space-y-6 flex flex-col gap-3">
-      <TabsList className="flex gap-4 w-full grid grid-cols-4 bg-bestcode-600 text-white">
-        <TabsTrigger value="lessons">Aulas</TabsTrigger>
-        <TabsTrigger value="classes">Minhas Turmas</TabsTrigger>
-        <TabsTrigger value="allClasses">Todas as Turmas</TabsTrigger>
-        {/* <TabsTrigger value="complementary">Cursos Extras</TabsTrigger> */}
-        <TabsTrigger value="students">Alunos</TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      {/* Botões de ação global */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            onClick={() => setIsNotificationModalOpen(true)}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Bell className="h-4 w-4" />
+            Enviar Notificação
+          </Button>
+          <Button 
+            onClick={() => navigate('/profile/edit')}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Settings className="h-4 w-4" />
+            Editar Perfil
+          </Button>
+        </div>
+      </div>
 
-      <TabsContent value="lessons" className="space-y-4">
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center sm:flex-row flex-col gap-4">
-              <div>
-                <CardTitle>Minhas Aulas</CardTitle>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 bg-bestcode-600 text-white">
+          <TabsTrigger value="lessons">Aulas</TabsTrigger>
+          <TabsTrigger value="classes">Minhas Turmas</TabsTrigger>
+          <TabsTrigger value="allClasses" className="hidden sm:flex">Todas as Turmas</TabsTrigger>
+          <TabsTrigger value="students">Progresso</TabsTrigger>
+          <TabsTrigger value="all-students">Todos Alunos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="lessons" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center sm:flex-row flex-col gap-4">
+                <div>
+                  <CardTitle>Minhas Aulas</CardTitle>
+                </div>
+                <Button onClick={() => setIsAddLessonOpen(true)}>
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Adicionar Aula
+                </Button>
               </div>
-              <Button onClick={() => setIsAddLessonOpen(true)}>
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Adicionar Aula
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <LessonsPanel
-              lessons={lessons}
-              availableClasses={availableClasses}
-              onDeleteLesson={handleDeleteLesson}
-              onEditLesson={handleEditLesson}
-              isLoading={isLoading}
-            />
-          </CardContent>
-        </Card>
-      </TabsContent>
+            </CardHeader>
+            <CardContent>
+              <LessonsPanel
+                lessons={lessons}
+                availableClasses={availableClasses}
+                onDeleteLesson={handleDeleteLesson}
+                onEditLesson={handleEditLesson}
+                isLoading={isLoading}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <TabsContent value="classes" className="space-y-4">
-        <ClassManagement />
-      </TabsContent>
+        <TabsContent value="classes" className="space-y-4">
+          <ClassManagement />
+        </TabsContent>
 
-      <TabsContent value="allClasses" className="space-y-4">
-        <AllClassesView />
-      </TabsContent>
+        <TabsContent value="allClasses" className="space-y-4">
+          <AllClassesView />
+        </TabsContent>
 
-      <TabsContent value="complementary" className="space-y-4">
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  Cursos Complementares
-                </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Crie conteúdo adicional que será visível para todos os alunos
-                </p>
+        <TabsContent value="students" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Progresso dos Alunos
+                  </CardTitle>
+                </div>
+                <Button onClick={() => setIsEnrollModalOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Vincular Aluno à Turma
+                </Button>
               </div>
-              <Button onClick={() => setIsAddCourseOpen(true)}>
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Adicionar Curso
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ComplementaryCoursesPanel 
-              setIsAddCourseOpen={setIsAddCourseOpen}
-            />
-          </CardContent>
-        </Card>
-      </TabsContent>
+            </CardHeader>
+            <CardContent>
+              <StudentProgress />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <TabsContent value="students" className="space-y-4">
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Gestão de Alunos
-                </CardTitle>
-              </div>
-              <Button onClick={() => setIsEnrollModalOpen(true)}>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Vincular Aluno à Turma
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <StudentProgress />
-          </CardContent>
-        </Card>
-      </TabsContent>
+        <TabsContent value="all-students" className="space-y-4">
+          <AllStudentsTab />
+        </TabsContent>
+      </Tabs>
 
       <EnrollStudentToClassModal
         isOpen={isEnrollModalOpen}
@@ -143,11 +148,16 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         availableStudents={availableStudents}
       />
 
+      <SendNotificationModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+      />
+
       <AddComplementaryCourseModal
         isOpen={isAddCourseOpen}
         onOpenChange={setIsAddCourseOpen}
       />
-    </Tabs>
+    </div>
   );
 };
 

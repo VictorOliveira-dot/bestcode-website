@@ -113,13 +113,25 @@ export const useClassManagement = () => {
   };
 
   const handleDeleteClass = async (classId: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta turma? Esta ação não pode ser desfeita.')) {
-      return false;
-    }
-    
     setIsLoading(true);
     try {
-      // console.log("Deleting class ID:", classId);
+      // Verificar se a turma tem alunos
+      const { data: hasStudents } = await supabase.rpc('check_class_has_students', {
+        p_class_id: classId
+      });
+
+      if (hasStudents) {
+        toast({
+          title: 'Não é possível excluir',
+          description: 'Não é possível excluir, primeiro desvincule os alunos.',
+          variant: 'destructive'
+        });
+        return false;
+      }
+
+      if (!window.confirm('Tem certeza que deseja excluir esta turma? Esta ação não pode ser desfeita.')) {
+        return false;
+      }
       
       if (!user?.id) {
         throw new Error("Usuário não autenticado ou ID não disponível");

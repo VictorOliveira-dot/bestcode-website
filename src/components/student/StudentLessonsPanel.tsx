@@ -13,37 +13,32 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface StudentLessonsPanelProps {
   lessons: Lesson[];
   studentClass: string;
-  lessonProgress: LessonProgress[];
-  updateLessonProgress: (lessonId: string, watchTimeMinutes: number, progress: number) => Promise<void>;
   isLoading?: boolean;
 }
 
 const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
   lessons,
   studentClass,
-  lessonProgress,
-  updateLessonProgress,
   isLoading = false
 }) => {
   const [showDocumentation, setShowDocumentation] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
-  const {
-    selectedLesson,
-    isVideoModalOpen,
-    setIsVideoModalOpen,
-    availableLessons,
-    recentLessons,
-    completedLessons,
-    notStartedLessons,
-    complementaryLessons,
-    handleLessonClick,
-    handleProgressUpdate,
-    handleNextLesson,
-    handlePreviousLesson,
-    getNextLesson,
-    getPreviousLesson,
-    getLessonProgress
-  } = useLessonState(lessons, studentClass, lessonProgress, updateLessonProgress);
+  const handleLessonClick = (lesson: Lesson) => {
+    setSelectedLesson(lesson);
+    setIsVideoModalOpen(true);
+  };
+
+  // Filtrar aulas por visibilidade
+  const availableLessons = lessons.filter(lesson => 
+    lesson.visibility === 'all' || 
+    (lesson.visibility === 'class_only' && lesson.class === studentClass)
+  );
+  
+  const complementaryLessons = lessons.filter(lesson => 
+    lesson.visibility === 'complementary'
+  );
 
   if (isLoading) {
     return (
@@ -79,62 +74,56 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
         </div>
       </div>
       
-      <Tabs defaultValue="not_started">
+      <Tabs defaultValue="all">
         <TabsList className="mb-4 w-full overflow-x-auto flex flex-nowrap">
-          <TabsTrigger value="not_started">Não Iniciadas</TabsTrigger>
-          <TabsTrigger value="recent">Continuar Assistindo</TabsTrigger>
-          <TabsTrigger value="completed">Concluídas</TabsTrigger>
-          <TabsTrigger value="complementary">Cursos Complementares</TabsTrigger>
           <TabsTrigger value="all">Todas</TabsTrigger>
+          <TabsTrigger value="complementary">Cursos Complementares</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="not_started">
-          <LessonsList
-            lessons={notStartedLessons}
-            getLessonProgress={getLessonProgress}
-            onLessonClick={handleLessonClick}
-            emptyMessage="Você já iniciou todas as aulas disponíveis."
-          />
-        </TabsContent>
-        
-        <TabsContent value="recent">
-          <LessonsList
-            lessons={recentLessons}
-            getLessonProgress={getLessonProgress}
-            onLessonClick={handleLessonClick}
-            emptyMessage="Você não tem aulas em andamento. Comece uma nova aula!"
-          />
-        </TabsContent>
-        
-        <TabsContent value="completed">
-          <LessonsList
-            lessons={completedLessons}
-            getLessonProgress={getLessonProgress}
-            onLessonClick={handleLessonClick}
-            emptyMessage="Você ainda não concluiu nenhuma aula."
-          />
-        </TabsContent>
-
-        <TabsContent value="complementary">
-          <LessonsList
-            lessons={complementaryLessons}
-            getLessonProgress={getLessonProgress}
-            onLessonClick={handleLessonClick}
-            emptyMessage="Nenhum curso complementar disponível no momento."
-          />
-        </TabsContent>
         
         <TabsContent value="all">
           {availableLessons.length > 0 ? (
-            <LessonsList
-              lessons={availableLessons}
-              getLessonProgress={getLessonProgress}
-              onLessonClick={handleLessonClick}
-              emptyMessage=""
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {availableLessons.map((lesson) => (
+                <div
+                  key={lesson.id}
+                  className="border rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => handleLessonClick(lesson)}
+                >
+                  <h3 className="font-semibold text-lg mb-2">{lesson.title}</h3>
+                  <p className="text-sm text-gray-600 mb-3">{lesson.description}</p>
+                  <div className="text-xs text-gray-500">
+                    Data: {new Date(lesson.date).toLocaleDateString('pt-BR')}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
               Nenhuma aula disponível para sua turma.
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="complementary">
+          {complementaryLessons.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {complementaryLessons.map((lesson) => (
+                <div
+                  key={lesson.id}
+                  className="border rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow bg-blue-50"
+                  onClick={() => handleLessonClick(lesson)}
+                >
+                  <h3 className="font-semibold text-lg mb-2">{lesson.title}</h3>
+                  <p className="text-sm text-gray-600 mb-3">{lesson.description}</p>
+                  <div className="text-xs text-blue-600 font-medium">
+                    Curso Complementar
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              Nenhum curso complementar disponível no momento.
             </div>
           )}
         </TabsContent>
@@ -145,15 +134,8 @@ const StudentLessonsPanel: React.FC<StudentLessonsPanelProps> = ({
           isOpen={isVideoModalOpen}
           onClose={() => setIsVideoModalOpen(false)}
           lesson={selectedLesson}
-          savedProgress={{
-            watchTimeMinutes: getLessonProgress(selectedLesson.id).watchTimeMinutes,
-            progress: getLessonProgress(selectedLesson.id).progress
-          }}
-          onProgressUpdate={handleProgressUpdate}
-          onNextLesson={handleNextLesson}
-          onPreviousLesson={handlePreviousLesson}
-          hasNextLesson={!!getNextLesson(selectedLesson.id)}
-          hasPreviousLesson={!!getPreviousLesson(selectedLesson.id)}
+          savedProgress={{ watchTimeMinutes: 0, progress: 0 }}
+          onProgressUpdate={async () => {}}
         />
       )}
 

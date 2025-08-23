@@ -34,6 +34,9 @@ import StudentSchedule from "./pages/student/Schedule";
 // Páginas de Professor
 import TeacherDashboard from "./pages/teacher/Dashboard";
 
+// Profile Pages
+import ProfileEditPage from "./components/profile/ProfileEditPage";
+
 // Protected Routes
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ActiveUserRoute from "./components/auth/ActiveUserRoute";
@@ -144,6 +147,15 @@ function App() {
           <AuthGuard>
             <ProtectedRoute allowedRoles={['teacher']}>
               <TeacherDashboard />
+            </ProtectedRoute>
+          </AuthGuard>
+        } />
+
+        {/* Rotas de perfil */}
+        <Route path="/profile/edit" element={
+          <AuthGuard>
+            <ProtectedRoute allowedRoles={['admin', 'teacher', 'student']}>
+              <ProfileEditPage />
             </ProtectedRoute>
           </AuthGuard>
         } />

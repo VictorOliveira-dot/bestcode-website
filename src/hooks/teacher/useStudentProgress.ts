@@ -60,8 +60,8 @@ export const useStudentProgress = () => {
       }
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 2, // Cache por 2 minutos
-    gcTime: 1000 * 60 * 10, // Garbage collection em 10 minutos
+    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
+    gcTime: 1000 * 60 * 15, // Garbage collection em 15 minutos
     retry: 2,
   });
 

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -617,8 +617,8 @@ export type Database = {
       }
       admin_create_class: {
         Args: {
-          p_name: string
           p_description: string
+          p_name: string
           p_start_date: string
           p_teacher_id: string
         }
@@ -645,35 +645,35 @@ export type Database = {
         Returns: {
           class_id: string
           class_name: string
-          teacher_name: string
           start_date: string
+          teacher_name: string
         }[]
       }
       admin_get_courses: {
         Args: Record<PropertyKey, never>
         Returns: {
           class_id: string
-          name: string
           description: string
-          start_date: string
-          teacher_name: string
-          students_count: number
           is_active: boolean
+          name: string
+          start_date: string
+          students_count: number
+          teacher_name: string
         }[]
       }
       admin_get_dashboard_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
+          active_students_last_week: number
+          average_completion_rate: number
+          total_classes: number
+          total_lessons: number
           total_students: number
           total_teachers: number
-          total_classes: number
-          active_students_last_week: number
-          total_lessons: number
-          average_completion_rate: number
         }[]
       }
       admin_get_enrollment_stats: {
-        Args: { p_start_date: string; p_end_date: string }
+        Args: { p_end_date: string; p_start_date: string }
         Returns: {
           enrollment_date: string
           total_enrollments: number
@@ -682,109 +682,113 @@ export type Database = {
       admin_get_payments: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          student_name: string
-          student_email: string
-          course_name: string
           amount: number
+          course_name: string
+          id: string
           payment_date: string
           payment_method: string
           status: string
+          student_email: string
+          student_name: string
         }[]
       }
       admin_get_revenue_data: {
         Args: {
+          p_end_date?: string
           p_group_by?: string
           p_start_date?: string
-          p_end_date?: string
         }
         Returns: {
           class_id: string
           class_name: string
+          month_date: string
           total_revenue: number
           total_students: number
-          month_date: string
         }[]
       }
       admin_get_student_details: {
         Args: { p_student_id: string }
         Returns: {
-          user_id: string
-          name: string
-          email: string
+          address: string
+          birth_date: string
+          cpf: string
           created_at: string
           current_classes: Json
-          subscription_plan: string
-          progress_average: number
-          last_active: string
-          first_name: string
-          last_name: string
-          phone: string
-          whatsapp: string
-          cpf: string
-          birth_date: string
-          address: string
           education: string
-          professional_area: string
+          email: string
           experience_level: string
+          first_name: string
           goals: string
-          study_availability: string
           is_profile_complete: boolean
+          last_active: string
+          last_name: string
+          name: string
+          phone: string
+          professional_area: string
+          progress_average: number
+          study_availability: string
+          subscription_plan: string
+          user_id: string
+          whatsapp: string
         }[]
       }
       admin_get_students_data: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_id: string
-          name: string
-          email: string
-          created_at: string
           classes_count: number
+          created_at: string
+          email: string
           last_active: string
+          name: string
           progress_average: number
+          user_id: string
         }[]
       }
       admin_get_teachers: {
         Args: Record<PropertyKey, never>
         Returns: {
+          classes_count: number
+          created_at: string
+          email: string
           id: string
           name: string
-          email: string
-          created_at: string
-          classes_count: number
           students_count: number
         }[]
       }
       admin_update_student_data: {
         Args: {
-          p_student_id: string
-          p_name?: string
-          p_email?: string
-          p_first_name?: string
-          p_last_name?: string
-          p_phone?: string
-          p_whatsapp?: string
-          p_cpf?: string
-          p_birth_date?: string
           p_address?: string
+          p_birth_date?: string
+          p_cpf?: string
           p_education?: string
-          p_professional_area?: string
+          p_email?: string
           p_experience_level?: string
+          p_first_name?: string
           p_goals?: string
+          p_last_name?: string
+          p_name?: string
+          p_phone?: string
+          p_professional_area?: string
+          p_student_id: string
           p_study_availability?: string
+          p_whatsapp?: string
         }
         Returns: undefined
       }
       admin_update_student_enrollment: {
-        Args: { p_student_id: string; p_class_id: string; p_status: string }
+        Args: { p_class_id: string; p_status: string; p_student_id: string }
         Returns: undefined
       }
       admin_update_student_status: {
-        Args: { p_student_id: string; p_is_active: boolean }
+        Args: { p_is_active: boolean; p_student_id: string }
         Returns: undefined
       }
       can_access_class: {
         Args: { class_id: string }
+        Returns: boolean
+      }
+      check_class_has_students: {
+        Args: { p_class_id: string }
         Returns: boolean
       }
       check_user_exists: {
@@ -797,35 +801,35 @@ export type Database = {
       }
       create_class: {
         Args: {
-          p_name: string
           p_description: string
+          p_name: string
           p_start_date: string
           p_teacher_id: string
         }
         Returns: {
+          description: string
           id: string
           name: string
-          description: string
           start_date: string
         }[]
       }
       create_complementary_course: {
         Args: {
-          p_title: string
           p_description: string
-          p_youtube_url: string
           p_teacher_id: string
+          p_title: string
+          p_youtube_url: string
         }
         Returns: string
       }
       create_lesson: {
         Args: {
-          p_title: string
-          p_description: string
-          p_youtube_url: string
-          p_date: string
           p_class_id: string
+          p_date: string
+          p_description: string
+          p_title: string
           p_visibility: string
+          p_youtube_url: string
         }
         Returns: string
       }
@@ -834,7 +838,7 @@ export type Database = {
         Returns: string
       }
       create_teacher_class: {
-        Args: { p_name: string; p_description: string; p_start_date: string }
+        Args: { p_description: string; p_name: string; p_start_date: string }
         Returns: string
       }
       create_test_users: {
@@ -856,113 +860,124 @@ export type Database = {
       get_all_classes_for_teachers: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          name: string
           description: string
+          id: string
+          is_active: boolean
+          name: string
           start_date: string
+          students_count: number
           teacher_id: string
           teacher_name: string
-          students_count: number
-          is_active: boolean
         }[]
       }
       get_all_students_for_teachers: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          name: string
-          email: string
           created_at: string
+          email: string
+          id: string
           is_active: boolean
+          name: string
+        }[]
+      }
+      get_all_students_optimized: {
+        Args: { p_teacher_id: string }
+        Returns: {
+          class_names: string
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string
         }[]
       }
       get_my_class_enrollments: {
         Args: Record<PropertyKey, never>
         Returns: {
-          enrollment_id: string
           class_id: string
           class_name: string
-          teacher_id: string
+          enrollment_id: string
           student_id: string
+          teacher_id: string
         }[]
       }
       get_student_enrollments: {
         Args: Record<PropertyKey, never>
         Returns: {
-          enrollment_id: string
+          class_description: string
           class_id: string
           class_name: string
-          class_description: string
-          start_date: string
+          enrollment_id: string
           enrollment_status: string
+          start_date: string
           teacher_name: string
         }[]
       }
       get_student_lesson_details: {
         Args: { p_student_id: string; p_teacher_id: string }
         Returns: {
+          last_watch: string
+          lesson_date: string
           lesson_id: string
           lesson_title: string
-          lesson_date: string
+          progress: number
           status: string
           watch_time_minutes: number
-          last_watch: string
-          progress: number
         }[]
       }
       get_student_lessons: {
         Args: { filter_date?: string }
         Returns: {
-          id: string
-          title: string
-          description: string
-          youtube_url: string
-          date: string
           class_id: string
           class_name: string
+          date: string
+          description: string
+          id: string
+          title: string
           visibility: string
+          youtube_url: string
         }[]
       }
       get_student_lessons_brazil_timezone: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          title: string
-          description: string
-          youtube_url: string
-          date: string
           class_id: string
           class_name: string
-          visibility: string
+          date: string
+          description: string
+          id: string
           scheduled_at_brazil: string
+          title: string
+          visibility: string
+          youtube_url: string
         }[]
       }
       get_student_notifications: {
         Args: { p_user_id: string }
         Returns: {
-          id: string
-          title: string
-          message: string
           date: string
+          id: string
+          message: string
           read: boolean
+          title: string
         }[]
       }
       get_student_progress: {
         Args: Record<PropertyKey, never> | { student_id: string }
         Returns: {
-          lesson_id: string
-          watch_time_minutes: number
-          progress: number
           last_watched: string
+          lesson_id: string
+          progress: number
           status: string
+          watch_time_minutes: number
         }[]
       }
       get_teacher_classes: {
         Args: { p_teacher_id: string }
         Returns: {
+          description: string
           id: string
           name: string
-          description: string
           start_date: string
           students_count: number
         }[]
@@ -977,25 +992,25 @@ export type Database = {
       get_teacher_complementary_courses: {
         Args: { p_teacher_id: string }
         Returns: {
-          id: string
-          title: string
-          description: string
-          youtube_url: string
           created_at: string
+          description: string
+          id: string
           is_active: boolean
+          title: string
+          youtube_url: string
         }[]
       }
       get_teacher_lessons: {
         Args: { teacher_id: string }
         Returns: {
-          id: string
-          title: string
-          description: string
-          youtube_url: string
-          date: string
           class_id: string
           class_name: string
+          date: string
+          description: string
+          id: string
+          title: string
           visibility: string
+          youtube_url: string
         }[]
       }
       get_teacher_student_count: {
@@ -1005,25 +1020,25 @@ export type Database = {
       get_teacher_student_progress: {
         Args: { p_teacher_id: string }
         Returns: {
-          id: string
-          name: string
-          email: string
           class_name: string
-          last_activity: string
           completed_lessons: number
-          total_lessons: number
+          email: string
+          id: string
+          last_activity: string
+          name: string
           progress: number
+          total_lessons: number
         }[]
       }
       get_teacher_students: {
         Args: { p_teacher_id: string }
         Returns: {
-          student_id: string
-          name: string
-          email: string
           class_name: string
+          email: string
           enrollment_date: string
+          name: string
           progress_percentage: number
+          student_id: string
         }[]
       }
       get_user_role: {
@@ -1042,19 +1057,40 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: boolean
       }
+      reset_password_send_email: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       reset_password_with_token: {
-        Args: { p_token: string; p_new_password: string }
+        Args: { p_new_password: string; p_token: string }
         Returns: boolean
       }
       reset_test_users: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      send_notification_to_all_classes: {
+        Args: { p_message: string; p_sender_id: string; p_title: string }
+        Returns: undefined
+      }
+      send_notification_to_class: {
+        Args: {
+          p_class_id: string
+          p_message: string
+          p_sender_id: string
+          p_title: string
+        }
+        Returns: undefined
+      }
+      unenroll_student_from_class: {
+        Args: { p_class_id: string; p_student_id: string; p_teacher_id: string }
+        Returns: undefined
+      }
       update_class: {
         Args: {
           p_class_id: string
-          p_name: string
           p_description: string
+          p_name: string
           p_start_date: string
           p_teacher_id: string
         }
@@ -1063,33 +1099,37 @@ export type Database = {
       update_complementary_course: {
         Args: {
           p_course_id: string
-          p_title: string
           p_description: string
-          p_youtube_url: string
           p_teacher_id: string
+          p_title: string
+          p_youtube_url: string
         }
         Returns: undefined
       }
       update_lesson: {
         Args: {
-          p_lesson_id: string
-          p_title: string
-          p_description: string
-          p_youtube_url: string
-          p_date: string
           p_class_id: string
-          p_visibility: string
+          p_date: string
+          p_description: string
+          p_lesson_id: string
           p_teacher_id: string
+          p_title: string
+          p_visibility: string
+          p_youtube_url: string
         }
+        Returns: undefined
+      }
+      update_user_profile: {
+        Args: { p_bio?: string; p_name?: string; p_user_id: string }
         Returns: undefined
       }
       upsert_lesson_progress: {
         Args: {
           p_lesson_id: string
-          p_student_id: string
-          p_watch_time_minutes: number
           p_progress: number
           p_status: string
+          p_student_id: string
+          p_watch_time_minutes: number
         }
         Returns: undefined
       }

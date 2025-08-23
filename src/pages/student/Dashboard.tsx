@@ -15,10 +15,8 @@ const StudentDashboard = () => {
   
   const { 
     lessons,
-    progress,
     notifications,
     enrollments,
-    updateProgress,
     markNotificationAsRead,
     isLoading
   } = useStudentData();
@@ -74,14 +72,6 @@ const StudentDashboard = () => {
 
   // console.log('✅ Formatted lessons:', formattedLessons.length, formattedLessons);
 
-  const formattedProgress = Array.isArray(progress) ? progress.map(p => ({
-    lessonId: p.lesson_id,
-    watchTimeMinutes: p.watch_time_minutes,
-    progress: p.progress,
-    status: p.status as 'completed' | 'in_progress' | 'not_started',
-    lastWatched: p.last_watched
-  })) : [];
-
   const formattedNotifications = Array.isArray(notifications) ? notifications.map(n => ({
     id: n.id,
     title: n.title,
@@ -91,13 +81,11 @@ const StudentDashboard = () => {
   })) : [];
 
   const stats = {
-    inProgressLessons: formattedProgress.filter(p => p.status === "in_progress").length || 0,
-    completedLessons: formattedProgress.filter(p => p.status === "completed").length || 0,
-    overallProgress: formattedProgress.length 
-      ? Math.round((formattedProgress.reduce((acc, p) => acc + p.progress, 0) / (formattedProgress.length * 100)) * 100)
-      : 0,
     availableLessons: formattedLessons.length || 0,
-    enrollmentsCount: enrollments?.length || 0
+    enrollmentsCount: enrollments?.length || 0,
+    inProgressLessons: 0, // Removido sistema de progresso
+    completedLessons: 0, // Removido sistema de progresso
+    overallProgress: 0 // Removido sistema de progresso
   };
 
   return (
@@ -115,8 +103,6 @@ const StudentDashboard = () => {
               <StudentLessonsPanel
                 lessons={formattedLessons}
                 studentClass={studentClass}
-                lessonProgress={formattedProgress}
-                updateLessonProgress={updateProgress}
                 isLoading={isLoading}
               />
             ) : (
