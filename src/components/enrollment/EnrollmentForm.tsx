@@ -373,7 +373,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
       });
     } catch (error: any) {
       console.error("Error saving progress:", error);
-      toast.error(`Erro ao salvar progresso: ${error.message}`);
+      // toast.error(`Erro ao salvar progresso: ${error.message}`);
     } finally {
       setSaving(false);
     }

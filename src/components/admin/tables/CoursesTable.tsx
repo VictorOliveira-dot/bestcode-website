@@ -103,12 +103,12 @@ const CoursesTable: React.FC = () => {
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>
                 <div>
-                  <p className="font-medium">{course.name}</p>
-                  <p className="text-sm text-gray-500 hidden md:block">{course.description}</p>
+                  <p className="font-medium text-start">{course.name}</p>
+                  <p className="text-sm text-gray-500 hidden md:block text-start">{course.description}</p>
                 </div>
               </TableCell>
-              <TableCell className="hidden lg:table-cell">{course.teacher_name}</TableCell>
-              <TableCell>
+              <TableCell className="hidden lg:table-cell text-start">{course.teacher_name}</TableCell>
+              <TableCell className="text-start">
                 <Badge
                   variant={course.is_active ? "default" : "secondary"}
                   className={
@@ -120,10 +120,10 @@ const CoursesTable: React.FC = () => {
                   {course.is_active ? "Ativo" : "Inativo"}
                 </Badge>
               </TableCell>
-              <TableCell className="hidden md:table-cell">
+              <TableCell className="hidden md:table-cell text-start">
                 {new Date(course.start_date).toLocaleDateString('pt-BR')}
               </TableCell>
-              <TableCell className="hidden md:table-cell">{course.students_count}</TableCell>
+              <TableCell className="hidden md:table-cell text-start">{course.students_count}</TableCell>
               <TableCell className="text-right">
               </TableCell>
             </TableRow>

@@ -68,32 +68,32 @@ const StudentsTable: React.FC = () => {
             <TableHead>Email</TableHead>
             <TableHead className="hidden md:table-cell">Matrícula</TableHead>
             <TableHead>Turmas</TableHead>
-            <TableHead className="hidden md:table-cell">Última Atividade</TableHead>
-            <TableHead>Progresso</TableHead>
+            {/* <TableHead className="hidden md:table-cell">Última Atividade</TableHead> */}
+            {/* <TableHead>Progresso</TableHead> */}
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+            <TableHead className="text-start  ">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {students.map((student, index) => (
             <TableRow key={student.user_id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
-              <TableCell>{student.name}</TableCell>
-              <TableCell>{student.email}</TableCell>
-              <TableCell className="hidden md:table-cell">
+              <TableCell className="text-start">{student.name}</TableCell>
+              <TableCell className="text-start">{student.email}</TableCell>
+              <TableCell className="hidden md:table-cell text-start">
                 {new Date(student.created_at).toLocaleDateString('pt-BR')}
               </TableCell>
-              <TableCell>{student.classes_count}</TableCell>
-              <TableCell className="hidden md:table-cell">
+              <TableCell className="text-start" >{student.classes_count}</TableCell>
+              {/* <TableCell className="hidden md:table-cell">
                 {student.last_active ? new Date(student.last_active).toLocaleDateString('pt-BR') : 'Nunca'}
-              </TableCell>
-              <TableCell>
+              </TableCell> */}
+              {/* <TableCell>
                 <StudentProgress
                   completedLessons={Math.round((student.progress_average / 100) * student.classes_count)}
                   totalLessons={student.classes_count}
                   progress={student.progress_average}
                 />
-              </TableCell>
+              </TableCell> */}
               <TableCell>
                 <StudentStatusSwitch
                   studentId={student.user_id}
@@ -101,7 +101,7 @@ const StudentsTable: React.FC = () => {
                   studentName={student.name}
                 />
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-start">
                 <StudentActions
                   student={{
                     user_id: student.user_id,

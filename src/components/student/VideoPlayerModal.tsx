@@ -312,10 +312,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>{lesson.title}</DialogTitle>
-          <DialogDescription>
-            Seu progresso será salvo automaticamente
-          </DialogDescription>
+          <DialogTitle>Titulo da aula: <span className="text-secondary">{lesson.title}</span></DialogTitle>
         </DialogHeader>
         
         <div className="flex-1 min-h-[50vh] relative">
@@ -360,14 +357,14 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
         
         <div className="mt-4">
-          <div className="flex justify-between text-sm mb-1">
+          {/* <div className="flex justify-between text-sm mb-1">
             <span>Progresso: {progress}%</span>
             <span>
               {formatTime(watchTimeRef.current)} 
               {duration > 0 ? ` / ${formatTime(duration)}` : ''}
             </span>
-          </div>
-          <Progress value={progress} className="h-2 mb-4" />
+          </div> */}
+          {/* <Progress value={progress} className="h-2 mb-4" /> */}
           
           {/* Navigation and action buttons */}
           <div className="space-y-3">
@@ -416,9 +413,9 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             </div> */}
           </div>
           
-          <p className="text-xs text-gray-500 mt-2">
+          {/* <p className="text-xs text-gray-500 mt-2">
             {isSaving ? 'Salvando progresso...' : 'Progresso salvo automaticamente ao fechar'}
-          </p>
+          </p> */}
         </div>
       </DialogContent>
     </Dialog>

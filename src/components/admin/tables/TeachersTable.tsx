@@ -125,21 +125,21 @@ const TeachersTable: React.FC = () => {
               <TableHead className="hidden md:table-cell">Data de Cadastro</TableHead>
               <TableHead className="hidden md:table-cell">Turmas</TableHead>
               <TableHead className="hidden md:table-cell">Alunos</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="text-start">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {teachers.map((teacher, index) => (
               <TableRow key={teacher.id}>
                 <TableCell className="font-medium">{index + 1}</TableCell>
-                <TableCell>{teacher.name}</TableCell>
-                <TableCell>{teacher.email}</TableCell>
-                <TableCell className="hidden md:table-cell">
+                <TableCell className="text-start">{teacher.name}</TableCell>
+                <TableCell className="text-start">{teacher.email}</TableCell>
+                <TableCell className="hidden md:table-cell text-start">
                   {new Date(teacher.created_at).toLocaleDateString('pt-BR')}
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{teacher.classes_count}</TableCell>
-                <TableCell className="hidden md:table-cell">{teacher.students_count}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="hidden md:table-cell text-start">{teacher.classes_count}</TableCell>
+                <TableCell className="hidden md:table-cell text-start">{teacher.students_count}</TableCell>
+                <TableCell className="text-start">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0">
