@@ -744,6 +744,18 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_get_teacher_details: {
+        Args: { p_teacher_id: string }
+        Returns: {
+          classes: Json
+          classes_count: number
+          created_at: string
+          email: string
+          id: string
+          name: string
+          students_count: number
+        }[]
+      }
       admin_get_teachers: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -855,6 +867,10 @@ export type Database = {
       }
       delete_lesson: {
         Args: { p_lesson_id: string; p_teacher_id: string }
+        Returns: undefined
+      }
+      enroll_student_to_class: {
+        Args: { p_class_id: string; p_student_id: string }
         Returns: undefined
       }
       get_all_classes_for_teachers: {
@@ -1135,6 +1151,10 @@ export type Database = {
       }
       user_can_access_class: {
         Args: { class_id: string }
+        Returns: boolean
+      }
+      validate_cpf: {
+        Args: { p_cpf: string }
         Returns: boolean
       }
     }

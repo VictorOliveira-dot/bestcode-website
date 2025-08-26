@@ -162,6 +162,7 @@ const TeacherDashboard = () => {
           handleDeleteLesson={handleDeleteLesson}
           handleEditLesson={handleEditLesson}
           isLoading={isLoading}
+          notifications={[]}
         />
       </main>
 

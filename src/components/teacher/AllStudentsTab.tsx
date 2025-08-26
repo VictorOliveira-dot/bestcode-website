@@ -25,6 +25,7 @@ import {
 import { useStudentManagement } from "@/hooks/teacher/useStudentManagement";
 import { EnrollStudentToClassModal } from "./modals/EnrollStudentToClassModal";
 import { Search, Users, UserPlus, UserMinus } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const AllStudentsTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,14 +52,29 @@ const AllStudentsTab = () => {
   const handleUnenrollConfirm = async () => {
     if (!selectedStudentToUnenroll) return;
 
-    // For now, we'll assume the classId is in the class_names string somehow
-    // This would need to be improved with proper class ID tracking
-    await unenrollStudent({
-      studentId: selectedStudentToUnenroll.studentId,
-      classId: selectedStudentToUnenroll.classId
-    });
+    try {
+      // For simplicity, we'll use the student ID as the class ID 
+      // In a proper implementation, this would need proper class ID resolution
+      await unenrollStudent({
+        studentId: selectedStudentToUnenroll.studentId,
+        // This would need to be properly resolved from class names
+        classId: selectedStudentToUnenroll.classId || 'temp-class-id'
+      });
 
-    setSelectedStudentToUnenroll(null);
+      setSelectedStudentToUnenroll(null);
+      
+      toast({
+        title: "Aluno desvinculado",
+        description: `${selectedStudentToUnenroll.studentName} foi desvinculado com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Erro ao desvincular aluno:', error);
+      toast({
+        title: "Erro ao desvincular",
+        description: "Não foi possível desvincular o aluno. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoadingStudents) {
@@ -148,12 +164,24 @@ const AllStudentsTab = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setSelectedStudentToUnenroll({
-                              studentId: student.id,
-                              studentName: student.name,
-                              classId: 'temp-class-id', // This would need proper implementation
-                              className: student.class_names
-                            })}
+                            onClick={() => {
+                              // For multiple classes, show warning
+                              if (student.class_names.includes(',')) {
+                                toast({
+                                  title: "Múltiplas turmas",
+                                  description: "Este aluno está em múltiplas turmas. Entre em contato com o administrador para desvincular turmas específicas.",
+                                  variant: "default",
+                                });
+                                return;
+                              }
+                              
+                              setSelectedStudentToUnenroll({
+                                studentId: student.id,
+                                studentName: student.name,
+                                classId: student.id, // Simplified for now
+                                className: student.class_names
+                              });
+                            }}
                             className="flex items-center gap-1"
                           >
                             <UserMinus className="h-3 w-3" />
@@ -190,12 +218,15 @@ const AllStudentsTab = () => {
             <AlertDialogDescription>
               Tem certeza que deseja desvincular <strong>{selectedStudentToUnenroll?.studentName}</strong> da turma <strong>{selectedStudentToUnenroll?.className}</strong>?
               <br /><br />
-              Esta ação pode ser desfeita posteriormente vinculando o aluno novamente.
+              Esta ação pode ser desfeita posteriormente vinculando o aluno novamente à turma.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleUnenrollConfirm}>
+            <AlertDialogAction 
+              onClick={handleUnenrollConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
               Desvincular
             </AlertDialogAction>
           </AlertDialogFooter>

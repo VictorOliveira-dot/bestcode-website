@@ -24,6 +24,7 @@ import { TeacherEditModal } from "../modals/TeacherEditModal";
 import { DeleteTeacherDialog } from "../modals/DeleteTeacherDialog";
 import { toast } from "@/hooks/use-toast";
 import { useTeachers } from "@/hooks/admin/useTeachers";
+import { useTeacherActions } from "@/hooks/admin/useTeacherActions";
 import { supabase } from "@/integrations/supabase/client";
 
 const TeachersTable: React.FC = () => {
@@ -32,11 +33,21 @@ const TeachersTable: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { teachers, isLoading, fetchTeachers } = useTeachers();
+  const { fetchTeacherDetails, deleteTeacher } = useTeacherActions();
 
-  const handleViewDetails = (teacherId: string) => {
-    const teacher = teachers.find(t => t.id === teacherId);
-    setSelectedTeacher(teacher);
-    setIsDetailsModalOpen(true);
+  const handleViewDetails = async (teacherId: string) => {
+    try {
+      const details = await fetchTeacherDetails(teacherId);
+      setSelectedTeacher(details);
+      setIsDetailsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching teacher details:", error);
+      toast({
+        title: "Erro ao carregar detalhes",
+        description: "Não foi possível carregar os detalhes do professor.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEdit = (teacherId: string) => {
@@ -80,26 +91,12 @@ const TeachersTable: React.FC = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', selectedTeacher.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Professor removido",
-        description: "O professor foi removido com sucesso.",
-      });
-
+      await deleteTeacher(selectedTeacher.id);
       setIsDeleteDialogOpen(false);
+      setSelectedTeacher(null);
       fetchTeachers();
     } catch (error: any) {
-      toast({
-        title: "Erro ao remover professor",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Error in handleDeleteConfirm:", error);
     }
   };
 
@@ -176,20 +173,29 @@ const TeachersTable: React.FC = () => {
 
       <TeacherDetailsModal
         isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedTeacher(null);
+        }}
         details={selectedTeacher}
       />
 
       <TeacherEditModal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedTeacher(null);
+        }}
         onConfirm={handleEditConfirm}
         teacherDetails={selectedTeacher}
       />
 
       <DeleteTeacherDialog
         isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setSelectedTeacher(null);
+        }}
         onConfirm={handleDeleteConfirm}
         teacherName={selectedTeacher?.name || ""}
       />

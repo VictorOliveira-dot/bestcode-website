@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -9,8 +8,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormField,
@@ -19,6 +16,8 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -26,7 +25,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStudentDataUpdate } from "@/hooks/admin/useStudentDataUpdate";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { validateCPF, formatCPF, validateBrazilianPhone, formatBrazilianPhone } from "@/utils/cpfUtils";
+import { MaskedInput } from "@/components/ui/masked-input";
 
 interface StudentDataEditModalProps {
   isOpen: boolean;
@@ -51,8 +54,7 @@ interface StudentDataEditModalProps {
 }
 
 export function StudentDataEditModal({ isOpen, onClose, studentDetails }: StudentDataEditModalProps) {
-  const { updateStudentData, isUpdating } = useStudentDataUpdate();
-  
+  const queryClient = useQueryClient();
   const form = useForm({
     defaultValues: {
       name: "",
@@ -94,272 +96,275 @@ export function StudentDataEditModal({ isOpen, onClose, studentDetails }: Studen
   }, [isOpen, studentDetails, form]);
 
   const handleSubmit = async (values: any) => {
-    if (!studentDetails) return;
+    try {
+      // Validate CPF if provided
+      if (values.cpf && !validateCPF(values.cpf)) {
+        toast({
+          title: "CPF inválido",
+          description: "Por favor, insira um CPF válido.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    await updateStudentData({
-      student_id: studentDetails.user_id,
-      ...values
-    });
-    onClose();
+      // Validate phone if provided
+      if (values.phone && !validateBrazilianPhone(values.phone)) {
+        toast({
+          title: "Telefone inválido",
+          description: "Por favor, insira um telefone com 10 ou 11 dígitos.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.rpc('admin_update_student_data', {
+        p_student_id: studentDetails?.user_id,
+        p_name: values.name,
+        p_email: values.email,
+        p_first_name: values.first_name,
+        p_last_name: values.last_name,
+        p_phone: values.phone.replace(/\D/g, ''), // Save only numbers
+        p_whatsapp: values.whatsapp.replace(/\D/g, ''),
+        p_cpf: values.cpf.replace(/\D/g, ''),
+        p_birth_date: values.birth_date || null,
+        p_address: values.address,
+        p_education: values.education,
+        p_professional_area: values.professional_area,
+        p_experience_level: values.experience_level,
+        p_goals: values.goals,
+        p_study_availability: values.study_availability,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Dados atualizados",
+        description: "Os dados do aluno foram atualizados com sucesso.",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar dados",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   if (!studentDetails) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Dados do Aluno</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Dados Básicos */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg border-b pb-2">Dados Básicos</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Nome completo" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="email" placeholder="email@exemplo.com" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="first_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Primeiro Nome</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Primeiro nome" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="last_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sobrenome</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Sobrenome" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Contato */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg border-b pb-2">Dados de Contato</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="(11) 99999-9999" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="whatsapp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>WhatsApp</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="(11) 99999-9999" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="cpf"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CPF</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="000.000.000-00" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="birth_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data de Nascimento</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="date" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Endereço */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg border-b pb-2">Endereço</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Endereço Completo</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} placeholder="Rua, número, bairro, cidade, estado, CEP" rows={3} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Informações Acadêmicas/Profissionais */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg border-b pb-2">Perfil Acadêmico/Profissional</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="education"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Educação</FormLabel>
-                      <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a escolaridade" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ensino_medio">Ensino Médio</SelectItem>
-                            <SelectItem value="tecnico">Técnico</SelectItem>
-                            <SelectItem value="superior_incompleto">Superior Incompleto</SelectItem>
-                            <SelectItem value="superior_completo">Superior Completo</SelectItem>
-                            <SelectItem value="pos_graduacao">Pós-graduação</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="professional_area"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Área Profissional</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: Tecnologia, Marketing, Vendas" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="experience_level"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nível de Experiência</FormLabel>
-                      <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o nível" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="iniciante">Iniciante</SelectItem>
-                            <SelectItem value="intermediario">Intermediário</SelectItem>
-                            <SelectItem value="avancado">Avançado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="study_availability"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Disponibilidade de Estudo</FormLabel>
-                      <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a disponibilidade" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1-3h">1-3 horas por dia</SelectItem>
-                            <SelectItem value="3-5h">3-5 horas por dia</SelectItem>
-                            <SelectItem value="5h+">Mais de 5 horas por dia</SelectItem>
-                            <SelectItem value="fins_semana">Apenas fins de semana</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Objetivos */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg border-b pb-2">Objetivos</h3>
-              
               <FormField
                 control={form.control}
-                name="goals"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Objetivos com o Curso</FormLabel>
+                    <FormLabel>Nome</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Descreva os objetivos do aluno com o curso..." rows={3} />
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="first_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Primeiro Nome</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sobrenome</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cpf"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CPF</FormLabel>
+                    <FormControl>
+                      <MaskedInput 
+                        mask="cpf"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="birth_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data de Nascimento</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="date" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefone</FormLabel>
+                    <FormControl>
+                      <MaskedInput 
+                        mask="phone"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="whatsapp"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>WhatsApp</FormLabel>
+                    <FormControl>
+                      <MaskedInput 
+                        mask="phone"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="education"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Educação</FormLabel>
+                    <FormControl>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ensino_fundamental">Ensino Fundamental</SelectItem>
+                          <SelectItem value="ensino_medio">Ensino Médio</SelectItem>
+                          <SelectItem value="ensino_superior">Ensino Superior</SelectItem>
+                          <SelectItem value="pos_graduacao">Pós-graduação</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="professional_area"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Área Profissional</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="experience_level"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nível de Experiência</FormLabel>
+                    <FormControl>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="iniciante">Iniciante</SelectItem>
+                          <SelectItem value="intermediario">Intermediário</SelectItem>
+                          <SelectItem value="avancado">Avançado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="study_availability"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Disponibilidade de Estudo</FormLabel>
+                    <FormControl>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1-2h">1-2 horas por dia</SelectItem>
+                          <SelectItem value="2-4h">2-4 horas por dia</SelectItem>
+                          <SelectItem value="4h+">Mais de 4 horas por dia</SelectItem>
+                          <SelectItem value="fins_de_semana">Apenas fins de semana</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -367,12 +372,40 @@ export function StudentDataEditModal({ isOpen, onClose, studentDetails }: Studen
               />
             </div>
 
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Endereço</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="goals"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Objetivos</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={3} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <DialogFooter>
               <Button variant="outline" type="button" onClick={onClose}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isUpdating}>
-                {isUpdating ? "Salvando..." : "Salvar Alterações"}
+              <Button type="submit">
+                Salvar Alterações
               </Button>
             </DialogFooter>
           </form>
