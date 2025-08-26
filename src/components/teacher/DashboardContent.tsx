@@ -11,9 +11,11 @@ import AllStudentsTab from "./AllStudentsTab";
 import ComplementaryCoursesPanel from "./ComplementaryCoursesPanel";
 import { EnrollStudentToClassModal } from "./modals/EnrollStudentToClassModal";
 import { SendNotificationModal } from "./modals/SendNotificationModal";
+import  AllNotificationsTab  from "./AllNotifications";
 import AddComplementaryCourseModal from "./modals/AddComplementaryCourseModal";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 import { useNavigate } from "react-router-dom";
+import { Notification } from "../../components/student/types/notification"
 
 interface DashboardContentProps {
   activeTab: string;
@@ -24,6 +26,7 @@ interface DashboardContentProps {
   handleDeleteLesson: (lessonId: string) => void;
   handleEditLesson: (lessonId: string, updatedLesson: any) => void;
   isLoading: boolean;
+  notifications: Notification[];
 }
 
 const DashboardContent: React.FC<DashboardContentProps> = ({
@@ -34,7 +37,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   setIsAddLessonOpen,
   handleDeleteLesson,
   handleEditLesson,
-  isLoading
+  isLoading,
+  notifications
 }) => {
   const navigate = useNavigate();
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
@@ -53,10 +57,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     <div className="space-y-6">
       {/* Botões de ação global */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-4 mt-4">
           <Button 
             onClick={() => setIsNotificationModalOpen(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-4"
             variant="outline"
           >
             <Bell className="h-4 w-4" />
@@ -78,8 +82,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           <TabsTrigger value="lessons">Aulas</TabsTrigger>
           <TabsTrigger value="classes">Minhas Turmas</TabsTrigger>
           <TabsTrigger value="allClasses" className="hidden sm:flex">Todas as Turmas</TabsTrigger>
-          <TabsTrigger value="students">Progresso</TabsTrigger>
+          {/* <TabsTrigger value="students">Status</TabsTrigger> */}
           <TabsTrigger value="all-students">Todos Alunos</TabsTrigger>
+          <TabsTrigger value="notifications">Notificações</TabsTrigger>
         </TabsList>
 
         <TabsContent value="lessons" className="space-y-4">
@@ -122,7 +127,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    Progresso dos Alunos
+                    Status dos Alunos
                   </CardTitle>
                 </div>
                 <Button onClick={() => setIsEnrollModalOpen(true)}>
@@ -140,7 +145,13 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         <TabsContent value="all-students" className="space-y-4">
           <AllStudentsTab />
         </TabsContent>
+        <TabsContent value="notifications" className="space-y-4">
+          <TabsContent value="notifications" className="space-y-4">
+              <AllNotificationsTab notifications={notifications}/>
+            </TabsContent>
+        </TabsContent>
       </Tabs>
+
 
       <EnrollStudentToClassModal
         isOpen={isEnrollModalOpen}

@@ -94,15 +94,15 @@ const ProfileEditPage = () => {
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
-          <div>
+          </div>
+          <div className="text-start">
             <h1 className="text-2xl font-bold">Editar Perfil</h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mt-3">
               Gerencie suas informações pessoais, senha e email
             </p>
-          </div>
         </div>
 
-        <div className="grid gap-6 max-w-4xl">
+        <div className="grid gap-6 max-w-4xl mt-4">
           {/* Informações do Perfil */}
           <Card>
             <CardHeader>
@@ -129,14 +129,14 @@ const ProfileEditPage = () => {
                   )}
                 </div>
 
-                <div>
+                {/* <div>
                   <Label htmlFor="bio">Bio</Label>
                   <Textarea
                     id="bio"
                     placeholder="Conte um pouco sobre você..."
                     {...profileForm.register('bio')}
                   />
-                </div>
+                </div> */}
 
                 <Button 
                   type="submit" 

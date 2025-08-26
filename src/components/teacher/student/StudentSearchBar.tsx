@@ -19,7 +19,6 @@ const StudentSearchBar = ({
 }: StudentSearchBarProps) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-      <h2 className="text-2xl font-bold">Progresso dos Alunos</h2>
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
         <Input
           placeholder="Buscar aluno..."

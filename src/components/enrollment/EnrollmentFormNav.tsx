@@ -21,9 +21,9 @@ const EnrollmentFormNav: React.FC<EnrollmentFormNavProps> = ({
 }) => {
   const handleSaveAndExit = () => {
     // Data is already being saved in localStorage via useEffect in EnrollmentForm
-    toast.success("Seu progresso foi salvo", {
-      description: "Você pode continuar mais tarde retornando a esta página"
-    });
+    // toast.success("Seu progresso foi salvo", {
+    //   description: "Você pode continuar mais tarde retornando a esta página"
+    // });
     
     // Redirect to homepage after 1.5 seconds
     setTimeout(() => {
