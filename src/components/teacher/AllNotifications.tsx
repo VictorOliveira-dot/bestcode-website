@@ -42,6 +42,7 @@ const AllNotificationsTab: React.FC<AllNotificationsTabProps> = ({
     <Card>
       <CardHeader>
         <CardTitle>Todas as notificações</CardTitle>
+        
       </CardHeader>
       <CardContent>
         <Input
