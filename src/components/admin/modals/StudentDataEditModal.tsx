@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -160,6 +161,9 @@ export function StudentDataEditModal({ isOpen, onClose, studentDetails }: Studen
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Dados do Aluno</DialogTitle>
+          <DialogDescription>
+            Edite as informações pessoais e acadêmicas do aluno selecionado.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>

@@ -5,6 +5,7 @@ import { Bell, Users, Settings, Plus } from "lucide-react";
 import AllStudentsTab from "./AllStudentsTab";
 import StudentProgressTracker from "./StudentProgress";
 import { SendNotificationModal } from "./modals/SendNotificationModal";
+import NotificationsTab from "./NotificationsTab";
 
 interface TeacherTabsProps {
   activeTab: string;
@@ -18,7 +19,7 @@ const TeacherTabs = ({ activeTab, setActiveTab }: TeacherTabsProps) => {
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <TabsList className="grid w-full sm:w-auto grid-cols-2 lg:grid-cols-2">
+          <TabsList className="grid w-full sm:w-auto grid-cols-3 lg:grid-cols-3">
             <TabsTrigger value="students" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Progresso dos Alunos</span>
@@ -28,6 +29,11 @@ const TeacherTabs = ({ activeTab, setActiveTab }: TeacherTabsProps) => {
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Todos os Alunos</span>
               <span className="sm:hidden">Alunos</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              <span className="hidden sm:inline">Notificações</span>
+              <span className="sm:hidden">Notific.</span>
             </TabsTrigger>
           </TabsList>
 
@@ -47,6 +53,10 @@ const TeacherTabs = ({ activeTab, setActiveTab }: TeacherTabsProps) => {
 
         <TabsContent value="all-students" className="mt-0">
           <AllStudentsTab />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-0">
+          <NotificationsTab />
         </TabsContent>
       </Tabs>
 

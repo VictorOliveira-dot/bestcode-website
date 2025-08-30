@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useStudentManagement } from "@/hooks/teacher/useStudentManagement";
+import { useStudentManagement } from "@/hooks/teacher/useStudentManagementFixed";
 import { EnrollStudentToClassModal } from "./modals/EnrollStudentToClassModal";
 import { Search, Users, UserPlus, UserMinus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -53,12 +53,9 @@ const AllStudentsTab = () => {
     if (!selectedStudentToUnenroll) return;
 
     try {
-      // For simplicity, we'll use the student ID as the class ID 
-      // In a proper implementation, this would need proper class ID resolution
       await unenrollStudent({
         studentId: selectedStudentToUnenroll.studentId,
-        // This would need to be properly resolved from class names
-        classId: selectedStudentToUnenroll.classId || 'temp-class-id'
+        classId: selectedStudentToUnenroll.classId
       });
 
       setSelectedStudentToUnenroll(null);
@@ -106,14 +103,14 @@ const AllStudentsTab = () => {
             </CardTitle>
             <Button 
               onClick={() => setShowEnrollModal(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <UserPlus className="h-4 w-4" />
-              Vincular Aluno
+              <span>Vincular Aluno</span>
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 overflow-x-auto">
           {/* Barra de pesquisa */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -121,20 +118,20 @@ const AllStudentsTab = () => {
               placeholder="Buscar por nome, email ou turma..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
 
           {/* Tabela de alunos */}
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Turmas</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="min-w-[150px]">Nome</TableHead>
+                  <TableHead className="min-w-[200px]">Email</TableHead>
+                  <TableHead className="min-w-[120px]">Turmas</TableHead>
+                  <TableHead className="min-w-[80px]">Status</TableHead>
+                  <TableHead className="text-right min-w-[120px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -175,11 +172,13 @@ const AllStudentsTab = () => {
                                 return;
                               }
                               
+                              // Get the proper class ID from the first class (simplified)
+                              const firstClassName = student.class_names.split(',')[0].trim();
                               setSelectedStudentToUnenroll({
                                 studentId: student.id,
                                 studentName: student.name,
-                                classId: student.id, // Simplified for now
-                                className: student.class_names
+                                classId: firstClassName, // This will be resolved by backend
+                                className: firstClassName
                               });
                             }}
                             className="flex items-center gap-1"
