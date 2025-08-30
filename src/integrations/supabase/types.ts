@@ -917,6 +917,14 @@ export type Database = {
           teacher_id: string
         }[]
       }
+      get_student_class_enrollments: {
+        Args: { p_student_id: string; p_teacher_id: string }
+        Returns: {
+          class_id: string
+          class_name: string
+          enrollment_id: string
+        }[]
+      }
       get_student_enrollments: {
         Args: Record<PropertyKey, never>
         Returns: {
