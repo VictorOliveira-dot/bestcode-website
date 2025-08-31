@@ -157,8 +157,14 @@ export function StudentDataEditModal({ isOpen, onClose, studentDetails }: Studen
   if (!studentDetails) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto"
+        onInteractOutside={(e) => {
+          // Prevent accidental closing
+          if (e.target !== e.currentTarget) return;
+          onClose();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Editar Dados do Aluno</DialogTitle>
           <DialogDescription>
