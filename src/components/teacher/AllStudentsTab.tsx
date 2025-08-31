@@ -23,18 +23,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useStudentManagement } from "@/hooks/teacher/useStudentManagementFixed";
+import { useStudentEnrollments } from "@/hooks/teacher/useStudentEnrollments";
 import { EnrollStudentToClassModal } from "./modals/EnrollStudentToClassModal";
+import { UnenrollStudentModal } from "./modals/UnenrollStudentModal";
 import { Search, Users, UserPlus, UserMinus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const AllStudentsTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showEnrollModal, setShowEnrollModal] = useState(false);
-  const [selectedStudentToUnenroll, setSelectedStudentToUnenroll] = useState<{
-    studentId: string;
-    studentName: string;
-    classId: string;
-    className: string;
+  const [selectedStudentForUnenroll, setSelectedStudentForUnenroll] = useState<{
+    id: string;
+    name: string;
+    email: string;
   } | null>(null);
 
   const { 
@@ -43,26 +44,24 @@ const AllStudentsTab = () => {
     unenrollStudent
   } = useStudentManagement();
 
+  const { 
+    enrollments, 
+    isLoading: isLoadingEnrollments 
+  } = useStudentEnrollments(selectedStudentForUnenroll?.id || "");
+
   const filteredStudents = allStudents.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.class_names.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleUnenrollConfirm = async () => {
-    if (!selectedStudentToUnenroll) return;
-
+  const handleUnenrollStudent = async (studentId: string, classId: string, className: string) => {
     try {
-      await unenrollStudent({
-        studentId: selectedStudentToUnenroll.studentId,
-        classId: selectedStudentToUnenroll.classId
-      });
-
-      setSelectedStudentToUnenroll(null);
+      await unenrollStudent({ studentId, classId });
       
       toast({
         title: "Aluno desvinculado",
-        description: `${selectedStudentToUnenroll.studentName} foi desvinculado com sucesso.`,
+        description: `Aluno foi desvinculado da turma ${className} com sucesso.`,
       });
     } catch (error) {
       console.error('Erro ao desvincular aluno:', error);
@@ -162,23 +161,10 @@ const AllStudentsTab = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              // For multiple classes, show warning
-                              if (student.class_names.includes(',')) {
-                                toast({
-                                  title: "Múltiplas turmas",
-                                  description: "Este aluno está em múltiplas turmas. Entre em contato com o administrador para desvincular turmas específicas.",
-                                  variant: "default",
-                                });
-                                return;
-                              }
-                              
-                              // Get the proper class ID from the first class (simplified)
-                              const firstClassName = student.class_names.split(',')[0].trim();
-                              setSelectedStudentToUnenroll({
-                                studentId: student.id,
-                                studentName: student.name,
-                                classId: firstClassName, // This will be resolved by backend
-                                className: firstClassName
+                              setSelectedStudentForUnenroll({
+                                id: student.id,
+                                name: student.name,
+                                email: student.email
                               });
                             }}
                             className="flex items-center gap-1"
@@ -207,30 +193,14 @@ const AllStudentsTab = () => {
         }))}
       />
 
-      <AlertDialog 
-        open={!!selectedStudentToUnenroll} 
-        onOpenChange={() => setSelectedStudentToUnenroll(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Desvincular aluno</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja desvincular <strong>{selectedStudentToUnenroll?.studentName}</strong> da turma <strong>{selectedStudentToUnenroll?.className}</strong>?
-              <br /><br />
-              Esta ação pode ser desfeita posteriormente vinculando o aluno novamente à turma.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleUnenrollConfirm}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Desvincular
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <UnenrollStudentModal
+        isOpen={!!selectedStudentForUnenroll}
+        onClose={() => setSelectedStudentForUnenroll(null)}
+        student={selectedStudentForUnenroll}
+        enrollments={enrollments}
+        onUnenroll={handleUnenrollStudent}
+        isLoading={isLoadingEnrollments}
+      />
     </>
   );
 };

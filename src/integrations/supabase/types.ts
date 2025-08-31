@@ -277,6 +277,7 @@ export type Database = {
           id: string
           message: string
           read: boolean
+          sender_id: string | null
           title: string
           updated_at: string | null
           user_id: string
@@ -287,6 +288,7 @@ export type Database = {
           id?: string
           message: string
           read?: boolean
+          sender_id?: string | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -297,11 +299,26 @@ export type Database = {
           id?: string
           message?: string
           read?: boolean
+          sender_id?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "notifications_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "class_enrollments_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "notifications_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]

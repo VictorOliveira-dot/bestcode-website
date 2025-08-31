@@ -167,7 +167,13 @@ const NotificationsTab = () => {
       {/* Edit Notification Dialog */}
       <Dialog 
         open={!!editingNotification} 
-        onOpenChange={() => setEditingNotification(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingNotification(null);
+            setEditTitle("");
+            setEditMessage("");
+          }
+        }}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -212,7 +218,9 @@ const NotificationsTab = () => {
       {/* Delete Confirmation Dialog */}
       <AlertDialog 
         open={!!deleteNotificationId} 
-        onOpenChange={() => setDeleteNotificationId(null)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteNotificationId(null);
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
