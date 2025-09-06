@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTeacherNotifications } from "@/hooks/teacher/useTeacherNotifications";
-import { Bell, Edit, Trash2, Plus } from "lucide-react";
+import { Bell, Edit, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";

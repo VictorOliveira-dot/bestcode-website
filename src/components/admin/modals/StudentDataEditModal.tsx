@@ -120,20 +120,20 @@ export function StudentDataEditModal({ isOpen, onClose, studentDetails }: Studen
 
       const { error } = await supabase.rpc('admin_update_student_data', {
         p_student_id: studentDetails?.user_id,
-        p_name: values.name,
-        p_email: values.email,
-        p_first_name: values.first_name,
-        p_last_name: values.last_name,
-        p_phone: values.phone.replace(/\D/g, ''), // Save only numbers
-        p_whatsapp: values.whatsapp.replace(/\D/g, ''),
-        p_cpf: values.cpf.replace(/\D/g, ''),
+        p_name: values.name || null,
+        p_email: values.email || null,
+        p_first_name: values.first_name || null,
+        p_last_name: values.last_name || null,
+        p_phone: values.phone ? values.phone.replace(/\D/g, '') : null,
+        p_whatsapp: values.whatsapp ? values.whatsapp.replace(/\D/g, '') : null,
+        p_cpf: values.cpf ? values.cpf.replace(/\D/g, '') : null,
         p_birth_date: values.birth_date || null,
-        p_address: values.address,
-        p_education: values.education,
-        p_professional_area: values.professional_area,
-        p_experience_level: values.experience_level,
-        p_goals: values.goals,
-        p_study_availability: values.study_availability,
+        p_address: values.address || null,
+        p_education: values.education || null,
+        p_professional_area: values.professional_area || null,
+        p_experience_level: values.experience_level || null,
+        p_goals: values.goals || null,
+        p_study_availability: values.study_availability || null,
       });
 
       if (error) throw error;

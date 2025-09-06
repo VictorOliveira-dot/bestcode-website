@@ -1,9 +1,19 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { ProfileEditModal } from "@/components/admin/ProfileEditModal";
 
 interface DashboardHeaderProps {
   userName: string;
@@ -12,6 +22,7 @@ interface DashboardHeaderProps {
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   
   const handleLogout = async () => {
     try {
@@ -49,22 +60,51 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) => {
   };
 
   return (
-    <header className="bg-white shadow py-4 w-full">
-      <div className="container-custom flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
-        <div className="flex items-center gap-3">
-          <img 
-            src="/img/logotipo/logotipoBestCode.png" 
-            alt="Code Academy" 
-            className="h-8" 
-          />
-          <h1 className="text-xl font-bold text-bestcode-800">Painel do {userName}</h1>
+    <>
+      <header className="bg-white shadow py-4 w-full">
+        <div className="container-custom flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+          <div className="flex items-center gap-3">
+            <img 
+              src="/img/logotipo/logotipoBestCode.png" 
+              alt="Code Academy" 
+              className="h-8" 
+            />
+            <h1 className="text-xl font-bold text-bestcode-800">Painel do {userName}</h1>
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-gray-600">Seja bem-vindo, {userName}</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 rounded-full"
+                >
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsProfileModalOpen(true)}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Editar Perfil</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <span className="text-gray-600">Seja bem-vindo, {userName}</span>
-          <Button variant="outline" className="hover:bg-bestcode-400 hover:text-white" onClick={handleLogout}>Sair</Button>
-        </div>
-      </div>
-    </header>
+      </header>
+
+      <ProfileEditModal 
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
+    </>
   );
 };
 

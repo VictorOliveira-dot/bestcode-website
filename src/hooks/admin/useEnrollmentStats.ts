@@ -39,13 +39,30 @@ export const useEnrollmentStats = () => {
 
         // console.log("Enrollment stats fetched:", data);
         
-        // Processar dados para formato do gráfico
-        const processedData = data?.map((item: any) => ({
-          month: new Date(item.enrollment_date).toLocaleDateString('pt-BR', { month: 'short' }),
-          year: new Date(item.enrollment_date).getFullYear(),
-          count: item.total_enrollments,
-          enrollment_date: item.enrollment_date
-        })) || [];
+        // Processar dados para formato do gráfico - agrupar por mês
+        const monthlyData = new Map();
+        
+        data?.forEach((item: any) => {
+          const date = new Date(item.enrollment_date);
+          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          const monthName = date.toLocaleDateString('pt-BR', { month: 'short' });
+          const year = date.getFullYear();
+          
+          if (monthlyData.has(monthKey)) {
+            monthlyData.get(monthKey).count += item.total_enrollments;
+          } else {
+            monthlyData.set(monthKey, {
+              month: monthName,
+              year: year,
+              count: item.total_enrollments,
+              enrollment_date: item.enrollment_date
+            });
+          }
+        });
+
+        const processedData = Array.from(monthlyData.values()).sort((a, b) => 
+          new Date(a.enrollment_date).getTime() - new Date(b.enrollment_date).getTime()
+        );
 
         return processedData;
       } catch (err: any) {
