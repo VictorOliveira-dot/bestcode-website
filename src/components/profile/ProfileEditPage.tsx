@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/auth";
 import { useProfile } from "@/hooks/useProfile";
 import { ArrowLeft, User, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileFormData {
   name: string;
@@ -46,9 +47,30 @@ const ProfileEditPage = () => {
 
   useEffect(() => {
     if (user) {
-      profileForm.setValue('name', user.name || '');
-      profileForm.setValue('bio', '');
-      emailForm.setValue('newEmail', user.email || '');
+      // Buscar dados do perfil do banco
+      const fetchUserProfile = async () => {
+        try {
+          const { data } = await supabase
+            .from('users')
+            .select('name, bio, email')
+            .eq('id', user.id)
+            .single();
+          
+          if (data) {
+            profileForm.setValue('name', data.name || '');
+            profileForm.setValue('bio', data.bio || '');
+            emailForm.setValue('newEmail', data.email || '');
+          }
+        } catch (error) {
+          console.error('Erro ao carregar perfil:', error);
+          // Fallback para dados do user
+          profileForm.setValue('name', user.name || '');
+          profileForm.setValue('bio', '');
+          emailForm.setValue('newEmail', user.email || '');
+        }
+      };
+      
+      fetchUserProfile();
     }
   }, [user]);
 
@@ -88,7 +110,15 @@ const ProfileEditPage = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (user?.role === 'admin') {
+                navigate('/admin/dashboard');
+              } else if (user?.role === 'teacher') {
+                navigate('/teacher/dashboard');
+              } else {
+                navigate('/student/dashboard');
+              }
+            }}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -129,19 +159,20 @@ const ProfileEditPage = () => {
                   )}
                 </div>
 
-                {/* <div>
-                  <Label htmlFor="bio">Bio</Label>
+                {/* Bio Section - Uncommented */}
+                <div>
+                  <Label htmlFor="bio">Descrição (opcional)</Label>
                   <Textarea
                     id="bio"
                     placeholder="Conte um pouco sobre você..."
                     {...profileForm.register('bio')}
                   />
-                </div> */}
+                </div>
 
                 <Button 
                   type="submit" 
                   disabled={isUpdatingProfile}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
                 >
                   {isUpdatingProfile ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
@@ -208,7 +239,7 @@ const ProfileEditPage = () => {
                 <Button 
                   type="submit" 
                   disabled={isChangingEmail}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
                 >
                   {isChangingEmail ? 'Alterando...' : 'Alterar Email'}
                 </Button>
@@ -277,7 +308,7 @@ const ProfileEditPage = () => {
                 <Button 
                   type="submit" 
                   disabled={isChangingPassword}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
                 >
                   {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
                 </Button>

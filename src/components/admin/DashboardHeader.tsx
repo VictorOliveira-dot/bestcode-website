@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/auth";
 import { ProfileEditModal } from "./ProfileEditModal";
 import { SettingsModal } from "./SettingsModal";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardHeaderProps {
   userName: string;
@@ -28,6 +29,7 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({
   setActiveTab 
 }) => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -158,9 +160,9 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsProfileModalOpen(true)}>
+                <DropdownMenuItem onClick={() => navigate('/profile/edit')}>
                   <User className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
+                  <span>Editar Perfil</span>
                 </DropdownMenuItem>
                 {/* <DropdownMenuItem onClick={() => setIsSettingsModalOpen(true)}>
                   <Settings className="mr-2 h-4 w-4" />
