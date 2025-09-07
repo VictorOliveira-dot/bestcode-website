@@ -5,23 +5,23 @@ import { AuthUser } from "@/hooks/useAuthState";
 
 export const fetchUserData = async (authUser: User) => {
   try {
-    // console.log("Fetching user data from public.users for:", authUser.email);
+    // console.log("Fetching user data from user_profiles for:", authUser.email);
     
-    // First, check if the user exists in the public.users table
+    // First, check if the user exists in the user_profiles table
     const { data: userData, error: selectError } = await supabase
-      .from('users')
+      .from('user_profiles')
       .select('*')
       .eq('id', authUser.id)
       .maybeSingle();  // Use maybeSingle instead of single to avoid the "multiple (or no) rows returned" error
 
     if (selectError && selectError.code !== 'PGRST116') {
-      console.error('Error fetching user data:', selectError);
+      console.error('Error fetching user profile data:', selectError);
       return null;
     }
     
-    // If user is not found, create a new user record
+    // If user profile is not found, create a new user profile record
     if (!userData) {
-      // console.log("User not found in public.users table, creating record for:", authUser.email);
+      // console.log("User profile not found, creating record for:", authUser.email);
       
       // Extract metadata from auth user or use defaults
       const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
@@ -45,32 +45,31 @@ export const fetchUserData = async (authUser: User) => {
       try {
         // Use upsert instead of insert to avoid duplicate key errors
         const { data: newUser, error: upsertError } = await supabase
-          .from('users')
+          .from('user_profiles')
           .upsert({
             id: authUser.id,
             email: authUser.email,
             name: metaName,
-            role: metaRole,
-            is_active: metaRole !== 'student' // Only students need to be activated through payment
+            role: metaRole
           })
           .select()
           .single();
             
         if (upsertError) {
-          console.error('Error creating user record:', upsertError);
+          console.error('Error creating user profile record:', upsertError);
           return null;
         }
         
-        // console.log('Created/updated user record with role:', newUser.role);
-        return newUser;
+        // console.log('Created/updated user profile record with role:', newUser.role);
+        return { ...newUser, is_active: metaRole !== 'student' };
       } catch (error) {
-        console.error('Error in user creation/update:', error);
+        console.error('Error in user profile creation/update:', error);
         return null;
       }
     }
 
-    // console.log("Found user data in public.users with role:", userData.role);
-    return userData;
+    // console.log("Found user profile data with role:", userData.role);
+    return { ...userData, is_active: userData.role !== 'student' };
   } catch (error) {
     console.error('Error in fetchUserData:', error);
     return null;
@@ -173,7 +172,7 @@ export const registerUser = async (data: {
   try {
     // First check if user already exists to avoid duplicate key errors
     const { data: existingUser, error: checkError } = await supabase
-      .from('users')
+      .from('user_profiles')
       .select('email')
       .eq('email', data.email)
       .maybeSingle();

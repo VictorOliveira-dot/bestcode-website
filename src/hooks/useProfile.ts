@@ -26,11 +26,13 @@ export const useProfile = () => {
     mutationFn: async (data: UpdateProfileData) => {
       if (!user?.id) throw new Error("Usuário não autenticado");
 
-      const { error } = await supabase.rpc('update_user_profile', {
-        p_user_id: user.id,
-        p_name: data.name || null,
-        p_bio: data.bio || null
-      });
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          name: data.name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
 
       if (error) throw error;
     },
