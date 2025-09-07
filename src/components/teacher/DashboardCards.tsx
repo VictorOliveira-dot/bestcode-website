@@ -20,16 +20,16 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
   onChangeTab
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Minhas Turmas</CardTitle>
-          <CardDescription>Gerencie suas turmas ativas</CardDescription>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <Card className="hover:shadow-lg transition-all duration-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg sm:text-xl">Minhas Turmas</CardTitle>
+          <CardDescription className="text-sm">Gerencie suas turmas ativas</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">{classesCount} turmas</p>
+        <CardContent className="space-y-4">
+          <p className="text-2xl sm:text-3xl font-bold text-primary">{classesCount} turmas</p>
           <Button 
-            className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             onClick={() => onChangeTab("classes")}
           >
             Ver Turmas
@@ -37,31 +37,31 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Alunos</CardTitle>
-          <CardDescription>Total de alunos matriculados</CardDescription>
+      <Card className="hover:shadow-lg transition-all duration-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg sm:text-xl">Alunos</CardTitle>
+          <CardDescription className="text-sm">Total de alunos matriculados</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">{studentsCount} alunos</p>
+        <CardContent className="space-y-4">
+          <p className="text-2xl sm:text-3xl font-bold text-primary">{studentsCount} alunos</p>
           <Button 
-            className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700"
-            onClick={() => onChangeTab("students")}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+            onClick={() => onChangeTab("all-students")}
           >
             Ver Alunos
           </Button>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Aulas em Vídeo</CardTitle>
-          <CardDescription>Gerenciar aulas gravadas</CardDescription>
+      <Card className="hover:shadow-lg transition-all duration-200 sm:col-span-2 lg:col-span-1">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg sm:text-xl">Aulas em Vídeo</CardTitle>
+          <CardDescription className="text-sm">Gerenciar aulas gravadas</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">{lessonsCount} aulas</p>
+        <CardContent className="space-y-4">
+          <p className="text-2xl sm:text-3xl font-bold text-primary">{lessonsCount} aulas</p>
           <Button 
-            className="mt-4 w-full bg-bestcode-600 hover:bg-bestcode-700"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             onClick={onAddLessonClick}
           >
             Adicionar Aula

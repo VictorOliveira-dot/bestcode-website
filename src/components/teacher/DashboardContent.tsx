@@ -56,36 +56,41 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   return (
     <div className="space-y-6">
       {/* Botões de ação global */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div className="flex flex-wrap gap-4 mt-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-start sm:items-center">
+        <div className="flex flex-wrap gap-2 sm:gap-4 w-full sm:w-auto">
           <Button 
             onClick={() => setIsNotificationModalOpen(true)}
-            className="flex items-center gap-4"
+            className="flex items-center gap-2 flex-1 sm:flex-none"
             variant="outline"
+            size="sm"
           >
             <Bell className="h-4 w-4" />
-            Enviar Notificação
+            <span className="hidden sm:inline">Enviar Notificação</span>
+            <span className="sm:hidden">Notificar</span>
           </Button>
           <Button 
             onClick={() => navigate('/profile/edit')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 flex-1 sm:flex-none"
             variant="outline"
+            size="sm"
           >
             <Settings className="h-4 w-4" />
-            Editar Perfil
+            <span className="hidden sm:inline">Editar Perfil</span>
+            <span className="sm:hidden">Perfil</span>
           </Button>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 bg-bestcode-600 text-white">
-          <TabsTrigger value="lessons">Aulas</TabsTrigger>
-          <TabsTrigger value="classes">Minhas Turmas</TabsTrigger>
-          <TabsTrigger value="allClasses" className="hidden sm:flex">Todas as Turmas</TabsTrigger>
-          {/* <TabsTrigger value="students">Status</TabsTrigger> */}
-          <TabsTrigger value="all-students">Todos Alunos</TabsTrigger>
-          <TabsTrigger value="notifications">Notificações</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 w-full">
+        <div className="overflow-x-auto">
+          <TabsList className="grid w-full min-w-fit grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 bg-primary text-primary-foreground">
+            <TabsTrigger value="lessons" className="text-xs sm:text-sm">Aulas</TabsTrigger>
+            <TabsTrigger value="classes" className="text-xs sm:text-sm">Turmas</TabsTrigger>
+            <TabsTrigger value="allClasses" className="hidden sm:flex text-xs sm:text-sm">Todas</TabsTrigger>
+            <TabsTrigger value="all-students" className="text-xs sm:text-sm">Alunos</TabsTrigger>
+            <TabsTrigger value="notifications" className="text-xs sm:text-sm">Notif.</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="lessons" className="space-y-4">
           <Card>

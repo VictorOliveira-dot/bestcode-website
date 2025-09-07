@@ -14,9 +14,11 @@ const DashboardActions: React.FC<DashboardActionsProps> = ({
   onClassAdded,
 }) => {
   return (
-    <Card className="p-4 mb-6 flex gap-4 items-center">
-      <AddTeacherDialog onTeacherAdded={onTeacherAdded} />
-      <AddClassDialog onClassAdded={onClassAdded} />
+    <Card className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">
+        <AddTeacherDialog onTeacherAdded={onTeacherAdded} />
+        <AddClassDialog onClassAdded={onClassAdded} />
+      </div>
     </Card>
   );
 };

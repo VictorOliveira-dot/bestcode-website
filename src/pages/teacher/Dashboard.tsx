@@ -8,6 +8,7 @@ import AddLessonModal from "@/components/teacher/modals/AddLessonModal";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ResponsiveDashboardLayout, ResponsiveDashboardMain } from "@/components/ui/responsive-dashboard";
 
 interface Lesson {
   id: string;
@@ -141,10 +142,10 @@ const TeacherDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <ResponsiveDashboardLayout>
       <DashboardHeader userName={user.name} />
 
-      <main className="container-custom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
+      <ResponsiveDashboardMain>
         <DashboardCards 
           classesCount={teacherClasses.length}
           lessonsCount={formattedLessons.length}
@@ -164,7 +165,7 @@ const TeacherDashboard = () => {
           isLoading={isLoading}
           notifications={[]}
         />
-      </main>
+      </ResponsiveDashboardMain>
 
       <AddLessonModal 
         isOpen={isAddLessonOpen}
@@ -175,7 +176,7 @@ const TeacherDashboard = () => {
         }}
         availableClasses={formattedClasses}
       />
-    </div>
+    </ResponsiveDashboardLayout>
   );
 };
 

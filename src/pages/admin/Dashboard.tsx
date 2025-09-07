@@ -8,6 +8,7 @@ import AdminDashboardCards from "@/components/admin/DashboardCards";
 import DashboardContent from "@/components/admin/DashboardContent";
 import DashboardActions from "@/components/admin/DashboardActions";
 import { useAdminData } from "@/hooks/admin/useAdminData";
+import { ResponsiveDashboardLayout, ResponsiveDashboardMain } from "@/components/ui/responsive-dashboard";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -65,14 +66,14 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <ResponsiveDashboardLayout>
       <AdminDashboardHeader 
         userName={user?.name || 'Admin'} 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
 
-      <main className="container-custom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
+      <ResponsiveDashboardMain>
         <DashboardActions 
           onTeacherAdded={handleTeacherAdded} 
           onClassAdded={handleClassAdded} 
@@ -88,8 +89,8 @@ const AdminDashboard = () => {
           setActiveTab={setActiveTab}
           isLoading={isLoading}
         />
-      </main>
-    </div>
+      </ResponsiveDashboardMain>
+    </ResponsiveDashboardLayout>
   );
 };
 
