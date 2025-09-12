@@ -118,8 +118,13 @@ export function StudentDataEditModal({ isOpen, onClose, studentDetails }: Studen
         return;
       }
 
+      const studentId = studentDetails?.user_id ?? (studentDetails as any)?.id;
+      if (!studentId) {
+        throw new Error('ID do aluno não encontrado');
+      }
+
       const { error } = await supabase.rpc('admin_update_student_data', {
-        p_student_id: studentDetails?.user_id,
+        p_student_id: studentId,
         p_name: values.name || null,
         p_email: values.email || null,
         p_first_name: values.first_name || null,

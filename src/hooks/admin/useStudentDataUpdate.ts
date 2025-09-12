@@ -26,16 +26,19 @@ export function useStudentDataUpdate() {
 
   const { mutateAsync: updateStudentData, isPending } = useMutation({
     mutationFn: async (data: StudentDataUpdate) => {
+      const studentId = data.student_id;
+      if (!studentId) throw new Error("ID do aluno não informado");
+
       const { error } = await supabase.rpc('admin_update_student_data', {
-        p_student_id: data.student_id,
+        p_student_id: studentId,
         p_name: data.name || null,
         p_email: data.email || null,
         p_first_name: data.first_name || null,
         p_last_name: data.last_name || null,
-        p_phone: data.phone || null,
-        p_whatsapp: data.whatsapp || null,
-        p_cpf: data.cpf || null,
-        p_birth_date: data.birth_date || null,
+        p_phone: data.phone ? data.phone.replace(/\D/g, '') : null,
+        p_whatsapp: data.whatsapp ? data.whatsapp.replace(/\D/g, '') : null,
+        p_cpf: data.cpf ? data.cpf.replace(/\D/g, '') : null,
+        p_birth_date: data.birth_date ? new Date(data.birth_date).toISOString().split('T')[0] : null,
         p_address: data.address || null,
         p_education: data.education || null,
         p_professional_area: data.professional_area || null,
