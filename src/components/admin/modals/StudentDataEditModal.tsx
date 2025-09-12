@@ -127,7 +127,7 @@ export function StudentDataEditModal({ isOpen, onClose, studentDetails }: Studen
         p_phone: values.phone ? values.phone.replace(/\D/g, '') : null,
         p_whatsapp: values.whatsapp ? values.whatsapp.replace(/\D/g, '') : null,
         p_cpf: values.cpf ? values.cpf.replace(/\D/g, '') : null,
-        p_birth_date: values.birth_date || null,
+        p_birth_date: values.birth_date ? new Date(values.birth_date).toISOString().split('T')[0] : null,
         p_address: values.address || null,
         p_education: values.education || null,
         p_professional_area: values.professional_area || null,
