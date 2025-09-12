@@ -12,10 +12,24 @@ interface StudentDetails {
     class_name: string;
     enrollment_date: string;
     status: string;
-  }>;
+    teacher_name?: string;
+  }>|null;
   subscription_plan: string;
   progress_average: number;
   last_active: string | null;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  whatsapp?: string;
+  cpf?: string;
+  birth_date?: string;
+  address?: string;
+  education?: string;
+  professional_area?: string;
+  experience_level?: string;
+  goals?: string;
+  study_availability?: string;
+  is_profile_complete?: boolean;
 }
 
 export function useStudentActions() {
@@ -23,13 +37,24 @@ export function useStudentActions() {
 
   const { mutateAsync: fetchStudentDetails } = useMutation({
     mutationFn: async (studentId: string) => {
-      const { data, error } = await supabase.rpc('admin_get_student_details', { 
-        p_student_id: studentId 
+      const { data, error } = await supabase.rpc('admin_get_student_details', {
+        p_student_id: studentId,
       });
-      
       if (error) throw error;
-      return data as StudentDetails;
-    }
+
+      // RPC costuma retornar array de linhas; garantimos um único registro
+      const row = Array.isArray(data) ? (data[0] as any) : (data as any);
+      if (!row || !row.user_id) {
+        throw new Error('Aluno não encontrado');
+      }
+
+      // current_classes pode vir como json ou null
+      if (row.current_classes && typeof row.current_classes === 'string') {
+        try { row.current_classes = JSON.parse(row.current_classes); } catch {}
+      }
+
+      return row as StudentDetails;
+    },
   });
 
   const { mutateAsync: updateEnrollment } = useMutation({
