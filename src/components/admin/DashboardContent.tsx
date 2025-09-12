@@ -15,6 +15,7 @@ import RevenueTable from "./tables/RevenueTable";
 import { EnrollStudentModal } from "./modals/EnrollStudentModal";
 import { useTeacherData } from "@/hooks/teacher/useTeacherData";
 import CreateEnrollmentModal from "./modals/CreateEnrollmentModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface DashboardContentProps {
   activeTab: string;
@@ -27,6 +28,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   setActiveTab 
 }) => {
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+  const queryClient = useQueryClient();
   
   const { 
     students, 
@@ -55,6 +57,15 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     email: student.email
   })) : [];
 
+  // Função para atualizar dados após criação de matrícula
+  const handleEnrollmentCreated = () => {
+    queryClient.invalidateQueries({ queryKey: ['students'] });
+    queryClient.invalidateQueries({ queryKey: ['allStudents'] });
+    queryClient.invalidateQueries({ queryKey: ['allClasses'] });
+    queryClient.invalidateQueries({ queryKey: ['teacher-students'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
+  };
+
   return (
     <Card className="mt-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -62,7 +73,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Gestão de Alunos</h2>
             <div className="flex gap-2">
-              <CreateEnrollmentModal onEnrollmentCreated={() => window.location.reload()} />
+              <CreateEnrollmentModal onEnrollmentCreated={handleEnrollmentCreated} />
               <Button onClick={() => setIsEnrollModalOpen(true)}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Vincular Aluno à Turma

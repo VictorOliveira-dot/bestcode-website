@@ -55,9 +55,13 @@ export function useStudentEnrollment() {
       }
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas para atualizar as listas
       queryClient.invalidateQueries({ queryKey: ['students'] });
-      queryClient.invalidateQueries({ queryKey: ['all-students'] });
+      queryClient.invalidateQueries({ queryKey: ['allStudents'] });
+      queryClient.invalidateQueries({ queryKey: ['allClasses'] });
       queryClient.invalidateQueries({ queryKey: ['teacher-students'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['allStudentsOptimized'] });
       toast({
         title: "Estudante vinculado",
         description: "O estudante foi vinculado à turma com sucesso.",

@@ -105,6 +105,8 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
         classId: "no-class"
       });
       setOpen(false);
+      
+      // Chama callback para atualizar listas sem recarregar página
       onEnrollmentCreated?.();
 
     } catch (error: any) {
