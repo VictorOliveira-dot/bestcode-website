@@ -29,7 +29,7 @@ interface Class {
 const TeacherDashboard = () => {
   const { user } = useAuth();
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("lessons");
+  const [activeTab, setActiveTab] = useState('lessons');
   
   const { 
     classes, 
@@ -143,7 +143,11 @@ const TeacherDashboard = () => {
 
   return (
     <ResponsiveDashboardLayout>
-      <DashboardHeader userName={user.name} />
+      <DashboardHeader 
+        userName={user.name}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
       <ResponsiveDashboardMain>
         <DashboardCards 

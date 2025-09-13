@@ -12,6 +12,7 @@ import { useStudentData } from "@/hooks/student/useStudentData";
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [showDocumentation, setShowDocumentation] = useState(false);
+  const [activeTab, setActiveTab] = useState('lessons');
   
   const { 
     lessons,
@@ -91,7 +92,11 @@ const StudentDashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="flex justify-between items-center p-3 sm:p-4">
-        <DashboardHeader userName={user.name} />
+        <DashboardHeader 
+          userName={user.name}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       </div>
 
       <main className="container-custom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
