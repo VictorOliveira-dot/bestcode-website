@@ -57,48 +57,12 @@ const Testimonials = () => {
     <section className="section-padding bg-bestcode-900 text-white">
       <div className="container-custom">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="heading-2 mb-4">O que nossos alunos dizem</h2>
+          <h2 className="heading-2 mb-4">O que nossos alunos dizem:</h2>
           <p className="text-bestcode-100 text-lg">
             Centenas de profissionais já transformaram suas carreiras com nossos cursos.
             Veja alguns depoimentos de alunos que já passaram pela BestCode.
           </p>
         </div>
-
-        <Carousel className="max-w-5xl mx-auto">
-          <CarouselContent>
-            {testimonials.map((testimonial) => (
-              <CarouselItem key={testimonial.id} className="md:basis-1/2 lg:basis-1/2">
-                <div className="h-full bg-bestcode-800/50 border border-bestcode-700/50 p-6 md:p-8 rounded-xl flex flex-col">
-                  <div className="flex items-center gap-3 mb-4">
-                    <img 
-                      src={testimonial.avatar} 
-                      alt={testimonial.name} 
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div>
-                      <h4 className="font-semibold">{testimonial.name}</h4>
-                      <p className="text-bestcode-300 text-sm">{testimonial.role}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        size={16} 
-                        className={i < testimonial.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-400"} 
-                      />
-                    ))}
-                  </div>
-                  
-                  <p className="italic text-bestcode-100 flex-grow">"{testimonial.content}"</p>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute text-primary left-0 -translate-x-1/2 hover:bg-bestcode-700 hover:text-white" />
-          <CarouselNext className="absolute text-primary right-0 translate-x-1/2 hover:bg-bestcode-700 hover:text-white"/>
-        </Carousel>
       </div>
     </section>
   );

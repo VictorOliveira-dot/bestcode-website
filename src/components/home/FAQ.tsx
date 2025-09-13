@@ -72,7 +72,7 @@ const FAQ = () => {
               Ainda tem dúvidas? Entre em contato com nossa equipe de suporte.
             </p>
             <a 
-              href="https://api.whatsapp.com/send?phone=5511999999999" 
+              href="https://api.whatsapp.com/send?phone=5511961769504" 
               className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-md transition-colors"
               target="_blank"
               rel="noopener noreferrer"

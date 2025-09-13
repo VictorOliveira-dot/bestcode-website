@@ -19,7 +19,7 @@ const Features = () => {
     {
       icon: <BookOpen size={24} />,
       title: "Material Completo",
-      description: "Acesso a aulas gravadas, materiais de apoio e biblioteca de cursos complementares."
+      description: "Acesso a aulas gravadas."
     },
     {
       icon: <Users size={24} />,
