@@ -21,7 +21,7 @@ const DashboardStatsCards: React.FC<DashboardStatsCardsProps> = ({
   enrollmentsCount
 }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
       <Card>
         <CardHeader>
           <CardTitle>Minhas Aulas</CardTitle>
@@ -60,7 +60,7 @@ const DashboardStatsCards: React.FC<DashboardStatsCardsProps> = ({
         </CardContent>
       </Card>
 
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Progresso</CardTitle>
           <CardDescription>Seu progresso geral</CardDescription>
@@ -77,7 +77,7 @@ const DashboardStatsCards: React.FC<DashboardStatsCardsProps> = ({
             </Button>
           </Link>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 };

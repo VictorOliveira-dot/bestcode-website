@@ -83,11 +83,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-              <SheetTrigger asChild className="md:hidden">
+              {/* <SheetTrigger asChild className="md:hidden">
                 <Button variant="outline" size="icon">
                   <Menu className="h-5 w-5" />
                 </Button>
-              </SheetTrigger>
+              </SheetTrigger> */}
               <SheetContent side="left" className="w-64">
                 <div className="py-4">
                   <div className="px-4 mb-4">
@@ -100,7 +100,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                       Aluno
                     </span>
                   </div>
-                  <nav className="space-y-1">
+                  {/* <nav className="space-y-1">
                     {menuItems.map((item) => (
                       <button
                         key={item.id}
@@ -112,7 +112,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         {item.label}
                       </button>
                     ))}
-                  </nav>
+                  </nav> */}
                 </div>
               </SheetContent>
             </Sheet>
@@ -128,7 +128,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
+          {/* <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
             {menuItems.map((item) => (
               <button
                 key={item.id}
@@ -140,7 +140,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 {item.label}
               </button>
             ))}
-          </nav>
+          </nav> */}
 
           <div className="flex items-center space-x-3">
             <DropdownMenu>

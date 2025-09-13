@@ -83,12 +83,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 w-full">
         <div className="overflow-x-auto">
-          <TabsList className="grid w-full min-w-fit grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 bg-primary text-primary-foreground">
+          <TabsList className="grid w-full min-w-fit grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 bg-primary text-primary-foreground">
             <TabsTrigger value="lessons" className="text-xs sm:text-sm">Aulas</TabsTrigger>
-            <TabsTrigger value="classes" className="text-xs sm:text-sm">Turmas</TabsTrigger>
-            <TabsTrigger value="allClasses" className="hidden sm:flex text-xs sm:text-sm">Todas</TabsTrigger>
+            <TabsTrigger value="classes" className="text-xs sm:text-sm">Minhas Turmas</TabsTrigger>
+            <TabsTrigger value="allClasses" className="hidden sm:flex text-xs sm:text-sm">Todas turmas</TabsTrigger>
             <TabsTrigger value="all-students" className="text-xs sm:text-sm">Alunos</TabsTrigger>
-            <TabsTrigger value="notifications" className="text-xs sm:text-sm">Notif.</TabsTrigger>
+            {/* <TabsTrigger value="notifications" className="text-xs sm:text-sm">Notif.</TabsTrigger> */}
           </TabsList>
         </div>
 

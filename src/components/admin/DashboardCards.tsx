@@ -81,9 +81,9 @@ const AdminDashboardCards: React.FC<DashboardCardsProps> = ({
         <CardContent className="p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Receita</p>
-              <h3 className="text-xl sm:text-2xl font-bold">{revenueAmount}</h3>
-              <p className="text-xs text-muted-foreground">Total arrecadado</p>
+              <p className="text-sm font-medium text-muted-foreground">Relatórios</p>
+              <h3 className="text-xl sm:text-2xl font-bold">{studentsCount}</h3>
+              <p className="text-xs text-muted-foreground">Total de matriculados</p>
             </div>
             <div className="h-12 w-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center flex-shrink-0">
               <DollarSign className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
