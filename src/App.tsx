@@ -53,7 +53,7 @@ function App() {
       <Routes>
         {/* Páginas públicas */}
         <Route path="/" element={<Index />} />
-        <Route path="/about" element={<About />} />
+        {/* <Route path="/about" element={<About />} /> */}
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />

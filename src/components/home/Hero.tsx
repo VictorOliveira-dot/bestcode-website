@@ -8,8 +8,7 @@ const Hero = () => {
   const benefits = [
     "Aulas ao vivo e gravadas",
     "Mentoria com profissionais",
-    "Projetos práticos reais",
-    "Certificado reconhecido"
+    "Projetos práticos reais"
   ];
 
   return (
@@ -42,7 +41,7 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <a href="https://typebot.co/lead-magnet-r-ki-1-nuh59rv" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button size="lg" className="bg-bestcode-500 hover:bg-bestcode-600 text-white w-full sm:w-auto text-sm sm:text-base px-6 py-3">
-                  Matricule-se
+                  Matricule-se já
                   <ArrowRight className="ml-2" size={16} />
                 </Button>
               </a>
@@ -61,7 +60,7 @@ const Hero = () => {
                 ></iframe>
               </div>
               <div className="mt-3 sm:mt-4">
-                <h3 className="text-lg sm:text-xl font-semibold">Veja como funciona nossa plataforma</h3>
+                <h3 className="text-lg sm:text-xl font-semibold">Conheça um pouco mais sobre a BestCode</h3>
                 <p className="text-gray-300 mt-2 text-sm sm:text-base">
                   Assista ao vídeo para conhecer melhor nossa metodologia e como 
                   podemos ajudar na sua carreira.

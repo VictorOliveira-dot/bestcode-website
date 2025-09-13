@@ -22,17 +22,12 @@ const Navbar = () => {
 
   const navItems = [
     { 
-      name: "Nossos Cursos", 
+      name: "Cursos", 
       path: "/courses/qa-training",
       hasDropdown: false
     },
     { 
-      name: "Sobre Nós", 
-      path: "/about",
-      hasDropdown: false
-    },
-    { 
-      name: "FAQ", 
+      name: "Perguntas Frequentes", 
       path: "#",
       hasDropdown: false,
       onClick: scrollToFAQ

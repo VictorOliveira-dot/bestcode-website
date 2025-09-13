@@ -55,12 +55,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/faq" className="text-gray-300 hover:text-white transition-colors">
-                  Perguntas Frequentes
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-gray-300 hover:text-white transition-colors">
+                <Link to="https://typebot.co/lead-magnet-r-ki-1-nuh59rv" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
                   Contato
                 </Link>
               </li>
@@ -75,26 +70,6 @@ const Footer = () => {
                   Formação QA
                 </Link>
               </li>
-              <li>
-                <Link to="/courses/complementary" className="text-gray-300 hover:text-white transition-colors">
-                  Cursos Complementares
-                </Link>
-              </li>
-              <li>
-                <Link to="/courses/automation" className="text-gray-300 hover:text-white transition-colors">
-                  Automação de Testes
-                </Link>
-              </li>
-              <li>
-                <Link to="/courses/api-testing" className="text-gray-300 hover:text-white transition-colors">
-                  Testes de API
-                </Link>
-              </li>
-              <li>
-                <Link to="/courses/performance" className="text-gray-300 hover:text-white transition-colors">
-                  Testes de Performance
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -107,15 +82,9 @@ const Footer = () => {
                   contato@bestcode.com.br
                 </a>
               </li>
-              <li className="flex items-center gap-3">
-                <Phone size={18} className="text-bestcode-400" />
-                <a href="tel:+5511999999999" className="text-gray-300 hover:text-white transition-colors">
-                  (11) 99999-9999
-                </a>
-              </li>
               <li className="mt-6">
                 <a 
-                  href="https://api.whatsapp.com/send?phone=5511999999999" 
+                  href="https://api.whatsapp.com/send?phone=5511937381812" 
                   className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -134,9 +103,6 @@ const Footer = () => {
               &copy; {new Date().getFullYear()} Code Academy. Todos os direitos reservados.
             </p>
             <div className="flex gap-4 text-sm">
-              <Link to="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">
-                Política de Privacidade
-              </Link>
               <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
                 Termos de Uso
               </Link>

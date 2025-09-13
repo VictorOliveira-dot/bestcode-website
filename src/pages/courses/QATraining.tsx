@@ -39,7 +39,7 @@ const QATraining = () => {
                       <Calendar className="text-bestcode-600" size={24} />
                       <div>
                         <p className="font-medium">Turma Agosto/2025</p>
-                        <p className="text-sm text-gray-600">Início em 18/08/2025</p>
+                        <p className="text-sm text-gray-600">Início em 15/09/2025</p>
                       </div>
                     </div>
                     <span className="text-sm bg-green-100 text-green-800 py-1 px-3 rounded-full">Turma aberta</span>
@@ -229,7 +229,7 @@ const QATraining = () => {
             <p className="text-xl mb-8 max-w-3xl mx-auto">
               Inscreva-se agora e garanta o seu lugar na próxima turma da Formação Completa em Quality Assurance.
             </p>
-            <Link to="/enrollment">
+            <Link to="https://typebot.co/lead-magnet-r-ki-1-nuh59rv" target="_blank">
               <Button size="lg" variant="secondary" className="bg-white text-bestcode-600 hover:bg-gray-100">
                 Matricule-se agora
               </Button>
