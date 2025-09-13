@@ -67,8 +67,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const menuItems = [
     { id: 'lessons', label: 'Aulas' },
     { id: 'classes', label: 'Turmas' },
-    { id: 'students', label: 'Alunos' },
-    { id: 'notifications', label: 'Notificações' }
+    { id: 'all-students', label: 'Alunos' },
   ];
 
   const handleMenuClick = (tabId: string) => {

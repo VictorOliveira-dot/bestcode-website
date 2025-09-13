@@ -119,18 +119,15 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         </TabsContent>
         
         <TabsContent value="reports" className="p-4">
-          <h2 className="text-2xl font-bold mb-4">Relatórios e Análises</h2>
+          <h2 className="text-2xl font-bold mb-4">Relatórios e Análises - Tendências de Matrícula</h2>
           {isLoading ? (
             <Skeleton className="h-80 w-full" />
           ) : (
             <div className="grid grid-cols-1">
-              <Card className="p-4">
-                <h3 className="text-lg font-medium mb-4">Tendências de Matrícula</h3>
                 <EnrollmentsChart 
                   month={selectedMonth} 
                   year={selectedYear} 
                 />
-              </Card>
             </div>
           )}
         </TabsContent>

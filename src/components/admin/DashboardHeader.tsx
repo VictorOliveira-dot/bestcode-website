@@ -73,8 +73,7 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({
     { id: 'students', label: 'Alunos' },
     { id: 'teachers', label: 'Professores' },
     { id: 'courses', label: 'Turmas' },
-    { id: 'enrollments', label: 'Matrículas' },
-    { id: 'reports', label: 'Relatórios' }
+    { id: 'reports', label: 'Matrículas' },
   ];
 
   const handleMenuClick = (tabId: string) => {
