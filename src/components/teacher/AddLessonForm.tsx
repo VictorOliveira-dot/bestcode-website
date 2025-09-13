@@ -30,19 +30,20 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
   availableClasses, 
   onSuccess 
 }) => {
-  // Get current date in YYYY-MM-DD format for Brazil timezone
-  const getCurrentDateBrazil = () => {
+  // Get current date in YYYY-MM-DD format
+  const getCurrentDate = () => {
     const now = new Date();
-    const brazilOffset = -3; // UTC-3 for Brazil
-    const brazilTime = new Date(now.getTime() + (brazilOffset * 60 * 60 * 1000));
-    return brazilTime.toISOString().split('T')[0];
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     youtubeUrl: "",
-    date: getCurrentDateBrazil(),
+    date: getCurrentDate(),
     classId: "",
     visibility: "class_only"
   });
@@ -107,7 +108,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
         title: "",
         description: "",
         youtubeUrl: "",
-        date: getCurrentDateBrazil(),
+        date: getCurrentDate(),
         classId: "",
         visibility: "class_only"
       });
