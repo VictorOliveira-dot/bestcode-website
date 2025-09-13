@@ -48,13 +48,19 @@ export const UnenrollStudentModal: React.FC<UnenrollStudentModalProps> = ({
   const [selectedClassId, setSelectedClassId] = useState<string>("");
 
   const handleUnenroll = async () => {
-    if (!student || !selectedClassId) return;
+    if (!student || enrollments.length === 0) return;
 
-    const selectedEnrollment = enrollments.find(e => e.class_id === selectedClassId);
+    // Para uma única turma, usa diretamente a primeira turma
+    // Para múltiplas turmas, usa a selecionada
+    const targetClassId = enrollments.length === 1 ? enrollments[0].class_id : selectedClassId;
+    
+    if (!targetClassId) return;
+
+    const selectedEnrollment = enrollments.find(e => e.class_id === targetClassId);
     if (!selectedEnrollment) return;
 
     try {
-      await onUnenroll(student.id, selectedClassId, selectedEnrollment.class_name);
+      await onUnenroll(student.id, targetClassId, selectedEnrollment.class_name);
       onClose();
       setSelectedClassId("");
     } catch (error) {
