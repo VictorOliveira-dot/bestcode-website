@@ -52,7 +52,16 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
       );
 
       if (fnError || !result?.success) {
-        throw new Error(result?.error || fnError?.message || 'Falha ao criar aluno');
+        let errMsg = result?.error || fnError?.message;
+        try {
+          const ctx: any = (fnError as any)?.context;
+          const bodyStr = ctx?.body ?? ctx?.response ?? ctx;
+          if (bodyStr) {
+            const parsed = typeof bodyStr === 'string' ? JSON.parse(bodyStr) : bodyStr;
+            errMsg = parsed?.error || parsed?.message || errMsg;
+          }
+        } catch { /* ignore parse errors */ }
+        throw new Error(errMsg || 'Falha ao criar aluno');
       }
 
       if (result.enrolled) {
