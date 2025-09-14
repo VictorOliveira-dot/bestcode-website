@@ -32,7 +32,10 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
     setIsLoading(true);
 
     try {
-      // 1. Criar usuário
+      // Salvar o usuário admin atual antes de criar novo usuário
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      // 1. Criar usuário usando signUp (sem autoConfirm para evitar login automático)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -52,7 +55,15 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
         throw new Error("Erro ao criar usuário");
       }
 
-      // 2. Criar registro na tabela users
+      // Se um novo usuário foi logado automaticamente, fazer logout imediatamente
+      if (authData.session) {
+        await supabase.auth.signOut();
+        
+        // Aguardar um breve momento para o logout processar
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // 2. Criar registro na tabela users usando RPC ou direct insert
       const { error: userError } = await supabase
         .from('users')
         .insert({
