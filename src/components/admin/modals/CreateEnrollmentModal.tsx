@@ -32,71 +32,30 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
     setIsLoading(true);
 
     try {
-      // Captura a sessão atual do ADMIN para restaurar após o signUp
-      const { data: { session: adminSession } } = await supabase.auth.getSession();
-
-      // 1) Criar usuário aluno. Em alguns cenários, isso loga automaticamente o novo usuário
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: { name: formData.name, role: 'student' }
+      // Criar aluno e matrícula via Edge Function (sem trocar sessão)
+      const { data: result, error: fnError } = await supabase.functions.invoke(
+        'admin-create-student',
+        {
+          body: {
+            email: formData.email,
+            password: formData.password,
+            name: formData.name,
+            classId: formData.classId !== 'no-class' ? formData.classId : undefined,
+          },
         }
-      });
+      );
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Erro ao criar usuário");
-
-      // 2) Se o signUp logou o novo aluno, restaura imediatamente a sessão do ADMIN
-      if (authData.session && adminSession?.access_token && adminSession?.refresh_token) {
-        await supabase.auth.setSession({
-          access_token: adminSession.access_token,
-          refresh_token: adminSession.refresh_token
-        });
-        // pequena espera para o listener de auth estabilizar
-        await new Promise((r) => setTimeout(r, 100));
+      if (fnError || !result?.success) {
+        throw new Error(result?.error || fnError?.message || 'Falha ao criar aluno');
       }
 
-      // 3) Criar registro na tabela users
-      const { error: userError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: formData.email,
-          name: formData.name,
-          role: 'student',
-          is_active: true
-        });
-      if (userError) {
-        console.error("Erro ao criar usuário na tabela:", userError);
-      }
-
-      // 4) Criar matrícula se classe selecionada (e não for "no-class")
-      if (formData.classId && formData.classId !== "no-class") {
-        const { error: enrollmentError } = await supabase
-          .from('enrollments')
-          .insert({
-            student_id: authData.user.id,
-            user_id: authData.user.id,
-            class_id: formData.classId,
-            status: 'active'
-          });
-
-        if (enrollmentError) {
-          console.error("Erro ao criar matrícula:", enrollmentError);
-          toast({
-            title: "Usuário criado",
-            description: "Usuário criado mas erro ao matricular na turma. Faça a matrícula manualmente.",
-            variant: "destructive"
-          });
-        } else {
-          toast({ title: "Sucesso", description: "Usuário criado e matriculado com sucesso!" });
-        }
+      if (result.enrolled) {
+        toast({ title: 'Sucesso', description: 'Usuário criado e matriculado com sucesso!' });
       } else {
-        toast({ title: "Usuário criado", description: "Usuário criado com sucesso. Matrícula pode ser feita posteriormente." });
+        toast({ title: 'Usuário criado', description: 'Usuário criado com sucesso. Matrícula pode ser feita posteriormente.' });
       }
 
-      setFormData({ name: "", email: "", password: "", classId: "no-class" });
+      setFormData({ name: '', email: '', password: '', classId: 'no-class' });
       setOpen(false);
 
       // Atualiza listas sem sair da página
