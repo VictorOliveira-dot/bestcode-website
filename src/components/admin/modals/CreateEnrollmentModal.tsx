@@ -33,6 +33,11 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
 
     try {
       // Criar aluno e matrícula via Edge Function (sem trocar sessão)
+      const { data: { session } } = await supabase.auth.getSession();
+      const authHeaders = session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : undefined;
+
       const { data: result, error: fnError } = await supabase.functions.invoke(
         'admin-create-student',
         {
@@ -42,6 +47,7 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
             name: formData.name,
             classId: formData.classId !== 'no-class' ? formData.classId : undefined,
           },
+          headers: authHeaders,
         }
       );
 
