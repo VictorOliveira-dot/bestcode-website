@@ -32,38 +32,32 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
     setIsLoading(true);
 
     try {
-      // Salvar o usuário admin atual antes de criar novo usuário
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      
-      // 1. Criar usuário usando signUp (sem autoConfirm para evitar login automático)
+      // Captura a sessão atual do ADMIN para restaurar após o signUp
+      const { data: { session: adminSession } } = await supabase.auth.getSession();
+
+      // 1) Criar usuário aluno. Em alguns cenários, isso loga automaticamente o novo usuário
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          data: {
-            name: formData.name,
-            role: 'student'
-          }
+          data: { name: formData.name, role: 'student' }
         }
       });
 
-      if (authError) {
-        throw authError;
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("Erro ao criar usuário");
+
+      // 2) Se o signUp logou o novo aluno, restaura imediatamente a sessão do ADMIN
+      if (authData.session && adminSession?.access_token && adminSession?.refresh_token) {
+        await supabase.auth.setSession({
+          access_token: adminSession.access_token,
+          refresh_token: adminSession.refresh_token
+        });
+        // pequena espera para o listener de auth estabilizar
+        await new Promise((r) => setTimeout(r, 100));
       }
 
-      if (!authData.user) {
-        throw new Error("Erro ao criar usuário");
-      }
-
-      // Se um novo usuário foi logado automaticamente, fazer logout imediatamente
-      if (authData.session) {
-        await supabase.auth.signOut();
-        
-        // Aguardar um breve momento para o logout processar
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-
-      // 2. Criar registro na tabela users usando RPC ou direct insert
+      // 3) Criar registro na tabela users
       const { error: userError } = await supabase
         .from('users')
         .insert({
@@ -73,12 +67,11 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
           role: 'student',
           is_active: true
         });
-
       if (userError) {
         console.error("Erro ao criar usuário na tabela:", userError);
       }
 
-      // 3. Criar matrícula se classe selecionada (e não for "no-class")
+      // 4) Criar matrícula se classe selecionada (e não for "no-class")
       if (formData.classId && formData.classId !== "no-class") {
         const { error: enrollmentError } = await supabase
           .from('enrollments')
@@ -97,36 +90,20 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
             variant: "destructive"
           });
         } else {
-          toast({
-            title: "Sucesso",
-            description: "Usuário criado e matriculado com sucesso!"
-          });
+          toast({ title: "Sucesso", description: "Usuário criado e matriculado com sucesso!" });
         }
       } else {
-        toast({
-          title: "Usuário criado",
-          description: "Usuário criado com sucesso. Matrícula pode ser feita posteriormente."
-        });
+        toast({ title: "Usuário criado", description: "Usuário criado com sucesso. Matrícula pode ser feita posteriormente." });
       }
 
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        classId: "no-class"
-      });
+      setFormData({ name: "", email: "", password: "", classId: "no-class" });
       setOpen(false);
-      
-      // Chama callback para atualizar listas sem recarregar página
-      onEnrollmentCreated?.();
 
+      // Atualiza listas sem sair da página
+      onEnrollmentCreated?.();
     } catch (error: any) {
       console.error("Erro ao criar matrícula:", error);
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar matrícula",
-        variant: "destructive"
-      });
+      toast({ title: "Erro", description: error.message || "Erro ao criar matrícula", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
