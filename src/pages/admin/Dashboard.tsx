@@ -75,8 +75,12 @@ const AdminDashboard = () => {
 
       <ResponsiveDashboardMain>
         <DashboardActions 
-          onTeacherAdded={handleTeacherAdded} 
-          onClassAdded={handleClassAdded} 
+          onTeacherAdded={handleTeacherAdded}
+          onClassAdded={handleClassAdded}
+          onAdminAdded={() => {
+            // Recarregar dados após criar admin
+            refetchTeachers();
+          }}
         />
 
         <AdminDashboardCards 
