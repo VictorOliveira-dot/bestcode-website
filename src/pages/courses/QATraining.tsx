@@ -38,7 +38,7 @@ const QATraining = () => {
                     <div className="flex items-center gap-3">
                       <Calendar className="text-bestcode-600" size={24} />
                       <div>
-                        <p className="font-medium">Turma Agosto/2025</p>
+                        <p className="font-medium">Turma Setembro/2025</p>
                         <p className="text-sm text-gray-600">Início em 15/09/2025</p>
                       </div>
                     </div>
