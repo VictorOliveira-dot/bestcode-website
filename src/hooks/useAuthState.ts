@@ -57,7 +57,6 @@ export const useAuthState = () => {
       (event, session) => {
         if (!isMounted) return;
         
-        console.log('Auth state change:', event, session?.user?.email);
         
         if (event === 'SIGNED_OUT' || !session) {
           // Clear user state immediately on logout and stop loading
