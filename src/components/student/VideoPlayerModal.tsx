@@ -65,18 +65,12 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const startTime = Math.floor(savedProgress.watchTimeMinutes * 60);
       const newVideoUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&start=${startTime}`;
       setVideoUrl(newVideoUrl);
-      // console.log('🎥 Video URL set:', newVideoUrl);
     }
   }, [isOpen, videoId, lesson.id]);
 
   // Initialize progress when modal opens
   useEffect(() => {
     if (isOpen) {
-      // console.log('📊 Initializing progress:', {
-      //   lessonId: lesson.id,
-      //   savedProgress: savedProgress.progress,
-      //   savedWatchTime: savedProgress.watchTimeMinutes
-      // });
       setProgress(savedProgress.progress);
       watchTimeRef.current = savedProgress.watchTimeMinutes * 60;
       lastUpdateTimeRef.current = Date.now();
@@ -86,7 +80,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   // Start tracking progress when modal opens
   useEffect(() => {
     if (isOpen) {
-      // console.log('⏱️ Starting progress tracking for lesson:', lesson.id);
       // Set up interval to track time spent watching
       progressIntervalRef.current = window.setInterval(() => {
         const now = Date.now();
@@ -100,11 +93,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         if (duration > 0) {
           const newProgress = Math.min(Math.round((watchTimeRef.current / duration) * 100), 100);
           setProgress(newProgress);
-          
-          // Log every 10% progress milestone
-          if (newProgress % 10 === 0 && newProgress !== progress) {
-            // console.log(`📈 Progress milestone: ${newProgress}% for lesson ${lesson.id}`);
-          }
         }
       }, 1000);
       
@@ -119,7 +107,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   // Save progress when modal closes
   const handleClose = async () => {
     if (isSaving) {
-      // console.log('⚠️ Already saving progress, skipping...');
       return;
     }
     
@@ -130,19 +117,11 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const finalProgress = progress;
       const finalWatchTime = Math.round(watchTimeRef.current / 60);
       
-      // console.log('💾 Saving progress on close:', { 
-      //   lessonId: lesson.id, 
-      //   watchTime: finalWatchTime, 
-      //   progress: finalProgress 
-      // });
-      
       // Call the progress update function and wait for it to complete
       await onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
       
-      // console.log('✅ Progress saved successfully');
       onClose();
     } catch (error) {
-      console.error('❌ Error saving progress on close:', error);
       // Still close the modal even if save fails
       onClose();
     } finally {
@@ -153,7 +132,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   // Manually save progress
   const handleSaveProgress = async () => {
     if (isSaving) {
-      // console.log('⚠️ Already saving progress, skipping...');
       return;
     }
     
@@ -163,12 +141,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const currentProgress = progress;
       const currentWatchTime = Math.round(watchTimeRef.current / 60);
       
-      // console.log('💾 Manually saving progress:', { 
-      //   lessonId: lesson.id, 
-      //   watchTime: currentWatchTime, 
-      //   progress: currentProgress 
-      // });
-      
       await onProgressUpdate(lesson.id, currentWatchTime, currentProgress);
       
       toast({
@@ -176,9 +148,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         description: "Seu progresso foi salvo com sucesso!"
       });
       
-      // console.log('✅ Progress saved successfully');
     } catch (error) {
-      console.error('❌ Error saving progress:', error);
       toast({
         title: "Erro",
         description: "Não foi possível salvar o progresso",
@@ -197,12 +167,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const finalProgress = 100; // Mark as completed
       const finalWatchTime = Math.round(watchTimeRef.current / 60);
       
-      // console.log('🎯 Completing lesson:', { 
-      //   lessonId: lesson.id, 
-      //   watchTime: finalWatchTime, 
-      //   progress: finalProgress 
-      // });
-      
       await onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
       setProgress(100);
       
@@ -212,7 +176,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       });
       
     } catch (error) {
-      console.error('❌ Error completing lesson:', error);
       toast({
         title: "Erro",
         description: "Não foi possível completar a aula",
@@ -232,12 +195,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const finalProgress = Math.max(progress, 100); // Mark as completed if going to next
       const finalWatchTime = Math.round(watchTimeRef.current / 60);
       
-      // console.log('🎯 Going to next lesson:', { 
-      //   lessonId: lesson.id, 
-      //   watchTime: finalWatchTime, 
-      //   progress: finalProgress 
-      // });
-      
       await onProgressUpdate(lesson.id, finalWatchTime, finalProgress);
       
       if (onNextLesson) {
@@ -245,7 +202,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       }
       
     } catch (error) {
-      console.error('❌ Error going to next lesson:', error);
       toast({
         title: "Erro",
         description: "Não foi possível ir para a próxima aula",
@@ -265,12 +221,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       const currentProgress = progress;
       const currentWatchTime = Math.round(watchTimeRef.current / 60);
       
-      // console.log('🔙 Going to previous lesson:', { 
-      //   lessonId: lesson.id, 
-      //   watchTime: currentWatchTime, 
-      //   progress: currentProgress 
-      // });
-      
       await onProgressUpdate(lesson.id, currentWatchTime, currentProgress);
       
       if (onPreviousLesson) {
@@ -278,7 +228,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       }
       
     } catch (error) {
-      console.error('❌ Error going to previous lesson:', error);
       toast({
         title: "Erro",
         description: "Não foi possível ir para a aula anterior",

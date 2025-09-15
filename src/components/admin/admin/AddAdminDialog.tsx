@@ -93,7 +93,6 @@ const AddAdminDialog: React.FC<AddAdminDialogProps> = ({ onAdminAdded }) => {
       });
 
       if (error) {
-        console.error("Erro na Edge Function:", error);
         throw new Error("Erro ao conectar com o servidor");
       }
 
@@ -115,7 +114,6 @@ const AddAdminDialog: React.FC<AddAdminDialogProps> = ({ onAdminAdded }) => {
       onAdminAdded();
 
     } catch (error: any) {
-      console.error("Erro ao criar administrador:", error);
       toast({
         variant: "destructive",
         title: "Erro ao criar administrador",

@@ -21,8 +21,6 @@ export const useClassCreation = (onSuccess?: () => void) => {
         throw new Error("Only admins can create classes");
       }
       
-      // console.log("Creating class with data:", data);
-      
       // Call the admin_create_class function to create the class
       const { data: classId, error } = await supabase.rpc('admin_create_class', {
         p_name: data.name,
@@ -32,11 +30,8 @@ export const useClassCreation = (onSuccess?: () => void) => {
       });
       
       if (error) {
-        console.error("Error creating class:", error);
         throw new Error(error.message || "Failed to create class");
       }
-      
-      // console.log("Class created successfully with ID:", classId);
       
       toast({
         title: "Class created",
@@ -49,7 +44,6 @@ export const useClassCreation = (onSuccess?: () => void) => {
       
       return true;
     } catch (error: any) {
-      console.error("Failed to create class:", error);
       toast({
         title: "Error creating class",
         description: error.message || "There was an error creating the class.",

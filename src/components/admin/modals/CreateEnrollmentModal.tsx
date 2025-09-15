@@ -76,7 +76,6 @@ const CreateEnrollmentModal: React.FC<CreateEnrollmentModalProps> = ({
       // Atualiza listas sem sair da página
       onEnrollmentCreated?.();
     } catch (error: any) {
-      console.error("Erro ao criar matrícula:", error);
       toast({ title: "Erro", description: error.message || "Erro ao criar matrícula", variant: "destructive" });
     } finally {
       setIsLoading(false);

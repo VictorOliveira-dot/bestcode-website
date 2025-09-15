@@ -50,7 +50,6 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         }
 
         if (error) {
-          console.error('Error fetching profile:', error);
           toast({
             title: "Erro ao carregar perfil",
             description: "Não foi possível carregar seus dados de perfil.",
@@ -85,7 +84,6 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
       onClose();
     } catch (error) {
-      console.error('Error updating profile:', error);
       toast({
         title: "Erro ao atualizar perfil",
         description: "Não foi possível salvar suas informações.",

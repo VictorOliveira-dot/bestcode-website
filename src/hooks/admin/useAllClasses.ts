@@ -25,14 +25,11 @@ export function useAllClasses() {
         const { data, error } = await supabase.rpc('admin_get_all_classes');
         
         if (error) {
-          console.error("Failed to fetch all classes:", error);
           throw error;
         }
 
-        // console.log("All classes fetched successfully:", data?.length || 0);
         return data || [];
       } catch (err: any) {
-        console.error("Error fetching all classes:", err);
         toast({
           title: "Erro ao carregar turmas",
           description: err.message || "Não foi possível carregar as turmas disponíveis",

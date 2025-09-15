@@ -28,13 +28,10 @@ const LoginForm = () => {
     setIsLoading(true);
     setErrorMessage(null);
 
-    // console.log("Attempting login with email:", email);
-
     try {
       const result = await login(email, password);
       
       if (!result.success) {
-        // console.log("Login error:", result.message);
         setErrorMessage(result.message || "Login inválido. Tente novamente.");
         toast.error("Não foi possível fazer login", {
           description: result.message || "Login inválido. Tente novamente.",
@@ -60,7 +57,6 @@ const LoginForm = () => {
         }
       }
     } catch (error: any) {
-      console.error("Login error:", error);
       setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
       toast.error("Erro de autenticação", {
         description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
@@ -84,12 +80,11 @@ const LoginForm = () => {
           .maybeSingle();
         
         if (applicationError && applicationError.code !== 'PGRST116') {
-          console.error("Error fetching application data:", applicationError);
+          // Error handling for application data
         }
         
         // Se a aplicação não existe ou está pendente, redirecionar para inscrição
         if (!applicationData || applicationData.status === 'pending') {
-          // console.log("Application not complete, redirecting to enrollment");
           toast.info("Por favor, complete seu cadastro para continuar.");
           navigate('/inscricao', { replace: true });
           return;
@@ -103,11 +98,10 @@ const LoginForm = () => {
           .maybeSingle();
           
         if (profileError && profileError.code !== 'PGRST116') {
-          console.error("Error fetching profile data:", profileError);
+          // Error handling for profile data
         }
         
         if (!profileData || !profileData.is_profile_complete) {
-          // console.log("Profile not complete, redirecting to enrollment");
           toast.info("Por favor, complete seu perfil para continuar.");
           return;
         }
@@ -120,11 +114,10 @@ const LoginForm = () => {
           .maybeSingle();
           
         if (userError) {
-          console.error("Error fetching user active status:", userError);
+          // Error handling for user status
         }
         
         if (!userData?.is_active) {
-          // console.log("User not active, redirecting to checkout");
           toast.info("Por favor, Entre em contato conosco.");
           // navigate('/checkout', { replace: true });
           return;
@@ -136,13 +129,10 @@ const LoginForm = () => {
       
       if (user.role === "admin") {
         redirectPath = "/admin/dashboard";
-        // console.log("Redirecting to admin dashboard");
       } else if (user.role === "teacher") {
         redirectPath = "/teacher/dashboard";
-        // console.log("Redirecting to teacher dashboard");
       } else if (user.role === "student") {
         redirectPath = "/student/dashboard";
-        // console.log("Redirecting to student dashboard");
       }
       
       // Show success message
@@ -151,11 +141,9 @@ const LoginForm = () => {
       });
       
       // Navigate to dashboard
-      // console.log("Final redirect path:", redirectPath);
       navigate(redirectPath, { replace: true });
       
     } catch (error) {
-      console.error("Error checking user status:", error);
       toast.error("Erro ao verificar status do usuário");
     }
   };

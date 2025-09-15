@@ -13,7 +13,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   useEffect(() => {
     // If we've finished loading and there's no user, redirect immediately
     if (!loading && !user && location.pathname !== '/login') {
-      console.log('AuthGuard: No user found, redirecting to login');
+      // Redirect to login
     }
   }, [loading, user, location]);
 

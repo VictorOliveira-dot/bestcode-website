@@ -36,8 +36,6 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const handleLogout = async () => {
     try {
-      console.log('Iniciando logout do admin dashboard...');
-      
       const result = await logout();
       
       if (result.success) {
@@ -53,8 +51,6 @@ const AdminDashboardHeader: React.FC<DashboardHeaderProps> = ({
         throw new Error('Logout failed');
       }
     } catch (error) {
-      console.error("Logout error:", error);
-      
       // Force logout even if there are errors
       toast({
         title: "Forçando saída...",

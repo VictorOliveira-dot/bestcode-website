@@ -27,9 +27,6 @@ import { useCourses } from "@/hooks/admin/useCourses";
 const CoursesTable: React.FC = () => {
   const { data: courses, isLoading, error } = useCourses();
 
-  // Log for debugging
-  // console.log("CoursesTable rendered with:", { courses, isLoading, error });
-
   // const handleViewDetails = (courseId: string) => {
   //   toast({
   //     title: "Visualizando detalhes do curso",
