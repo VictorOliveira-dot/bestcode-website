@@ -21,17 +21,8 @@ const Footer = () => {
               prática e de qualidade. Junte-se a nós e impulsione sua carreira.
             </p>
             <div className="flex gap-4">
-              <a href="https://facebook.com" className="text-gray-300 hover:text-white transition-colors" aria-label="Facebook">
-                <Facebook size={20} />
-              </a>
-              <a href="https://instagram.com" className="text-gray-300 hover:text-white transition-colors" aria-label="Instagram">
+              <a href="https://www.instagram.com/bestcodeacademy" target="_blank" className="text-gray-300 hover:text-white transition-colors" aria-label="Instagram">
                 <Instagram size={20} />
-              </a>
-              <a href="https://twitter.com" className="text-gray-300 hover:text-white transition-colors" aria-label="Twitter">
-                <Twitter size={20} />
-              </a>
-              <a href="https://linkedin.com" className="text-gray-300 hover:text-white transition-colors" aria-label="LinkedIn">
-                <Linkedin size={20} />
               </a>
             </div>
           </div>
