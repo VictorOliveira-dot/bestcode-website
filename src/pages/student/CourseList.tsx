@@ -276,12 +276,6 @@ const StudentCourseList = () => {
                         {course.enrollment_status === "active" ? "Ativo" : course.enrollment_status}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Progresso:</span>
-                      <span className="font-medium text-bestcode-600">
-                        {course.progress}%
-                      </span>
-                    </div>
                   </div>
                   <Button 
                     className="w-full mt-4 bg-bestcode-600 hover:bg-bestcode-700"

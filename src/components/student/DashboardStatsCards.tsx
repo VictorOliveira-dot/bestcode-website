@@ -47,9 +47,9 @@ const DashboardStatsCards: React.FC<DashboardStatsCardsProps> = ({
           <CardDescription>Aulas em andamento</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold">{inProgressLessons} em andamento</p>
+          <p className="text-2xl font-bold">Veja Próximas aulas programadas.</p>
           <p className="text-sm text-gray-600 mb-2">
-            Continue de onde parou
+            Clique abaixo
           </p>
           <Link to="/student/schedule">
             <Button className="mt-2 w-full bg-bestcode-600 hover:bg-bestcode-700 flex items-center justify-center gap-1">

@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Dialog,
@@ -45,8 +44,7 @@ const StudentDocumentation: React.FC<StudentDocumentationProps> = ({
               Dashboard Principal
             </h3>
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-              <p><strong>Visão Geral:</strong> O dashboard mostra estatísticas do seu progresso, incluindo aulas em andamento, concluídas e progresso geral.</p>
-              <p><strong>Cards de Estatísticas:</strong> Visualize rapidamente quantas aulas você tem disponíveis, em progresso e concluídas.</p>
+              <p><strong>Visão Geral:</strong> O dashboard mostra um resumo rápido das suas aulas e cursos.</p>
               <p><strong>Navegação:</strong> Use o menu superior para acessar diferentes seções do sistema.</p>
             </div>
           </section>
@@ -62,8 +60,8 @@ const StudentDocumentation: React.FC<StudentDocumentationProps> = ({
                 <h4 className="font-medium mb-2">Abas Disponíveis:</h4>
                 <ul className="space-y-1 ml-4">
                   <li><strong>Não Iniciadas:</strong> Aulas que você ainda não começou (ordenadas por prioridade)</li>
-                  <li><strong>Continuar Assistindo:</strong> Aulas que você já iniciou mas não concluiu</li>
-                  <li><strong>Concluídas:</strong> Aulas que você finalizou com 100% de progresso</li>
+                  <li><strong>Continuar Assistindo:</strong> Aulas que você já iniciou mas ainda não concluiu</li>
+                  <li><strong>Concluídas:</strong> Aulas que você já finalizou</li>
                   <li><strong>Cursos Complementares:</strong> Conteúdo adicional criado pelos professores</li>
                   <li><strong>Todas:</strong> Visualização completa de todas as aulas disponíveis</li>
                 </ul>
@@ -72,7 +70,6 @@ const StudentDocumentation: React.FC<StudentDocumentationProps> = ({
                 <h4 className="font-medium mb-2">Funcionalidades:</h4>
                 <ul className="space-y-1 ml-4">
                   <li>• Clique em qualquer aula para abrir o player de vídeo</li>
-                  <li>• Veja o progresso de cada aula na barra de progresso</li>
                   <li>• Status colorido indica o estado da aula (não iniciada, em andamento, concluída)</li>
                 </ul>
               </div>
@@ -87,18 +84,8 @@ const StudentDocumentation: React.FC<StudentDocumentationProps> = ({
             </h3>
             <div className="bg-gray-50 p-4 rounded-lg space-y-3">
               <div>
-                <h4 className="font-medium mb-2">Controles Disponíveis:</h4>
-                <ul className="space-y-1 ml-4">
-                  <li><strong>Salvar Progresso:</strong> Salva manualmente seu progresso atual</li>
-                  <li><strong>Concluir Aula:</strong> Marca a aula como 100% concluída</li>
-                  <li><strong>Aula Anterior:</strong> Navega para a aula anterior (se disponível)</li>
-                  <li><strong>Próxima Aula:</strong> Avança para a próxima aula (se disponível)</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Salvamento Automático:</h4>
-                <p>• O progresso é salvo automaticamente a cada minuto assistido</p>
-                <p>• Ao fechar o modal, o progresso é salvo automaticamente</p>
+                <h4 className="font-medium mb-2">Reprodução:</h4>
+                <p>• O vídeo pode ser assistido direto no player da plataforma</p>
                 <p>• Link direto para o YouTube está disponível caso haja problemas de reprodução</p>
               </div>
             </div>
@@ -125,7 +112,7 @@ const StudentDocumentation: React.FC<StudentDocumentationProps> = ({
             </h3>
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
               <p><strong>Visão dos Cursos:</strong> Veja todos os cursos em que você está matriculado.</p>
-              <p><strong>Informações do Curso:</strong> Professor responsável, data de início, status e progresso geral.</p>
+              <p><strong>Informações do Curso:</strong> Professor responsável, data de início e status.</p>
               <p><strong>Acessar Aulas:</strong> Use o botão "Acessar Aulas" para ir direto ao conteúdo do curso.</p>
             </div>
           </section>
@@ -152,7 +139,6 @@ const StudentDocumentation: React.FC<StudentDocumentationProps> = ({
             </h3>
             <div className="bg-bestcode-50 p-4 rounded-lg space-y-2">
               <p>• <strong>Organize seus estudos:</strong> Comece pelas aulas "Não Iniciadas" para manter o cronograma.</p>
-              <p>• <strong>Acompanhe seu progresso:</strong> Use as barras de progresso para monitorar seu avanço.</p>
               <p>• <strong>Navegação rápida:</strong> Use os botões de navegação no player para pular entre aulas.</p>
               <p>• <strong>Fique atento às notificações:</strong> Elas te mantêm informado sobre novidades do curso.</p>
               <p>• <strong>Cursos complementares:</strong> Não esqueça de verificar conteúdo adicional na aba específica.</p>
