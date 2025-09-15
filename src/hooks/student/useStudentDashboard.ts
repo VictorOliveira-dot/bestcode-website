@@ -96,7 +96,7 @@ export const useStudentDashboard = () => {
         description: `Your progress in the lesson was updated to ${progress}%.`,
       });
     } catch (err: any) {
-      console.error("Error updating lesson progress:", err);
+      
       toast({
         title: "Error",
         description: "Failed to update lesson progress. Please try again.",
@@ -115,7 +115,7 @@ export const useStudentDashboard = () => {
         )
       );
     } catch (err: any) {
-      console.error("Error marking notification as read:", err);
+      
       toast({
         title: "Error",
         description: "Failed to mark notification as read. Please try again.",

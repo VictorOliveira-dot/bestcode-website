@@ -73,7 +73,7 @@ const ResetPassword = () => {
       navigate('/login');
       
     } catch (error: any) {
-      console.error("Erro ao redefinir senha:", error);
+      
       toast({
         variant: "destructive",
         title: "Erro ao redefinir senha",

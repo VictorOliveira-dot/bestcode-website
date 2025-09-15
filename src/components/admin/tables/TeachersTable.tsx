@@ -41,7 +41,7 @@ const TeachersTable: React.FC = () => {
       setSelectedTeacher(details);
       setIsDetailsModalOpen(true);
     } catch (error) {
-      console.error("Error fetching teacher details:", error);
+      
       toast({
         title: "Erro ao carregar detalhes",
         description: "Não foi possível carregar os detalhes do professor.",
@@ -96,7 +96,7 @@ const TeachersTable: React.FC = () => {
       setSelectedTeacher(null);
       fetchTeachers();
     } catch (error: any) {
-      console.error("Error in handleDeleteConfirm:", error);
+      
     }
   };
 

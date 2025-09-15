@@ -32,7 +32,7 @@ export const useComplementaryCourses = () => {
     queryKey: ["teacherComplementaryCourses", user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.error("No user ID available for querying complementary courses");
+        
         return [];
       }
       
@@ -44,14 +44,14 @@ export const useComplementaryCourses = () => {
         });
 
         if (error) {
-          console.error("Error fetching teacher complementary courses:", error);
+          
           throw error;
         }
         
         // console.log("Fetched complementary courses:", data);
         return data || [];
       } catch (err) {
-        console.error("Failed to fetch complementary courses:", err);
+        
         throw err;
       }
     },
@@ -74,7 +74,6 @@ export const useComplementaryCourses = () => {
       });
 
       if (error) {
-        console.error("Error creating complementary course:", error);
         throw error;
       }
 
@@ -88,7 +87,7 @@ export const useComplementaryCourses = () => {
       queryClient.invalidateQueries({ queryKey: ["teacherComplementaryCourses", user?.id] });
     },
     onError: (error: any) => {
-      console.error("Error creating complementary course:", error);
+      
       toast({
         title: "Erro ao criar curso",
         description: error.message || "Ocorreu um erro inesperado.",
@@ -112,7 +111,6 @@ export const useComplementaryCourses = () => {
       });
 
       if (error) {
-        console.error("Error updating complementary course:", error);
         throw error;
       }
     },
@@ -124,7 +122,7 @@ export const useComplementaryCourses = () => {
       queryClient.invalidateQueries({ queryKey: ["teacherComplementaryCourses", user?.id] });
     },
     onError: (error: any) => {
-      console.error("Error updating complementary course:", error);
+      
       toast({
         title: "Erro ao atualizar curso",
         description: error.message || "Ocorreu um erro inesperado.",
@@ -145,7 +143,6 @@ export const useComplementaryCourses = () => {
       });
 
       if (error) {
-        console.error("Error deleting complementary course:", error);
         throw error;
       }
     },
@@ -157,7 +154,7 @@ export const useComplementaryCourses = () => {
       queryClient.invalidateQueries({ queryKey: ["teacherComplementaryCourses", user?.id] });
     },
     onError: (error: any) => {
-      console.error("Error deleting complementary course:", error);
+      
       toast({
         title: "Erro ao excluir curso",
         description: error.message || "Ocorreu um erro inesperado.",

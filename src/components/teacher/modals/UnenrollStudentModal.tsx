@@ -64,7 +64,7 @@ export const UnenrollStudentModal: React.FC<UnenrollStudentModalProps> = ({
       onClose();
       setSelectedClassId("");
     } catch (error) {
-      console.error('Erro ao desvincular aluno:', error);
+      
     }
   };
 

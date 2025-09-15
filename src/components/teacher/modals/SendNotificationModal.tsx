@@ -68,7 +68,7 @@ export function SendNotificationModal({ isOpen, onClose }: SendNotificationModal
       setSelectedClass("");
       onClose();
     } catch (error) {
-      console.error("Error sending notification:", error);
+      
     }
   };
 

@@ -30,7 +30,7 @@ export const useStripeRevenue = () => {
           .order('payment_date', { ascending: false });
 
         if (error) {
-          console.error("Error fetching payments:", error);
+          
           throw error;
         }
 
@@ -45,7 +45,7 @@ export const useStripeRevenue = () => {
           totalRevenue
         };
       } catch (err: any) {
-        console.error("Error fetching stripe revenue:", err);
+        
         toast({
           title: "Erro ao carregar receita",
           description: err.message || "Não foi possível carregar os dados de receita",

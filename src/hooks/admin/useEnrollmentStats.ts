@@ -33,7 +33,7 @@ export const useEnrollmentStats = () => {
         });
 
         if (error) {
-          console.error("Error fetching enrollment stats:", error);
+          
           throw error;
         }
 
@@ -66,7 +66,7 @@ export const useEnrollmentStats = () => {
 
         return processedData;
       } catch (err: any) {
-        console.error("Error fetching enrollment stats:", err);
+        
         toast({
           title: "Erro ao carregar estatísticas",
           description: err.message || "Não foi possível carregar as estatísticas de matrícula",

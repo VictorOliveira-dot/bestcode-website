@@ -64,7 +64,7 @@ const AllClassesView = () => {
         });
       }
     } catch (error: any) {
-      console.error("Error adding class:", error);
+      
       toast({
         title: "Erro",
         description: error?.message || "Ocorreu um erro ao criar a turma",

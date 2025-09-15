@@ -6,10 +6,6 @@ const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.error(
-      "Erro 404: Usuário tentou acessar uma rota inexistente:",
-      location.pathname
-    );
   }, [location.pathname]);
 
   return (

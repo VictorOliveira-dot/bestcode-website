@@ -56,7 +56,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       });
       
     } catch (error: any) {
-      console.error("Erro ao enviar email de redefinição:", error);
+      
       toast({
         variant: "destructive",
         title: "Erro ao enviar email de redefinição",

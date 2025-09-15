@@ -62,7 +62,7 @@ const ProfileEditPage = () => {
             emailForm.setValue('newEmail', data.email || '');
           }
         } catch (error) {
-          console.error('Erro ao carregar perfil:', error);
+          
           // Fallback para dados do user
           profileForm.setValue('name', user.name || '');
           profileForm.setValue('bio', '');

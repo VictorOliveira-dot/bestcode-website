@@ -152,7 +152,7 @@ const DocumentationStep: React.FC = () => {
       
       toast.success(`Documento "${documentName}" enviado com sucesso!`);
     } catch (error: any) {
-      console.error("Erro no upload:", error);
+      
       setUploadStatus(prev => ({
         ...prev,
         [documentType]: {

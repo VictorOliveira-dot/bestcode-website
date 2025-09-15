@@ -20,7 +20,7 @@ export const useStudentData = () => {
         .rpc('get_student_enrollments');
       
       if (error) {
-        console.error('❌ Error fetching enrollments:', error);
+        
         throw error;
       }
       
@@ -44,7 +44,7 @@ export const useStudentData = () => {
         .rpc('get_student_lessons_brazil_timezone');
       
       if (lessonsError) {
-        console.error('❌ Error fetching student lessons with Brazil timezone:', lessonsError);
+        
         throw lessonsError;
       }
       
@@ -82,7 +82,7 @@ export const useStudentData = () => {
         .rpc('get_student_progress');
 
       if (error) {
-        console.error('❌ Error fetching progress:', error);
+        
         throw error;
       }
       
@@ -125,7 +125,7 @@ export const useStudentData = () => {
       // });
       
       if (!user?.id) {
-        console.error('❌ User not authenticated');
+        
         throw new Error('User not authenticated');
       }
 
@@ -148,7 +148,7 @@ export const useStudentData = () => {
       });
 
       if (error) {
-        console.error('❌ Supabase RPC error:', error);
+        
         throw error;
       }
       
@@ -168,7 +168,7 @@ export const useStudentData = () => {
       }
     },
     onError: (error: any, variables) => {
-      console.error("❌ Erro ao atualizar progresso:", error);
+      
       toast({
         title: "Erro",
         description: `Não foi possível atualizar seu progresso: ${error.message || 'Erro desconhecido'}`,
@@ -208,7 +208,7 @@ export const useStudentData = () => {
       // console.log('🔄 updateProgress called with:', { lessonId, watchTimeMinutes, progress });
       return await updateProgressMutation.mutateAsync({ lessonId, watchTimeMinutes, progress });
     } catch (error) {
-      console.error('❌ Error in updateProgress:', error);
+      
       throw error;
     }
   };

@@ -62,13 +62,13 @@ const RegisterForm = () => {
           navigate("/inscricao", { replace: true });
         }, 1500);
       } else {
-        console.error("Registration error:", result.message);
+        
         toast.error("Falha no cadastro", {
           description: result.message || "Ocorreu um erro durante o cadastro",
         });
       }
     } catch (error: any) {
-      console.error("Unexpected registration error:", error);
+      
       toast.error("Erro no cadastro", {
         description: error.message || "Ocorreu um erro inesperado",
       });

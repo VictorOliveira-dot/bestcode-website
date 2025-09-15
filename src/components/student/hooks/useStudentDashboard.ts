@@ -105,7 +105,7 @@ export const useStudentDashboard = () => {
         setLessonProgress(mockProgress);
         setNotifications(mockNotifications);
       } catch (err: any) {
-        console.error("Error fetching student dashboard data:", err);
+        
         setError(err.message || "Failed to load dashboard data");
         toast({
           title: "Error",
@@ -153,7 +153,7 @@ export const useStudentDashboard = () => {
         description: `Your progress in the lesson was updated to ${progress}%.`,
       });
     } catch (err: any) {
-      console.error("Error updating lesson progress:", err);
+      
       toast({
         title: "Error",
         description: "Failed to update lesson progress. Please try again.",
@@ -172,7 +172,7 @@ export const useStudentDashboard = () => {
         )
       );
     } catch (err: any) {
-      console.error("Error marking notification as read:", err);
+      
       toast({
         title: "Error",
         description: "Failed to mark notification as read. Please try again.",

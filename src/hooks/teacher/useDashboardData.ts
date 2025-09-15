@@ -71,7 +71,7 @@ export function useDashboardData() {
         setStudentCount(45); // Mock student count
         
       } catch (error: any) {
-        console.error("Error fetching teacher data:", error);
+        
         toast({
           title: "Erro ao carregar dados",
           description: error.message || "Ocorreu um erro ao carregar os dados.",

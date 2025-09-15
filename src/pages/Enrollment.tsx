@@ -36,7 +36,7 @@ const Enrollment = () => {
           .maybeSingle();
           
         if (applicationError && applicationError.code !== 'PGRST116') {
-          console.error("Error checking application status:", applicationError);
+          
         }
         
         // If application exists and is completed/approved, redirect to checkout
@@ -54,7 +54,7 @@ const Enrollment = () => {
           .maybeSingle();
           
         if (profileError && profileError.code !== 'PGRST116') {
-          console.error("Error checking profile status:", profileError);
+          
         }
         
         // If profile is complete, check if user is active (has paid)
@@ -66,7 +66,7 @@ const Enrollment = () => {
             .maybeSingle();
             
           if (userError) {
-            console.error("Error checking if user is active:", userError);
+            
           } else if (userData?.is_active) {
             // If user has paid, redirect to dashboard
             toast.info("Sua conta já está ativa. Redirecionando para o dashboard...");
@@ -81,7 +81,7 @@ const Enrollment = () => {
         }
         
       } catch (error) {
-        console.error("Error checking application status:", error);
+        
         toast.error("Erro ao verificar status da inscrição");
       } finally {
         setIsLoading(false);

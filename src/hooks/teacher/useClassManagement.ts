@@ -36,7 +36,7 @@ export const useClassManagement = () => {
       });
       
       if (error) {
-        console.error("Error creating class:", error);
+        
         throw error;
       }
       
@@ -49,7 +49,7 @@ export const useClassManagement = () => {
       
       return true;
     } catch (err: any) {
-      console.error("Error in handleAddClass:", err);
+      
       setError(err.message || 'Falha ao criar turma');
       toast({
         title: 'Erro ao criar turma',
@@ -88,7 +88,7 @@ export const useClassManagement = () => {
       });
       
       if (error) {
-        console.error("Error updating class:", error);
+        
         throw error;
       }
       
@@ -99,7 +99,7 @@ export const useClassManagement = () => {
       
       return true;
     } catch (err: any) {
-      console.error("Error in handleEditClass:", err);
+      
       setError(err.message || 'Falha ao atualizar turma');
       toast({
         title: 'Erro ao atualizar turma',
@@ -144,7 +144,7 @@ export const useClassManagement = () => {
       });
       
       if (error) {
-        console.error("Error deleting class:", error);
+        
         throw error;
       }
       
@@ -155,7 +155,7 @@ export const useClassManagement = () => {
       
       return true;
     } catch (err: any) {
-      console.error("Error in handleDeleteClass:", err);
+      
       setError(err.message || 'Falha ao excluir turma');
       toast({
         title: 'Erro ao excluir turma',

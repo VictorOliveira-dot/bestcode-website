@@ -124,7 +124,7 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       setIsOpen(false);
       onTeacherAdded();
     } catch (error: any) {
-      console.error("Erro ao criar professor:", error);
+      
       toast({
         title: "Erro ao criar professor",
         description: error.message || "Ocorreu um erro ao criar o professor.",

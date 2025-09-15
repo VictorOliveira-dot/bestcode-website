@@ -64,7 +64,7 @@ const AllStudentsTab = () => {
         description: `Aluno foi desvinculado da turma ${className} com sucesso.`,
       });
     } catch (error) {
-      console.error('Erro ao desvincular aluno:', error);
+      
       toast({
         title: "Erro ao desvincular",
         description: "Não foi possível desvincular o aluno. Tente novamente.",

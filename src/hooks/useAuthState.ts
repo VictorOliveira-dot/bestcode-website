@@ -41,7 +41,7 @@ export const useAuthState = () => {
           setUser(null);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        
         if (isMounted) {
           setUser(null);
         }
@@ -78,7 +78,7 @@ export const useAuthState = () => {
                 });
               }
             } catch (error) {
-              console.error('Error fetching user data:', error);
+              
               if (isMounted) {
                 setUser(null);
               }
@@ -104,7 +104,7 @@ export const useAuthState = () => {
                 });
               }
             } catch (error) {
-              console.error('Error fetching user data on token refresh:', error);
+              
             }
           }, 0);
         } else if (event === 'INITIAL_SESSION') {

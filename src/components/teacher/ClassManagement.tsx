@@ -53,7 +53,7 @@ const ClassManagement = () => {
         });
       }
     } catch (error: any) {
-      console.error("Error adding class:", error);
+      
       toast({
         title: "Erro",
         description: error?.message || "Ocorreu um erro ao adicionar a turma",
@@ -76,7 +76,7 @@ const ClassManagement = () => {
           });
         }
       } catch (error: any) {
-        console.error("Error editing class:", error);
+        
         toast({
           title: "Erro",
           description: error?.message || "Ocorreu um erro ao atualizar a turma",

@@ -36,7 +36,7 @@ export const useStudentProgress = () => {
     queryKey: ["teacherStudentProgress", user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.error("No user ID available for querying student progress");
+        
         return [];
       }
       
@@ -48,14 +48,14 @@ export const useStudentProgress = () => {
         });
 
         if (error) {
-          console.error("Error fetching teacher student progress:", error);
+          
           throw error;
         }
         
         // console.log("Fetched student progress:", data);
         return data || [];
       } catch (err) {
-        console.error("Failed to fetch student progress:", err);
+        
         throw err;
       }
     },
@@ -81,13 +81,13 @@ export const useStudentProgress = () => {
         });
 
         if (error) {
-          console.error("Error fetching teacher classes for filter:", error);
+          
           throw error;
         }
         
         return data || [];
       } catch (err) {
-        console.error("Failed to fetch teacher classes:", err);
+        
         throw err;
       }
     },
@@ -108,14 +108,14 @@ export const useStudentProgress = () => {
       });
 
       if (error) {
-        console.error("Error fetching student lesson details:", error);
+        
         throw error;
       }
       
       // console.log("Fetched student lesson details:", data);
       return data || [];
     } catch (err) {
-      console.error("Failed to fetch student lesson details:", err);
+      
       throw err;
     }
   };

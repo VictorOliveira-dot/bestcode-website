@@ -46,7 +46,6 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
       });
 
       if (error) {
-        console.error('Error creating class:', error);
         throw error;
       }
 
@@ -66,7 +65,7 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
         startDate: new Date().toISOString().split("T")[0],
       });
     } catch (error: any) {
-      console.error('Error creating class:', error);
+      
       toast({
         title: "Erro ao criar turma",
         description: error.message || "Ocorreu um erro ao criar a turma",

@@ -31,7 +31,7 @@ export function useStudentsTable() {
         const { data: studentsData, error: studentsError } = await supabase.rpc('admin_get_students_data');
         
         if (studentsError) {
-          console.error("Failed to fetch students:", studentsError);
+          
           throw studentsError;
         }
 
@@ -42,7 +42,7 @@ export function useStudentsTable() {
           .eq('role', 'student');
 
         if (usersError) {
-          console.error("Failed to fetch users data:", usersError);
+          
           throw usersError;
         }
 
@@ -58,7 +58,7 @@ export function useStudentsTable() {
         // console.log("Students data fetched successfully:", combinedData.length);
         return combinedData || [];
       } catch (err: any) {
-        console.error("Error fetching students:", err);
+        
         toast({
           title: "Erro ao carregar alunos",
           description: err.message || "Não foi possível carregar a lista de alunos",

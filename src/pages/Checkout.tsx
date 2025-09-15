@@ -75,7 +75,7 @@ const Checkout = () => {
               .single();
               
             if (error) {
-              console.error("Error checking user activation status:", error);
+              
               toast({
                 title: "Erro ao verificar ativação",
                 description: "Ocorreu um problema ao verificar o status da sua conta, mas seu pagamento foi processado com sucesso.",
@@ -103,7 +103,7 @@ const Checkout = () => {
                 .eq('id', user.id);
                 
               if (updateError) {
-                console.error("Error activating user account:", updateError);
+                
                 toast({
                   title: "Erro na ativação",
                   description: "Seu pagamento foi processado, mas houve um erro ao ativar sua conta. Por favor, contate o suporte.",
@@ -128,7 +128,7 @@ const Checkout = () => {
             navigate("/student/dashboard");
           }, 3000);
         } catch (error) {
-          console.error("Error in payment success handler:", error);
+          
           toast({
             title: "Erro no processamento",
             description: "Ocorreu um erro ao finalizar seu pagamento.",
@@ -171,7 +171,7 @@ const Checkout = () => {
           .maybeSingle();
           
         if (userError && userError.code !== 'PGRST116') {
-          console.error("Error fetching user data:", userError);
+          
           throw userError;
         }
 
@@ -203,7 +203,7 @@ const Checkout = () => {
           .maybeSingle();
 
         if (applicationError && applicationError.code !== 'PGRST116') {
-          console.error("Error checking student application:", applicationError);
+          
         }
         
         // If application doesn't exist or is pending, redirect to enrollment
@@ -224,7 +224,7 @@ const Checkout = () => {
           .maybeSingle();
 
         if (profileError && profileError.code !== 'PGRST116') {
-          console.error("Error checking user profile:", profileError);
+          
         }
 
         if (!profileData?.is_profile_complete) {
@@ -238,7 +238,7 @@ const Checkout = () => {
 
         setIsProfileComplete(true);
       } catch (error) {
-        console.error("Error checking user status:", error);
+        
         toast({
           title: "Erro",
           description: "Ocorreu um erro ao verificar o status do usuário",
@@ -288,7 +288,7 @@ const Checkout = () => {
         .maybeSingle();
       
       if (appError && appError.code !== 'PGRST116') {
-        console.error("Error fetching application data:", appError);
+        
       }
       
       const applicationId = applicationData?.id;
@@ -348,7 +348,7 @@ const Checkout = () => {
         throw new Error("URL de checkout não encontrada");
       }
     } catch (error: any) {
-      console.error("Erro ao processar pagamento:", error);
+      
       toast({
         title: "Erro no pagamento",
         description: error.message || "Ocorreu um erro ao processar o pagamento",

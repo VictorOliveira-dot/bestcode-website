@@ -73,7 +73,7 @@ const ProfileCompletion = () => {
           });
         }
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        
         toast.error("Erro ao carregar dados do perfil");
       } finally {
         setIsLoading(false);
@@ -191,7 +191,7 @@ const ProfileCompletion = () => {
       // Redirect to checkout page
       navigate("/checkout");
     } catch (error: any) {
-      console.error("Error updating profile:", error);
+      
       toast.error(error.message || "Erro ao atualizar perfil");
     } finally {
       setIsLoading(false);

@@ -69,7 +69,7 @@ const NotificationsTab = () => {
       setEditTitle("");
       setEditMessage("");
     } catch (error) {
-      console.error('Erro ao editar notificação:', error);
+      
     }
   };
 
@@ -80,7 +80,7 @@ const NotificationsTab = () => {
       await deleteNotification(deleteNotificationId);
       setDeleteNotificationId(null);
     } catch (error) {
-      console.error('Erro ao excluir notificação:', error);
+      
     }
   };
 

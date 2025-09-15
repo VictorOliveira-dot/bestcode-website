@@ -23,7 +23,7 @@ const PaymentBoleto = () => {
       const parsedData = JSON.parse(storedData);
       setBoletoData(parsedData);
     } catch (error) {
-      console.error("Erro ao recuperar dados do boleto:", error);
+      
       navigate("/checkout");
     }
   }, [navigate]);

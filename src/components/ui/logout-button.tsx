@@ -44,7 +44,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       window.location.replace("/login");
       
     } catch (error) {
-      console.error('Erro no logout:', error);
+      
       
       // Force logout even if there are errors
       localStorage.clear();

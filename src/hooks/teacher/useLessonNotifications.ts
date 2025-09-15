@@ -45,7 +45,7 @@ export const useLessonNotifications = () => {
       queryClient.invalidateQueries({ queryKey: ['studentNotifications'] });
     },
     onError: (error) => {
-      console.error('Erro ao criar notificações:', error);
+      
     }
   });
 

@@ -41,7 +41,7 @@ export const addLesson = async (
     
     return updatedLessons;
   } catch (error: any) {
-    console.error("Error adding lesson:", error);
+    
     toast({
       title: "Erro ao adicionar aula",
       description: error.message || "Ocorreu um erro ao adicionar a aula.",
@@ -69,7 +69,7 @@ export const deleteLesson = async (
     
     return updatedLessons;
   } catch (error: any) {
-    console.error("Error deleting lesson:", error);
+    
     toast({
       title: "Erro ao remover aula",
       description: error.message || "Ocorreu um erro ao remover a aula.",
@@ -113,7 +113,7 @@ export const editLesson = async (
     
     return updatedLessons;
   } catch (error: any) {
-    console.error("Error editing lesson:", error);
+    
     toast({
       title: "Erro ao atualizar aula",
       description: error.message || "Ocorreu um erro ao atualizar a aula.",

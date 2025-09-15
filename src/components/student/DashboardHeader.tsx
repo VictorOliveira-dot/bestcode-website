@@ -49,7 +49,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         throw new Error('Logout failed');
       }
     } catch (error) {
-      console.error('Erro no logout:', error);
+      
       
       // Force logout even if there are errors
       toast({

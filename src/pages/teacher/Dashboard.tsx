@@ -77,7 +77,7 @@ const TeacherDashboard = () => {
       });
 
       if (error) {
-        console.error('Error deleting lesson:', error);
+        
         toast({
           title: "Erro ao excluir aula",
           description: error.message,
@@ -93,7 +93,7 @@ const TeacherDashboard = () => {
 
       await refetchLessons();
     } catch (error: any) {
-      console.error('Error deleting lesson:', error);
+      
       toast({
         title: "Erro ao excluir aula",
         description: "Ocorreu um erro inesperado.",
@@ -116,7 +116,7 @@ const TeacherDashboard = () => {
       });
 
       if (error) {
-        console.error('Error updating lesson:', error);
+        
         toast({
           title: "Erro ao atualizar aula",
           description: error.message,
@@ -132,7 +132,7 @@ const TeacherDashboard = () => {
 
       await refetchLessons();
     } catch (error: any) {
-      console.error('Error updating lesson:', error);
+      
       toast({
         title: "Erro ao atualizar aula",
         description: "Ocorreu um erro inesperado.",

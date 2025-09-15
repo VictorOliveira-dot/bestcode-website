@@ -30,14 +30,14 @@ export const useTeachers = (shouldFetch: boolean = true) => {
       const { data: teachersData, error } = await supabase.rpc('admin_get_teachers');
       
       if (error) {
-        console.error("Error fetching teachers:", error);
+        
         throw error;
       }
       
       // console.log("Teachers data retrieved:", teachersData);
       setTeachers(teachersData || []);
     } catch (error: any) {
-      console.error("Failed to fetch teachers:", error);
+      
       toast({
         title: "Erro ao carregar professores",
         description: error.message || "Ocorreu um erro ao carregar os professores",

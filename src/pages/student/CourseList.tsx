@@ -93,7 +93,7 @@ const StudentCourseList = () => {
 
         setCourses(coursesWithProgress);
       } catch (err) {
-        console.error("Error fetching courses:", err);
+        
         setError("Failed to load courses. Please try again.");
       } finally {
         setIsLoading(false);

@@ -15,7 +15,7 @@ export const fetchUserData = async (authUser: User) => {
       .maybeSingle();  // Use maybeSingle instead of single to avoid the "multiple (or no) rows returned" error
 
     if (selectError && selectError.code !== 'PGRST116') {
-      console.error('Error fetching user profile data:', selectError);
+      
       return null;
     }
     
@@ -56,14 +56,14 @@ export const fetchUserData = async (authUser: User) => {
           .single();
             
         if (upsertError) {
-          console.error('Error creating user profile record:', upsertError);
+          
           return null;
         }
         
         // console.log('Created/updated user profile record with role:', newUser.role);
         return { ...newUser, is_active: metaRole !== 'student' };
       } catch (error) {
-        console.error('Error in user profile creation/update:', error);
+        
         return null;
       }
     }
@@ -71,7 +71,7 @@ export const fetchUserData = async (authUser: User) => {
     // console.log("Found user profile data with role:", userData.role);
     return { ...userData, is_active: userData.role !== 'student' };
   } catch (error) {
-    console.error('Error in fetchUserData:', error);
+    
     return null;
   }
 };
@@ -86,7 +86,7 @@ export const loginUser = async (email: string, password: string) => {
     });
 
     if (error) {
-      console.error('Login error:', error.message);
+      
       return {
         success: false,
         message: error.message
@@ -121,7 +121,7 @@ export const loginUser = async (email: string, password: string) => {
       message: 'Authentication failed. Please try again.'
     };
   } catch (error: any) {
-    console.error('Unexpected error during login:', error.message);
+    
     return {
       success: false,
       message: error.message || 'An error occurred during login'
@@ -144,7 +144,7 @@ export const logoutUser = async () => {
     });
     
     if (error) {
-      console.error('Erro durante logout:', error.message);
+      
     }
     
     // Force immediate cleanup of any cached session data
@@ -158,7 +158,7 @@ export const logoutUser = async () => {
     console.log('Logout realizado com sucesso');
     return { success: true };
   } catch (error) {
-    console.error('Erro inesperado durante logout:', error);
+    
     return { success: false };
   }
 };

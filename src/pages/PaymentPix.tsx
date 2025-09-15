@@ -23,7 +23,7 @@ const PaymentPix = () => {
       const parsedData = JSON.parse(storedData);
       setPixData(parsedData);
     } catch (error) {
-      console.error("Erro ao recuperar dados do PIX:", error);
+      
       navigate("/checkout");
     }
   }, [navigate]);

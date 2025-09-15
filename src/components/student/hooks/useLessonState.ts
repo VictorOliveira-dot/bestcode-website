@@ -97,7 +97,7 @@ export function useLessonState(
         });
       }
     } catch (error) {
-      console.error('❌ Error updating progress in hook:', error);
+      
     }
   };
 

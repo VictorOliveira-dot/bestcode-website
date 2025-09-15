@@ -61,7 +61,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
           .maybeSingle();
           
         if (profileError && profileError.code !== 'PGRST116') {
-          console.error("Error fetching user profile:", profileError);
+          
           return;
         }
         
@@ -96,7 +96,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
           });
         }
       } catch (error) {
-        console.error("Error loading profile data:", error);
+        
       }
     };
     
@@ -245,7 +245,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
       
       return true;
     } catch (error: any) {
-      console.error("Error saving profile to Supabase:", error);
+      
       toast.error(`Erro ao salvar perfil: ${error.message}`);
       return false;
     } finally {
@@ -372,7 +372,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
         description: "Você pode continuar mais tarde"
       });
     } catch (error: any) {
-      console.error("Error saving progress:", error);
+      
       // toast.error(`Erro ao salvar progresso: ${error.message}`);
     } finally {
       setSaving(false);
@@ -437,7 +437,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
           description: "Todos os dados do formulário foram apagados"
         });
       } catch (error: any) {
-        console.error("Error clearing progress:", error);
+        
         toast.error(`Erro ao limpar progresso: ${error.message}`);
       } finally {
         setSaving(false);

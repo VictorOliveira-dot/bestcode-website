@@ -66,7 +66,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
         });
 
       if (error) {
-        console.error('Error creating lesson:', error);
+        
         throw new Error(error.message);
       }
       
@@ -89,7 +89,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
           });
           console.log('Notifications created successfully');
         } catch (error) {
-          console.error('Erro ao criar notificações:', error);
+          
           // Don't fail the whole operation if notifications fail
         }
       }
@@ -117,7 +117,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
       onSuccess?.();
     },
     onError: (error: any) => {
-      console.error("Erro ao criar aula:", error);
+      
       toast({
         title: "Erro ao criar aula",
         description: error.message || "Tente novamente.",

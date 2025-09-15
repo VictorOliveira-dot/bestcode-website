@@ -50,7 +50,7 @@ export function StudentActions({ student, onViewDetails, onEdit, onDelete }: Stu
         onViewDetails(student.user_id);
       }
     } catch (error) {
-      console.error("Error fetching student details:", error);
+      
     }
   };
 
@@ -65,7 +65,7 @@ export function StudentActions({ student, onViewDetails, onEdit, onDelete }: Stu
         onEdit(student.user_id);
       }
     } catch (error) {
-      console.error("Error fetching student details for edit:", error);
+      
     }
   };
 
@@ -75,7 +75,7 @@ export function StudentActions({ student, onViewDetails, onEdit, onDelete }: Stu
       setDetails(details);
       setShowDataEdit(true);
     } catch (error) {
-      console.error("Error fetching student details for data edit:", error);
+      
     }
   };
 

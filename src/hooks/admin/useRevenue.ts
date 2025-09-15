@@ -29,7 +29,7 @@ export const useRevenue = (filters: RevenueFilters = {}) => {
       });
 
       if (error) {
-        console.error("Error fetching revenue data:", error);
+        
         throw error;
       }
 

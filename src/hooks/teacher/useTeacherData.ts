@@ -19,7 +19,7 @@ export const useTeacherData = () => {
       const { data, error } = await supabase.rpc('get_all_classes_for_teachers');
 
       if (error) {
-        console.error("Error fetching all classes:", error);
+        
         throw error;
       }
       
@@ -49,7 +49,7 @@ export const useTeacherData = () => {
       const { data, error } = await supabase.rpc('get_all_students_for_teachers');
 
       if (error) {
-        console.error("Error fetching total student count:", error);
+        
         throw error;
       }
       
@@ -69,7 +69,7 @@ export const useTeacherData = () => {
     queryKey: ["teacherLessons", user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.error("No user ID available for querying lessons");
+        
         return [];
       }
       
@@ -80,7 +80,7 @@ export const useTeacherData = () => {
       });
 
       if (error) {
-        console.error("Error fetching teacher lessons:", error);
+        
         throw error;
       }
       
@@ -104,7 +104,7 @@ export const useTeacherData = () => {
       const { data, error } = await supabase.rpc('get_all_students_for_teachers');
 
       if (error) {
-        console.error("Error fetching all students:", error);
+        
         throw error;
       }
       
@@ -123,7 +123,7 @@ export const useTeacherData = () => {
     queryKey: ["teacherClasses", user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.error("No user ID available for querying teacher classes");
+        
         return [];
       }
       
@@ -134,7 +134,7 @@ export const useTeacherData = () => {
       });
 
       if (error) {
-        console.error("Error fetching teacher classes:", error);
+        
         throw error;
       }
       
