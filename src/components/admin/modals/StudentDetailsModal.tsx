@@ -70,7 +70,7 @@ export function StudentDetailsModal({ isOpen, onClose, details }: StudentDetails
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               Detalhes do Aluno
-              <Button onClick={handleEditClick} size="sm" className="ml-4">
+              <Button onClick={handleEditClick} size="sm" className="ml-4 mr-5">
                 <Edit className="h-4 w-4 mr-2" />
                 Editar Dados
               </Button>
