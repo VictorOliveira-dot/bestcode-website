@@ -42,7 +42,7 @@ const QATraining = () => {
                         <p className="text-sm text-gray-600">Início em 15/09/2025</p>
                       </div>
                     </div>
-                    <span className="text-sm bg-green-100 text-green-800 py-1 px-3 rounded-full">Turma aberta</span>
+                    <span className="text-sm bg-red-100 text-red-800 py-1 px-3 rounded-full">Turma Fechada</span>
                   </div>
                   <div className="p-4 border border-gray-200 rounded-lg flex items-center justify-between hover:border-bestcode-300 transition-colors">
                     <div className="flex items-center gap-3">
