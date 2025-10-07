@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/auth";
 
 export interface Course {
   class_id: string;
@@ -13,6 +14,7 @@ export interface Course {
 }
 
 export const useCourses = () => {
+  const { user, loading: authLoading } = useAuth();
   return useQuery({
     queryKey: ['admin-courses'],
     queryFn: async () => {
@@ -24,6 +26,7 @@ export const useCourses = () => {
       }
 
       return data as Course[];
-    }
+    },
+    enabled: !authLoading && user?.role === 'admin'
   });
 };

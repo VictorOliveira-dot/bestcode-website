@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth";
 
 export interface Teacher {
   id: string;
@@ -19,25 +20,20 @@ export interface Teacher {
 export const useTeachers = (shouldFetch: boolean = true) => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const canFetch = shouldFetch && !authLoading && user?.role === 'admin';
 
   const fetchTeachers = useCallback(async () => {
-    if (!shouldFetch) return;
-    
+    if (!canFetch) return;
     setIsLoading(true);
     try {
       // console.log("Fetching teachers from admin_get_teachers function");
-      
       const { data: teachersData, error } = await supabase.rpc('admin_get_teachers');
-      
       if (error) {
-        
         throw error;
       }
-      
-      // console.log("Teachers data retrieved:", teachersData);
       setTeachers(teachersData || []);
     } catch (error: any) {
-      
       toast({
         title: "Erro ao carregar professores",
         description: error.message || "Ocorreu um erro ao carregar os professores",
@@ -46,7 +42,7 @@ export const useTeachers = (shouldFetch: boolean = true) => {
     } finally {
       setIsLoading(false);
     }
-  }, [shouldFetch]);
+  }, [canFetch]);
 
   useEffect(() => {
     fetchTeachers();
