@@ -5,71 +5,78 @@ import { AuthUser } from "@/hooks/useAuthState";
 
 export const fetchUserData = async (authUser: User) => {
   try {
-    console.log("Fetching user data for:", authUser.email);
+    console.log("Buscando dados do usuário para:", authUser.email);
     
-    // Buscar dados da tabela users que tem o role
+    // Buscar dados da tabela users
     const { data: userData, error: selectError } = await supabase
       .from('users')
-      .select('*')
+      .select('id, email, name, role, is_active')
       .eq('id', authUser.id)
       .maybeSingle();
 
     if (selectError) {
-      console.error("Error fetching user data:", selectError);
+      console.error("Erro ao buscar dados do usuário:", selectError);
       return null;
     }
     
-    // If user not found in users table, create it
-    if (!userData) {
-      console.log("User not found, creating record for:", authUser.email);
-      
-      const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
-      let metaRole = authUser.user_metadata?.role || 'student';
-      
-      // Ensure role is valid
-      if (!['admin', 'teacher', 'student'].includes(metaRole)) {
-        metaRole = 'student';
-      }
-      
-      // Special handling for known emails
-      if (authUser.email === 'admin@bestcode.com') {
-        metaRole = 'admin';
-      } else if (authUser.email === 'professor@bestcode.com') {
-        metaRole = 'teacher';
-      } else if (authUser.email === 'aluno@bestcode.com') {
-        metaRole = 'student';
-      }
-      
-      try {
-        const { data: newUser, error: insertError } = await supabase
-          .from('users')
-          .insert({
-            id: authUser.id,
-            email: authUser.email,
-            name: metaName,
-            role: metaRole,
-            is_active: metaRole !== 'student' // Admin and teacher are active by default
-          })
-          .select()
-          .single();
-            
-        if (insertError) {
-          console.error("Error creating user:", insertError);
-          return null;
-        }
-        
-        console.log('Created user record with role:', newUser.role);
-        return newUser;
-      } catch (error) {
-        console.error("Exception creating user:", error);
+    // Se o usuário foi encontrado, retornar os dados
+    if (userData) {
+      console.log("Dados do usuário encontrados:", {
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+        is_active: userData.is_active
+      });
+      return userData;
+    }
+    
+    // Se não encontrou, criar novo registro
+    console.log("Usuário não encontrado na tabela users, criando registro...");
+    
+    const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Usuário';
+    let metaRole = authUser.user_metadata?.role || 'student';
+    
+    // Validar role
+    if (!['admin', 'teacher', 'student'].includes(metaRole)) {
+      metaRole = 'student';
+    }
+    
+    // Tratamento especial para emails conhecidos
+    if (authUser.email === 'admin@bestcode.com' || authUser.email === 'contato@bestcode.com.br') {
+      metaRole = 'admin';
+    } else if (authUser.email === 'professor@bestcode.com') {
+      metaRole = 'teacher';
+    } else if (authUser.email === 'aluno@bestcode.com' || authUser.email === 'adrianarvargas.av@gmail.com') {
+      metaRole = 'student';
+    }
+    
+    try {
+      const { data: newUser, error: insertError } = await supabase
+        .from('users')
+        .insert({
+          id: authUser.id,
+          email: authUser.email,
+          name: metaName,
+          role: metaRole,
+          is_active: metaRole !== 'student'
+        })
+        .select('id, email, name, role, is_active')
+        .single();
+          
+      if (insertError) {
+        console.error("Erro ao criar usuário:", insertError);
         return null;
       }
+      
+      console.log('Registro de usuário criado com role:', newUser.role);
+      return newUser;
+    } catch (error) {
+      console.error("Exceção ao criar usuário:", error);
+      return null;
     }
-
-    console.log("Found user data with role:", userData.role);
-    return userData;
   } catch (error) {
-    console.error("Exception in fetchUserData:", error);
+    console.error("Exceção em fetchUserData:", error);
     return null;
   }
 };
