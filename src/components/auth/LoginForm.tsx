@@ -29,20 +29,25 @@ const LoginForm = () => {
     setErrorMessage(null);
 
     try {
+      console.log('Iniciando login para:', email);
       const result = await login(email, password);
+      console.log('Resultado do login:', result);
       
       if (!result.success) {
+        console.error('Login falhou:', result.message);
         setErrorMessage(result.message || "Login inválido. Tente novamente.");
         toast.error("Não foi possível fazer login", {
           description: result.message || "Login inválido. Tente novamente.",
         });
       } else {
-        // Login bem-sucedido, vamos verificar o status do usuário e redirecionar
+        console.log('Login bem-sucedido, buscando dados do usuário...');
         
         // Buscar dados do usuário após login bem-sucedido
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           const userData = await fetchUserData(session.user);
+          console.log('Dados do usuário:', userData);
+          
           if (userData) {
             const authUser = {
               id: session.user.id,
@@ -51,12 +56,14 @@ const LoginForm = () => {
               role: userData.role as 'admin' | 'teacher' | 'student',
             };
             
+            console.log('Usuário autenticado:', authUser);
             setUser(authUser);
             await checkUserStatusAndRedirect(authUser);
           }
         }
       }
     } catch (error: any) {
+      console.error('Erro no login:', error);
       setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
       toast.error("Erro de autenticação", {
         description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
@@ -68,82 +75,65 @@ const LoginForm = () => {
 
   // Função para verificar o status do usuário e redirecionar
   const checkUserStatusAndRedirect = async (user: any) => {
-    if (!user) return;
+    if (!user) {
+      console.error('Usuário não fornecido para redirecionamento');
+      return;
+    }
+    
+    console.log('Verificando status e redirecionando usuário:', user.role);
     
     try {
+      // Admin e Teacher redirecionam imediatamente
+      if (user.role === 'admin' || user.role === 'teacher') {
+        const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/teacher/dashboard';
+        
+        console.log('Redirecionando', user.role, 'para:', redirectPath);
+        
+        toast.success("Login bem-sucedido!", {
+          description: `Bem-vindo de volta, ${user.name}!`,
+        });
+        
+        navigate(redirectPath, { replace: true });
+        return;
+      }
+      
+      // Para estudantes, verificar status
       if (user.role === 'student') {
-        // Verificar o status da inscrição e pagamento para estudantes
-        const { data: applicationData, error: applicationError } = await supabase
-          .from('student_applications')
-          .select('status')
-          .eq('user_id', user.id)
-          .maybeSingle();
+        console.log('Verificando status do estudante...');
         
-        if (applicationError && applicationError.code !== 'PGRST116') {
-          // Error handling for application data
-        }
-        
-        // Se a aplicação não existe ou está pendente, redirecionar para inscrição
-        if (!applicationData || applicationData.status === 'pending') {
-          toast.info("Por favor, complete seu cadastro para continuar.");
-          navigate('/inscricao', { replace: true });
-          return;
-        }
-        
-        // Verificar se o perfil está completo
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('is_profile_complete')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (profileError && profileError.code !== 'PGRST116') {
-          // Error handling for profile data
-        }
-        
-        if (!profileData || !profileData.is_profile_complete) {
-          toast.info("Por favor, complete seu perfil para continuar.");
-          return;
-        }
-        
-        // Verificar se o usuário está ativo (pagamento concluído)
+        // Verificar se o usuário está ativo
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('is_active')
           .eq('id', user.id)
-          .maybeSingle();
+          .single();
+        
+        console.log('Status do usuário:', userData);
           
         if (userError) {
-          // Error handling for user status
+          console.error('Erro ao buscar status do usuário:', userError);
         }
         
         if (!userData?.is_active) {
-          toast.info("Por favor, Entre em contato conosco.");
-          // navigate('/checkout', { replace: true });
+          console.log('Usuário não está ativo');
+          toast.warning("Conta inativa", {
+            description: "Por favor, entre em contato conosco para ativar sua conta.",
+          });
           return;
         }
+        
+        // Usuário ativo, redirecionar para dashboard
+        console.log('Estudante ativo, redirecionando para dashboard');
+        
+        toast.success("Login bem-sucedido!", {
+          description: `Bem-vindo de volta, ${user.name}!`,
+        });
+        
+        navigate('/student/dashboard', { replace: true });
       }
-      
-      // Redirecionar com base na função do usuário
-      let redirectPath = "/";
-      
-      if (user.role === "admin") {
-        redirectPath = "/admin/dashboard";
-      } else if (user.role === "teacher") {
-        redirectPath = "/teacher/dashboard";
-      } else if (user.role === "student") {
-        redirectPath = "/student/dashboard";
-      }
-      
-      // Show success message
-      toast.success("Login bem-sucedido!", {
-        description: `Bem-vindo de volta, ${user.name}!`,
-      });
-      
-      // Navigate to dashboard
-      navigate(redirectPath, { replace: true });
       
     } catch (error) {
+      console.error('Erro ao verificar status do usuário:', error);
       toast.error("Erro ao verificar status do usuário");
     }
   };
