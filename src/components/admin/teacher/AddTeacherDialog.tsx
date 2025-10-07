@@ -82,7 +82,6 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
     setIsSubmitting(true);
     
     try {
-      // console.log("Criando professor com dados:", data);
       
       // Obter token de acesso atual
       const { data: { session } } = await supabase.auth.getSession();
@@ -112,8 +111,6 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       if (!response.ok || !result.success) {
         throw new Error(result.error || "Erro ao criar professor");
       }
-
-      // console.log("Professor criado com sucesso:", result.teacherId);
       
       toast({
         title: "Professor criado com sucesso",
@@ -124,7 +121,6 @@ const AddTeacherDialog: React.FC<AddTeacherDialogProps> = ({ onTeacherAdded }) =
       setIsOpen(false);
       onTeacherAdded();
     } catch (error: any) {
-      
       toast({
         title: "Erro ao criar professor",
         description: error.message || "Ocorreu um erro ao criar o professor.",

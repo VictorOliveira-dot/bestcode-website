@@ -31,7 +31,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   
   const handleLogout = async () => {
     try {
-      console.log('Iniciando logout do dashboard...');
       
       const result = await logout();
       
@@ -48,7 +47,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         throw new Error('Logout failed');
       }
     } catch (error) {
-      
       
       // Force logout even if there are errors
       toast({

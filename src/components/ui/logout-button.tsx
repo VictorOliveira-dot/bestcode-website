@@ -26,7 +26,6 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
     setIsLoggingOut(true);
     
     try {
-      console.log('Iniciando processo de logout...');
       
       // Clear all auth data immediately
       localStorage.clear();
@@ -44,7 +43,6 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       window.location.replace("/login");
       
     } catch (error) {
-      
       
       // Force logout even if there are errors
       localStorage.clear();

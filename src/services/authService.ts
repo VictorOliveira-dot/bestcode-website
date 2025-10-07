@@ -5,7 +5,6 @@ import { AuthUser } from "@/hooks/useAuthState";
 
 export const fetchUserData = async (authUser: User) => {
   try {
-    console.log("Buscando dados do usuário para:", authUser.email);
     
     // Buscar dados da tabela users
     const { data: userData, error: selectError } = await supabase
@@ -15,24 +14,15 @@ export const fetchUserData = async (authUser: User) => {
       .maybeSingle();
 
     if (selectError) {
-      console.error("Erro ao buscar dados do usuário:", selectError);
       return null;
     }
     
     // Se o usuário foi encontrado, retornar os dados
     if (userData) {
-      console.log("Dados do usuário encontrados:", {
-        id: userData.id,
-        email: userData.email,
-        name: userData.name,
-        role: userData.role,
-        is_active: userData.is_active
-      });
       return userData;
     }
     
     // Se não encontrou, criar novo registro
-    console.log("Usuário não encontrado na tabela users, criando registro...");
     
     const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Usuário';
     let metaRole = authUser.user_metadata?.role || 'student';
@@ -65,25 +55,20 @@ export const fetchUserData = async (authUser: User) => {
         .single();
           
       if (insertError) {
-        console.error("Erro ao criar usuário:", insertError);
         return null;
       }
       
-      console.log('Registro de usuário criado com role:', newUser.role);
       return newUser;
     } catch (error) {
-      console.error("Exceção ao criar usuário:", error);
       return null;
     }
   } catch (error) {
-    console.error("Exceção em fetchUserData:", error);
     return null;
   }
 };
 
 export const loginUser = async (email: string, password: string) => {
   try {
-    // console.log('Attempting login with:', email);
     
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -91,7 +76,6 @@ export const loginUser = async (email: string, password: string) => {
     });
 
     if (error) {
-      
       return {
         success: false,
         message: error.message
@@ -99,7 +83,6 @@ export const loginUser = async (email: string, password: string) => {
     }
 
     if (data?.user) {
-      // console.log('Login successful for:', data.user.email);
       
       // Fetch user data from database after successful login
       const userData = await fetchUserData(data.user);
@@ -126,7 +109,6 @@ export const loginUser = async (email: string, password: string) => {
       message: 'Authentication failed. Please try again.'
     };
   } catch (error: any) {
-    
     return {
       success: false,
       message: error.message || 'An error occurred during login'
@@ -136,7 +118,6 @@ export const loginUser = async (email: string, password: string) => {
 
 export const logoutUser = async () => {
   try {
-    console.log('Iniciando processo de logout...');
     
     // Clear all possible auth data immediately
     localStorage.removeItem('supabase.auth.token');
@@ -149,7 +130,6 @@ export const logoutUser = async () => {
     });
     
     if (error) {
-      
     }
     
     // Force immediate cleanup of any cached session data
@@ -160,10 +140,8 @@ export const logoutUser = async () => {
       // Ignore cleanup errors
     }
     
-    console.log('Logout realizado com sucesso');
     return { success: true };
   } catch (error) {
-    
     return { success: false };
   }
 };

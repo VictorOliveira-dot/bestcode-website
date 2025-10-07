@@ -53,7 +53,6 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
 
   const createLessonMutation = useMutation({
     mutationFn: async (lessonData: typeof formData) => {
-      console.log('Creating lesson with data:', lessonData);
       
       const { data, error } = await supabase
         .rpc('create_lesson', {
@@ -66,15 +65,12 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
         });
 
       if (error) {
-        
         throw new Error(error.message);
       }
       
-      console.log('Lesson created successfully:', data);
       return data;
     },
     onSuccess: async (lessonId) => {
-      console.log('Lesson creation successful, lesson ID:', lessonId);
       
       // Find the class name for the notification
       const selectedClass = availableClasses.find(cls => cls.id === formData.classId);
@@ -87,9 +83,7 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
             className: selectedClass.name,
             classId: formData.classId
           });
-          console.log('Notifications created successfully');
         } catch (error) {
-          
           // Don't fail the whole operation if notifications fail
         }
       }
@@ -117,7 +111,6 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
       onSuccess?.();
     },
     onError: (error: any) => {
-      
       toast({
         title: "Erro ao criar aula",
         description: error.message || "Tente novamente.",
@@ -143,7 +136,6 @@ const AddLessonForm: React.FC<AddLessonFormProps> = ({
       return;
     }
 
-    console.log('Submitting lesson form:', formData);
     createLessonMutation.mutate(formData);
   };
 

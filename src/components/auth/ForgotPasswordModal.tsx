@@ -43,7 +43,6 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
         .rpc('create_password_reset_token', { p_email: data.email });
 
       if (tokenError) {
-        console.error('RPC Error:', tokenError);
         throw new Error(tokenError.message || 'Erro ao criar token de recuperação');
       }
 
@@ -60,7 +59,6 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       });
 
       if (emailError) {
-        console.error('Email Error:', emailError);
         throw new Error('Erro ao enviar email de recuperação');
       }
 
@@ -71,7 +69,6 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       });
       
     } catch (error: any) {
-      console.error('Password reset error:', error);
       toast({
         variant: "destructive",
         title: "Erro ao enviar email",
