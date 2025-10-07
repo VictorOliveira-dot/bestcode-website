@@ -38,12 +38,20 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsSubmitting(true);
     
     try {
-      const { data: token, error: tokenError } = await supabase.rpc('create_password_reset_token', {
-        p_email: data.email
-      });
+      // Call RPC function with proper error handling
+      const { data: token, error: tokenError } = await supabase
+        .rpc('create_password_reset_token', { p_email: data.email });
 
-      if (tokenError) throw tokenError;
+      if (tokenError) {
+        console.error('RPC Error:', tokenError);
+        throw new Error(tokenError.message || 'Erro ao criar token de recuperação');
+      }
 
+      if (!token) {
+        throw new Error('Token não foi gerado');
+      }
+
+      // Send email with the token
       const { error: emailError } = await supabase.functions.invoke('send-reset-password-email', {
         body: {
           email: data.email,
@@ -51,7 +59,10 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
         }
       });
 
-      if (emailError) throw emailError;
+      if (emailError) {
+        console.error('Email Error:', emailError);
+        throw new Error('Erro ao enviar email de recuperação');
+      }
 
       setResetSent(true);
       toast({
@@ -60,12 +71,13 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       });
       
     } catch (error: any) {
+      console.error('Password reset error:', error);
       toast({
         variant: "destructive",
         title: "Erro ao enviar email",
         description: error.message === 'Email não encontrado' 
           ? "Email não encontrado no sistema." 
-          : "Não foi possível enviar o email. Tente novamente."
+          : error.message || "Não foi possível enviar o email. Tente novamente."
       });
     } finally {
       setIsSubmitting(false);

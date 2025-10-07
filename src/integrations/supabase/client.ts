@@ -13,6 +13,12 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true, // Enable auto token refresh
     detectSessionInUrl: false, // Don't detect session in URL
     flowType: 'pkce' // Use the PKCE flow for authentication
+  },
+  global: {
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`
+    }
   }
 });
 
