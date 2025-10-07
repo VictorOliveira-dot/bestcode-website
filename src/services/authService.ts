@@ -5,35 +5,33 @@ import { AuthUser } from "@/hooks/useAuthState";
 
 export const fetchUserData = async (authUser: User) => {
   try {
-    // console.log("Fetching user data from user_profiles for:", authUser.email);
+    console.log("Fetching user data for:", authUser.email);
     
-    // First, check if the user exists in the user_profiles table
+    // Buscar dados da tabela users que tem o role
     const { data: userData, error: selectError } = await supabase
-      .from('user_profiles')
+      .from('users')
       .select('*')
       .eq('id', authUser.id)
-      .maybeSingle();  // Use maybeSingle instead of single to avoid the "multiple (or no) rows returned" error
+      .maybeSingle();
 
-    if (selectError && selectError.code !== 'PGRST116') {
-      
+    if (selectError) {
+      console.error("Error fetching user data:", selectError);
       return null;
     }
     
-    // If user profile is not found, create a new user profile record
+    // If user not found in users table, create it
     if (!userData) {
-      // console.log("User profile not found, creating record for:", authUser.email);
+      console.log("User not found, creating record for:", authUser.email);
       
-      // Extract metadata from auth user or use defaults
       const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User';
-      
-      // Determine role - first try metadata, then default to student
       let metaRole = authUser.user_metadata?.role || 'student';
-      // Ensure role is one of the valid types
+      
+      // Ensure role is valid
       if (!['admin', 'teacher', 'student'].includes(metaRole)) {
         metaRole = 'student';
       }
       
-      // If email is admin@bestcode.com, set role to admin regardless of metadata
+      // Special handling for known emails
       if (authUser.email === 'admin@bestcode.com') {
         metaRole = 'admin';
       } else if (authUser.email === 'professor@bestcode.com') {
@@ -43,35 +41,35 @@ export const fetchUserData = async (authUser: User) => {
       }
       
       try {
-        // Use upsert instead of insert to avoid duplicate key errors
-        const { data: newUser, error: upsertError } = await supabase
-          .from('user_profiles')
-          .upsert({
+        const { data: newUser, error: insertError } = await supabase
+          .from('users')
+          .insert({
             id: authUser.id,
             email: authUser.email,
             name: metaName,
-            role: metaRole
+            role: metaRole,
+            is_active: metaRole !== 'student' // Admin and teacher are active by default
           })
           .select()
           .single();
             
-        if (upsertError) {
-          
+        if (insertError) {
+          console.error("Error creating user:", insertError);
           return null;
         }
         
-        // console.log('Created/updated user profile record with role:', newUser.role);
-        return { ...newUser, is_active: metaRole !== 'student' };
+        console.log('Created user record with role:', newUser.role);
+        return newUser;
       } catch (error) {
-        
+        console.error("Exception creating user:", error);
         return null;
       }
     }
 
-    // console.log("Found user profile data with role:", userData.role);
-    return { ...userData, is_active: userData.role !== 'student' };
+    console.log("Found user data with role:", userData.role);
+    return userData;
   } catch (error) {
-    
+    console.error("Exception in fetchUserData:", error);
     return null;
   }
 };
