@@ -23,7 +23,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Enviando email de recuperação para:', email);
 
-    const resetUrl = `${Deno.env.get("SITE_URL") || "https://bestcode.lovable.app"}/reset-password?token=${token}`;
+    // Use the production domain from environment variable or fallback
+    const baseUrl = Deno.env.get("SITE_URL") || "https://bestcodeacademy.com.br";
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+    
+    console.log('Reset URL gerada:', resetUrl);
 
     const emailResponse = await resend.emails.send({
       from: "BestCode <onboarding@resend.dev>",
