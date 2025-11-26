@@ -637,10 +637,7 @@ export type Database = {
       }
     }
     Functions: {
-      activate_student_account: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      activate_student_account: { Args: { user_id: string }; Returns: boolean }
       admin_create_class: {
         Args: {
           p_description: string
@@ -662,12 +659,9 @@ export type Database = {
         Args: { p_student_id: string }
         Returns: undefined
       }
-      admin_get_active_students_count: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      admin_get_active_students_count: { Args: never; Returns: number }
       admin_get_all_classes: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           class_id: string
           class_name: string
@@ -676,7 +670,7 @@ export type Database = {
         }[]
       }
       admin_get_courses: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           class_id: string
           description: string
@@ -688,7 +682,7 @@ export type Database = {
         }[]
       }
       admin_get_dashboard_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           active_students_last_week: number
           average_completion_rate: number
@@ -706,7 +700,7 @@ export type Database = {
         }[]
       }
       admin_get_payments: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           amount: number
           course_name: string
@@ -759,7 +753,7 @@ export type Database = {
         }[]
       }
       admin_get_students_data: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           classes_count: number
           created_at: string
@@ -783,7 +777,7 @@ export type Database = {
         }[]
       }
       admin_get_teachers: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           classes_count: number
           created_at: string
@@ -821,22 +815,13 @@ export type Database = {
         Args: { p_is_active: boolean; p_student_id: string }
         Returns: undefined
       }
-      can_access_class: {
-        Args: { class_id: string }
-        Returns: boolean
-      }
+      can_access_class: { Args: { class_id: string }; Returns: boolean }
       check_class_has_students: {
         Args: { p_class_id: string }
         Returns: boolean
       }
-      check_user_exists: {
-        Args: { p_email: string }
-        Returns: boolean
-      }
-      cleanup_expired_password_tokens: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      check_user_exists: { Args: { p_email: string }; Returns: boolean }
+      cleanup_expired_password_tokens: { Args: never; Returns: undefined }
       create_class: {
         Args: {
           p_description: string
@@ -879,10 +864,7 @@ export type Database = {
         Args: { p_description: string; p_name: string; p_start_date: string }
         Returns: string
       }
-      create_test_users: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      create_test_users: { Args: never; Returns: undefined }
       delete_class: {
         Args: { p_class_id: string; p_teacher_id: string }
         Returns: undefined
@@ -900,7 +882,7 @@ export type Database = {
         Returns: undefined
       }
       get_all_classes_for_teachers: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           description: string
           id: string
@@ -913,7 +895,7 @@ export type Database = {
         }[]
       }
       get_all_students_for_teachers: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -934,7 +916,7 @@ export type Database = {
         }[]
       }
       get_my_class_enrollments: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           class_id: string
           class_name: string
@@ -952,7 +934,7 @@ export type Database = {
         }[]
       }
       get_student_enrollments: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           class_description: string
           class_id: string
@@ -989,7 +971,7 @@ export type Database = {
         }[]
       }
       get_student_lessons_brazil_timezone: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           class_id: string
           class_name: string
@@ -1012,16 +994,27 @@ export type Database = {
           title: string
         }[]
       }
-      get_student_progress: {
-        Args: Record<PropertyKey, never> | { student_id: string }
-        Returns: {
-          last_watched: string
-          lesson_id: string
-          progress: number
-          status: string
-          watch_time_minutes: number
-        }[]
-      }
+      get_student_progress:
+        | {
+            Args: { student_id: string }
+            Returns: {
+              last_watched: string
+              lesson_id: string
+              progress: number
+              status: string
+              watch_time_minutes: number
+            }[]
+          }
+        | {
+            Args: never
+            Returns: {
+              last_watched: string
+              lesson_id: string
+              progress: number
+              status: string
+              watch_time_minutes: number
+            }[]
+          }
       get_teacher_classes: {
         Args: { p_teacher_id: string }
         Returns: {
@@ -1091,34 +1084,19 @@ export type Database = {
           student_id: string
         }[]
       }
-      get_user_role: {
-        Args: { user_id: string }
-        Returns: string
-      }
-      get_user_role_for_policy: {
-        Args: { user_id: string }
-        Returns: string
-      }
-      get_user_role_safe: {
-        Args: { user_id: string }
-        Returns: string
-      }
+      get_user_role: { Args: { user_id: string }; Returns: string }
+      get_user_role_for_policy: { Args: { user_id: string }; Returns: string }
+      get_user_role_safe: { Args: { user_id: string }; Returns: string }
       mark_notification_as_read: {
         Args: { p_notification_id: string }
         Returns: boolean
       }
-      reset_password_send_email: {
-        Args: { p_email: string }
-        Returns: boolean
-      }
+      reset_password_send_email: { Args: { p_email: string }; Returns: boolean }
       reset_password_with_token: {
         Args: { p_new_password: string; p_token: string }
         Returns: boolean
       }
-      reset_test_users: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      reset_test_users: { Args: never; Returns: undefined }
       send_notification_to_all_classes: {
         Args: { p_message: string; p_sender_id: string; p_title: string }
         Returns: undefined
@@ -1183,14 +1161,8 @@ export type Database = {
         }
         Returns: undefined
       }
-      user_can_access_class: {
-        Args: { class_id: string }
-        Returns: boolean
-      }
-      validate_cpf: {
-        Args: { p_cpf: string }
-        Returns: boolean
-      }
+      user_can_access_class: { Args: { class_id: string }; Returns: boolean }
+      validate_cpf: { Args: { p_cpf: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
