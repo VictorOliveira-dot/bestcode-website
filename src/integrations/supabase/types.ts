@@ -907,12 +907,8 @@ export type Database = {
         Returns: {
           description: string
           id: string
-          is_active: boolean
           name: string
           start_date: string
-          students_count: number
-          teacher_id: string
-          teacher_name: string
         }[]
       }
       get_all_students_for_teachers: {
@@ -1086,11 +1082,10 @@ export type Database = {
         Returns: {
           class_name: string
           completed_lessons: number
-          email: string
-          id: string
-          last_activity: string
-          name: string
-          progress: number
+          progress_percentage: number
+          student_email: string
+          student_id: string
+          student_name: string
           total_lessons: number
         }[]
       }
