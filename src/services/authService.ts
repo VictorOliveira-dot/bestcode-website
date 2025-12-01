@@ -6,10 +6,16 @@ import { AuthUser } from "@/hooks/useAuthState";
 export const fetchUserData = async (authUser: User) => {
   try {
     
-    // Buscar dados da tabela users
+    // Buscar dados da tabela users e role da user_roles
     const { data: userData, error: selectError } = await supabase
       .from('users')
-      .select('id, email, name, role, is_active')
+      .select(`
+        id, 
+        email, 
+        name, 
+        is_active,
+        user_roles (role)
+      `)
       .eq('id', authUser.id)
       .maybeSingle();
 
@@ -19,7 +25,11 @@ export const fetchUserData = async (authUser: User) => {
     
     // Se o usuário foi encontrado, retornar os dados
     if (userData) {
-      return userData;
+      const role = (userData.user_roles as any)?.[0]?.role || 'student';
+      return {
+        ...userData,
+        role
+      };
     }
     
     // Se não encontrou, criar novo registro
@@ -42,23 +52,38 @@ export const fetchUserData = async (authUser: User) => {
     }
     
     try {
+      // Inserir usuário na tabela users (sem role)
       const { data: newUser, error: insertError } = await supabase
         .from('users')
         .insert({
           id: authUser.id,
           email: authUser.email,
           name: metaName,
-          role: metaRole,
           is_active: metaRole !== 'student'
         })
-        .select('id, email, name, role, is_active')
+        .select('id, email, name, is_active')
         .single();
           
       if (insertError) {
         return null;
       }
       
-      return newUser;
+      // Inserir role na tabela user_roles
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: authUser.id,
+          role: metaRole
+        });
+      
+      if (roleError) {
+        return null;
+      }
+      
+      return {
+        ...newUser,
+        role: metaRole
+      };
     } catch (error) {
       return null;
     }
