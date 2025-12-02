@@ -6,16 +6,10 @@ import { AuthUser } from "@/hooks/useAuthState";
 export const fetchUserData = async (authUser: User) => {
   try {
     
-    // Buscar dados da tabela users e role da user_roles
+    // Buscar dados da tabela users
     const { data: userData, error: selectError } = await supabase
       .from('users')
-      .select(`
-        id, 
-        email, 
-        name, 
-        is_active,
-        user_roles (role)
-      `)
+      .select('id, email, name, is_active')
       .eq('id', authUser.id)
       .maybeSingle();
 
@@ -23,9 +17,17 @@ export const fetchUserData = async (authUser: User) => {
       return null;
     }
     
-    // Se o usuário foi encontrado, retornar os dados
+    // Se o usuário foi encontrado, buscar a role separadamente
     if (userData) {
-      const role = (userData.user_roles as any)?.[0]?.role || 'student';
+      // Buscar role da tabela user_roles
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authUser.id)
+        .maybeSingle();
+      
+      const role = roleData?.role || 'student';
+      
       return {
         ...userData,
         role
