@@ -1,90 +1,67 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { AuthUser } from "@/hooks/useAuthState";
 
+// Serviço de autenticação e sincronização de dados de usuário
+
 export const fetchUserData = async (authUser: User) => {
   try {
-    
-    // Buscar dados da tabela users
+    // 1) Buscar dados básicos da tabela users
     const { data: userData, error: selectError } = await supabase
-      .from('users')
-      .select('id, email, name, is_active')
-      .eq('id', authUser.id)
+      .from("users")
+      .select("id, email, name, is_active")
+      .eq("id", authUser.id)
       .maybeSingle();
 
     if (selectError) {
       return null;
     }
-    
-    // Se o usuário foi encontrado, buscar a role separadamente
+
+    // 2) Se o usuário já existe na tabela users, buscar a role na user_roles
     if (userData) {
-      // Buscar role da tabela user_roles
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', authUser.id)
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", authUser.id)
         .maybeSingle();
-      
-      const role = roleData?.role || 'student';
-      
+
+      const role = (roleData as any)?.role || "student";
+
       return {
         ...userData,
-        role
+        role,
       };
     }
-    
-    // Se não encontrou, criar novo registro
-    
-    const metaName = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Usuário';
-    let metaRole = authUser.user_metadata?.role || 'student';
-    
-    // Validar role
-    if (!['admin', 'teacher', 'student'].includes(metaRole)) {
-      metaRole = 'student';
-    }
-    
-    // Tratamento especial para emails conhecidos
-    if (authUser.email === 'admin@bestcode.com' || authUser.email === 'contato@bestcode.com.br') {
-      metaRole = 'admin';
-    } else if (authUser.email === 'professor@bestcode.com') {
-      metaRole = 'teacher';
-    } else if (authUser.email === 'aluno@bestcode.com' || authUser.email === 'adrianarvargas.av@gmail.com') {
-      metaRole = 'student';
-    }
-    
+
+    // 3) Se não encontrou, criar novo registro apenas em users
+    const metaName =
+      authUser.user_metadata?.name ||
+      authUser.email?.split("@")[0] ||
+      "Usuário";
+
     try {
-      // Inserir usuário na tabela users (sem role)
       const { data: newUser, error: insertError } = await supabase
-        .from('users')
+        .from("users")
         .insert({
           id: authUser.id,
           email: authUser.email,
           name: metaName,
-          is_active: metaRole !== 'student'
+          // Novos usuários começam como inativos por padrão;
+          // a ativação é feita via fluxos administrativos.
+          is_active: false,
         })
-        .select('id, email, name, is_active')
-        .single();
-          
-      if (insertError) {
+        .select("id, email, name, is_active")
+        .maybeSingle();
+
+      if (insertError || !newUser) {
         return null;
       }
-      
-      // Inserir role na tabela user_roles
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authUser.id,
-          role: metaRole
-        });
-      
-      if (roleError) {
-        return null;
-      }
-      
+
+      // A role com privilégios (admin/teacher) deve ser atribuída
+      // apenas via fluxos seguros no backend (user_roles).
       return {
         ...newUser,
-        role: metaRole
+        role: "student",
       };
     } catch (error) {
       return null;
@@ -94,134 +71,137 @@ export const fetchUserData = async (authUser: User) => {
   }
 };
 
-export const loginUser = async (email: string, password: string) => {
+export const loginUser = async (
+  email: string,
+  password: string
+): Promise<{ success: boolean; message?: string; user?: AuthUser }> => {
   try {
-    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
 
     if (error) {
       return {
         success: false,
-        message: error.message
+        message: error.message,
       };
     }
 
     if (data?.user) {
-      
-      // Fetch user data from database after successful login
+      // Buscar dados estendidos do usuário após login
       const userData = await fetchUserData(data.user);
-      
-      if (userData) {
-        // Return the complete user data with the success message
-        return { 
-          success: true, 
-          user: {
-            id: data.user.id,
-            email: data.user.email || '',
-            name: userData.name,
-            role: userData.role as 'admin' | 'teacher' | 'student',
-            is_active: userData.is_active,
-          }
+
+      if (!userData) {
+        return {
+          success: false,
+          message:
+            "Não foi possível carregar os dados do usuário. Tente novamente.",
         };
       }
-      
-      return { success: true };
+
+      return {
+        success: true,
+        user: {
+          id: data.user.id,
+          email: data.user.email || "",
+          name: userData.name,
+          role: userData.role as "admin" | "teacher" | "student",
+          is_active: userData.is_active,
+        },
+      };
     }
 
     return {
       success: false,
-      message: 'Authentication failed. Please try again.'
+      message: "Authentication failed. Please try again.",
     };
   } catch (error: any) {
     return {
       success: false,
-      message: error.message || 'An error occurred during login'
+      message: error.message || "An error occurred during login",
     };
   }
 };
 
 export const logoutUser = async () => {
   try {
-    
-    // Clear all possible auth data immediately
-    localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('sb-jqnarznabyiyngcdqcff-auth-token');
+    // Limpar dados locais de autenticação imediatamente
+    localStorage.removeItem("supabase.auth.token");
+    localStorage.removeItem("sb-jqnarznabyiyngcdqcff-auth-token");
     sessionStorage.clear();
-    
-    // Use global scope to ensure all sessions are terminated
+
+    // Encerrar sessão global no Supabase
     const { error } = await supabase.auth.signOut({
-      scope: 'global'
+      scope: "global",
     });
-    
+
     if (error) {
+      // Silenciar erro, pois o estado local já foi limpo
     }
-    
-    // Force immediate cleanup of any cached session data
+
+    // Best-effort de limpeza adicional (mantido por compatibilidade)
     try {
-      // Clear any cached session data from the client
       supabase.auth.admin?.deleteUser;
     } catch (e) {
-      // Ignore cleanup errors
+      // Ignorar erros de limpeza
     }
-    
+
     return { success: true };
   } catch (error) {
     return { success: false };
   }
 };
 
-export const registerUser = async (data: { 
-  email: string; 
-  password: string; 
-  name: string; 
-  role: string; 
+export const registerUser = async (data: {
+  email: string;
+  password: string;
+  name: string;
+  role: string;
 }) => {
   try {
-    // First check if user already exists to avoid duplicate key errors
-    const { data: existingUser, error: checkError } = await supabase
-      .from('user_profiles')
-      .select('email')
-      .eq('email', data.email)
+    // Verificar se já existe perfil com este e-mail
+    const { data: existingUser } = await supabase
+      .from("user_profiles")
+      .select("email")
+      .eq("email", data.email)
       .maybeSingle();
 
     if (existingUser) {
       return {
         success: false,
-        message: 'Este email já está em uso'
+        message: "Este email já está em uso",
       };
     }
 
-    // Directly sign up the user with Supabase auth
+    // Registrar usuário no Supabase Auth
     const authResponse = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
         data: {
           name: data.name,
-          role: data.role
-        }
-      }
+          role: data.role,
+        },
+      },
     });
 
     if (authResponse.error) {
       return {
         success: false,
-        message: authResponse.error.message
+        message: authResponse.error.message,
       };
     }
 
-    return { 
+    return {
       success: true,
-      message: 'Registration successful',
-      user: authResponse.data.user
+      message: "Registration successful",
+      user: authResponse.data.user,
     };
   } catch (error: any) {
     return {
       success: false,
-      message: error.message || 'An error occurred during registration'
+      message: error.message || "An error occurred during registration",
     };
   }
 };

@@ -10,7 +10,6 @@ import LoginFormActions from "./LoginFormActions";
 import { useAuth } from "@/contexts/auth";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchUserData } from "@/services/authService";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -37,28 +36,25 @@ const LoginForm = () => {
           description: result.message || "Login inválido. Tente novamente.",
         });
       } else {
-        
-        // Buscar dados do usuário após login bem-sucedido
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const userData = await fetchUserData(session.user);
-          
-          if (userData) {
-            const authUser = {
-              id: session.user.id,
-              email: session.user.email || '',
-              name: userData.name,
-              role: userData.role as 'admin' | 'teacher' | 'student',
-            };
-            setUser(authUser);
-            await checkUserStatusAndRedirect(authUser);
-          }
+        if (result.user) {
+          setUser(result.user);
+          await checkUserStatusAndRedirect(result.user);
+        } else {
+          const fallbackMessage =
+            "Erro ao carregar dados do usuário. Tente novamente.";
+          setErrorMessage(fallbackMessage);
+          toast.error("Erro de autenticação", {
+            description: fallbackMessage,
+          });
         }
       }
     } catch (error: any) {
-      setErrorMessage(error.message || "Ocorreu um erro durante o login. Tente novamente.");
+      setErrorMessage(
+        error.message || "Ocorreu um erro durante o login. Tente novamente."
+      );
       toast.error("Erro de autenticação", {
-        description: error.message || "Ocorreu um erro durante o login. Tente novamente.",
+        description:
+          error.message || "Ocorreu um erro durante o login. Tente novamente.",
       });
     } finally {
       setIsLoading(false);
