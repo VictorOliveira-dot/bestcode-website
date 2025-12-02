@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          id: string
+          ip_address: unknown
+          record_id: string | null
+          table_name: string
+          timestamp: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          id?: string
+          ip_address?: unknown
+          record_id?: string | null
+          table_name: string
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          id?: string
+          ip_address?: unknown
+          record_id?: string | null
+          table_name?: string
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       classes: {
         Row: {
           created_at: string
@@ -781,6 +814,32 @@ export type Database = {
           whatsapp: string
         }[]
       }
+      admin_get_student_details_secure: {
+        Args: { p_student_id: string }
+        Returns: {
+          address: string
+          birth_date: string
+          cpf_masked: string
+          created_at: string
+          current_classes: Json
+          education: string
+          email: string
+          experience_level: string
+          first_name: string
+          goals: string
+          is_profile_complete: boolean
+          last_active: string
+          last_name: string
+          name: string
+          phone: string
+          professional_area: string
+          progress_average: number
+          study_availability: string
+          subscription_plan: string
+          user_id: string
+          whatsapp: string
+        }[]
+      }
       admin_get_students_data: {
         Args: never
         Returns: {
@@ -1123,6 +1182,7 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: boolean
       }
+      mask_cpf: { Args: { cpf: string; user_id: string }; Returns: string }
       reset_password_send_email: { Args: { p_email: string }; Returns: boolean }
       reset_password_with_token: {
         Args: { p_new_password: string; p_token: string }
