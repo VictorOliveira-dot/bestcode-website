@@ -659,6 +659,10 @@ export type Database = {
     }
     Functions: {
       activate_student_account: { Args: { user_id: string }; Returns: boolean }
+      admin_create_admin: {
+        Args: { p_email: string; p_name: string; p_password: string }
+        Returns: string
+      }
       admin_create_class: {
         Args: {
           p_description: string
@@ -669,6 +673,10 @@ export type Database = {
         Returns: string
       }
       admin_create_professor: {
+        Args: { p_email: string; p_name: string; p_password: string }
+        Returns: string
+      }
+      admin_create_student: {
         Args: { p_email: string; p_name: string; p_password: string }
         Returns: string
       }
